@@ -1,11 +1,12 @@
-const nodemailer =require('nodemailer');
+const express = require('express');
+const app = express();
 require('dotenv').config();
-const emailService = require('./services/emailServices');
+// const connectDB = require('./db');
 
+// connectDB();
 
+const graphqlHandler = require('./graphql');
+app.use('/graphql', graphqlHandler);
 
-//test sending email
-const toEmail = 'fechuwa@gmail.com';
-const subject = 'Test 1';
-const html = '<h1>Hi how are you</h1>';
-emailService.sendEmail(toEmail,subject,html);
+app.listen({ port: process.env.PORT });
+console.log(`Listening to port ${process.env.PORT}`);
