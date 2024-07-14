@@ -9,11 +9,14 @@
     "client": "cd client && npm run dev",
     "quick-install": "npm install && npm run client-install && npm run server-install",
     "client-install": "cd client && npm install",
-    "server-install": "cd server && npm install" 
+    "server-install": "cd server && npm install"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "aws-sdk": "^2.1659.0",
+    "concurrently": "^8.2.2",
+    "graphql-upload": "^16.0.2",
+    "uuid": "^10.0.0"
   }
 }

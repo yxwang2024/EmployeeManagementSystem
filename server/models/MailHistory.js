@@ -26,3 +26,7 @@ const mailHistorySchema = new Schema({
     required: true,
   },
 });
+
+const MailHistory = mongoose.model("MailHistory", mailHistorySchema);
+
+module.exports = MailHistory;
