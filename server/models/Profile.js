@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const profileSchema = new mongoose.Schema({
+    employeeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee',
+        required: true,
+        unique: true
+    },
     name: {
         firstName: {
             type: String,
@@ -88,29 +94,8 @@ const profileSchema = new mongoose.Schema({
         ref: 'Reference'
     },
     emergencyContacts: [{
-        firstName: {
-            type: String,
-            required: true
-        },
-        lastName: {
-            type: String,
-            required: true
-        },
-        middleName: {
-            type: String
-        },
-        phone: {
-            type: String,
-            required: true
-        },
-        email: {
-            type: String,
-            required: true
-        },
-        relationship: {
-            type: String,
-            required: true
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'EmergencyContacts'
     }],
     documents: {
         type: mongoose.Schema.Types.ObjectId,
