@@ -1,16 +1,19 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-const { mergeResolvers } = require('@graphql-tools/merge');
+const { makeExecutableSchema } = require('graphql-tools')
+const merge = require('lodash.merge');
 
 const employeeSchema = require('./employee')
+const profileSchema = require('./profile')
 
-// Multiple files to keep your project modularised
 const schema = makeExecutableSchema({
     typeDefs: [
-        employeeSchema.typeDefs // First defines the type Query
+        employeeSchema.typeDefs, 
+        profileSchema.typeDefs
     ],
-    resolvers: mergeResolvers(
-        employeeSchema.resolvers
+    resolvers: merge(
+        employeeSchema.resolvers,
+        profileSchema.resolvers
     )
 })
+
 
 module.exports = schema

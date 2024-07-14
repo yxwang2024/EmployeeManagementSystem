@@ -11,8 +11,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@graphql-tools/merge": "^9.0.4",
-    "@graphql-tools/schema": "^10.0.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -21,11 +19,13 @@
     "express-graphql": "^0.12.0",
     "graphql": "^16.9.0",
     "graphql-tag": "^2.12.6",
-    "joi": "^17.13.1",
+    "graphql-tools": "^9.0.1",
+    "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.7.0",
-    "mongoose": "^8.5.0",
+    "lodash": "^4.17.21",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.1",
     "nodemailer": "^6.9.14",
-    "nodemon": "^3.1.3"
+    "nodemon": "^3.1.4"
   }
 }

@@ -10,3 +10,6 @@ mongoose.connect(process.env.MONGODB_URI, {
 });
 
 module.exports.Employee = require('./Employee');
+module.exports.Profile = require('./Profile');
+module.exports.OnboardingApplication = require('./OnboardingApplication');
+module.exports.VisaStatus = require('./VisaStatus');

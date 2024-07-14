@@ -1,20 +1,12 @@
 const mongoose = require('mongoose');
 
 const profileSchema = new mongoose.Schema({
-    employeeId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Employee',
-        required: true,
-        unique: true
-    },
     name: {
         firstName: {
             type: String,
-            required: true
         },
         lastName: {
             type: String,
-            required: true
         },
         middleName: {
             type: String
@@ -35,43 +27,35 @@ const profileSchema = new mongoose.Schema({
     identity: {
         ssn: {
             type: String,
-            required: true
         },
         dob: {
             type: Date,
-            required: true
         },
         gender: {
             type: String,
-            required: true
         }
     },
     currentAddress: {
-        buildingApt: {
-            type: String,
-            required: true
-        },
         street: {
             type: String,
-            required: true
+        },
+        building: {
+            type: String,
         },
         city: {
             type: String,
-            required: true
+
         },
         state: {
             type: String,
-            required: true
         },
         zip: {
             type: String,
-            required: true
         }
     },
     contactInfo: {
         cellPhone: {
             type: String,
-            required: true
         },
         workPhone: {
             type: String
@@ -79,14 +63,13 @@ const profileSchema = new mongoose.Schema({
     },
     employment: {
         visaTitle: {
-            type: String
+            type: String,
         },
         startDate: {
             type: Date,
-            required: true
         },
         endDate: {
-            type: Date
+            type: Date,
         }
     },
     reference: {
