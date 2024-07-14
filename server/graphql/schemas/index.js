@@ -1,18 +1,18 @@
 // TODO: npm install graphql-tag @apollo/subgraph @apollo/server 
 // use apollo instead of express
+const { buildSchema } = require('graphql');
+const documentSchema = require('./document')
+const mailHistorySchema = require('./mailHistory');
+const visaStatusSchema = require('./visaStatus');
 
-import { buildSchema } from 'graphql';
-import documentSchema from './documents';
-import mailHistorySchema from './mailHistory';
-import visaStatusSchema from './visaStatus';
 
 const linkSchema = `#graphql
   type Query {
-    _: Boolean
+    test: String
   }
 
   type Mutation {
-    _: Boolean
+    testMutation: String
   }
 
   
@@ -29,4 +29,4 @@ const schema = buildSchema(`
   ${visaStatusSchema}
 `);
 
-export default schema;
+module.exports = schema;

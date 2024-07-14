@@ -17,7 +17,6 @@ const documentSchema = `#graphql
 
   extend type Query {
     getAllDocuments: [Document]
-    getDocuments(userId: ID!): [Document]
     getDocument(id: ID!): Document
   }
 
@@ -27,4 +26,4 @@ const documentSchema = `#graphql
   }
 `;
 
-export default documentSchema;
+module.exports = documentSchema;

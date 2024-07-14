@@ -1,19 +1,18 @@
-const mailHistorySchema = `
+const mailHistorySchema = `#graphql
   type MailHistory {
     _id: ID!
     email: String!
     registrationToken: String!
     expiration: String!
     name: String!
-    onboardingApp: OnboardingApp!
+    status: String!
+    # onboardingApp: OnboardingApp!
   }
 
   input MailHistoryInput {
     email: String!
-    registrationToken: String!
-    expiration: String!
     name: String!
-    onboardingApp: ID!
+    # onboardingApp: ID!
   }
 
   extend type Query {
@@ -23,8 +22,9 @@ const mailHistorySchema = `
 
   extend type Mutation {
     createMailHistory(mailHistoryInput: MailHistoryInput): MailHistory
+    updateMailHistory(id: ID!, status: String!): MailHistory
     deleteMailHistory(id: ID!): MailHistory
   }
 `;
 
-export default mailHistorySchema;
+module.exports = mailHistorySchema;

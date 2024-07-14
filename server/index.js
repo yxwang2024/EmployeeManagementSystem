@@ -10,9 +10,14 @@
 // const html = '<h1>Hi how are you</h1>';
 // emailService.sendEmail(toEmail,subject,html);
 
-require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
+const { graphqlHTTP } = require('express-graphql');
+const schema = require('./graphql/schemas');
+const resolvers = require('./graphql/resolvers');
+require('dotenv').config();
+const { makeExecutableSchema } = require('@graphql-tools/schema')
 
 const connectDB = require('./db');
 
@@ -23,9 +28,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+const graphql = graphqlHTTP({
+  schema: makeExecutableSchema({
+    typeDefs: schema,
+    resolvers,
+  }),
+  graphiql: true,
 });
+
+app.use('/graphql', graphql);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

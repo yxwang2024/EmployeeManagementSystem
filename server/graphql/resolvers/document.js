@@ -1,7 +1,6 @@
-import Document from '../../models/Document';
-import AWS from 'aws-sdk';
-require('dotenv').config();
-import { v4 as uuidv4 } from 'uuid';
+const Document = require('../../models/Document');
+const AWS = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -11,22 +10,23 @@ const s3 = new AWS.S3({
 
 const documentResolvers = {
   Query: {
-    documents: async () => {
+    getAllDocuments: async () => {
       try {
+        console.log("get all documents");
         const documents = await Document.find();
         return documents;
       } catch (err) {
         throw new Error(err);
       }
     },
-    document: async (_, { id }) => {
+    getDocument: async (_, { id }) => {
       try {
         const document = await Document.findById(id);
         return document;
       } catch (err) {
         throw new Error(err);
       }
-    }
+    },
   },
   Mutation: {
     createDocument: async (_, { input: { title, file } }) => {
@@ -69,3 +69,5 @@ const documentResolvers = {
     }
   }
 };
+
+module.exports = documentResolvers;

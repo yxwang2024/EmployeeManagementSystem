@@ -9,7 +9,7 @@ const visaStatusSchema = new Schema({
   },
   step: {
     type: String,
-    enum: ["OPT Receipt", "OPT EAD", "i983", "I20" ],
+    enum: ["registration", "OPT Receipt", "OPT EAD", "i983", "I20" ],
     required: true,
   },
   status: {

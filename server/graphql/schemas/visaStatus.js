@@ -1,7 +1,7 @@
-const visaStatusSchema = `
+const visaStatusSchema = `#graphql
   type VisaStatus {
     _id: ID!
-    employee: Employee!
+    # employee: Employee!
     step: String!
     status: String!
     hrFeedback: String
@@ -22,7 +22,7 @@ const visaStatusSchema = `
   }
 
   input VisaStatusInput {
-    employee: ID!
+    # employee: ID!
     step: String!
     status: String!
     hrFeedback: String
@@ -38,14 +38,19 @@ const visaStatusSchema = `
   extend type Mutation {
     createVisaStatus(visaStatusInput: VisaStatusInput): VisaStatus
     updateVisaStatus(id: ID!, visaStatusInput: VisaStatusInput): VisaStatus
+    approveVisaStatus(id: ID!): VisaStatus
+    moveToNextStep(id: ID!): VisaStatus
+    rejectVisaStatus(id: ID!, hrFeedback: String!): VisaStatus
+    addDocument(id: ID!, documentId: ID!): VisaStatus
+    reUploadDocument(id: ID!, documentId: ID!): VisaStatus
     deleteVisaStatus(id: ID!): VisaStatus
   }
   
-  extend type Subscription {
-    visaStatusAdded: VisaStatus
-    visaStatusUpdated: VisaStatus
-    visaStatusDeleted: VisaStatus
-  }
+  # extend type Subscription {
+  #   visaStatusAdded: VisaStatus
+  #   visaStatusUpdated: VisaStatus
+  #   visaStatusDeleted: VisaStatus
+  # }
 `;
 
-export default visaStatusSchema;
+module.exports = visaStatusSchema;
