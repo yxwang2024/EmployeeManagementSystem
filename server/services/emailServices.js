@@ -20,3 +20,13 @@ function sendEmail(toEmail,subject,html) {
 }
 
 module.exports = { sendEmail };
+
+
+
+// //test sending email
+// const emailService = require('./services/emailServices');
+
+// const toEmail = 'fechuwa@gmail.com';
+// const subject = 'Test 1';
+// const html = '<h1>Hi how are you</h1>';
+// emailService.sendEmail(toEmail,subject,html);
