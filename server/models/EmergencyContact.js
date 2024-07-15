@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+const Schema = mongoose.Schema;
 
-const emergencyContactSchema = new mongoose.Schema({
+const emergencyContactSchema = new Schema({
     firstName: {
         type: String,
         required: true
@@ -28,4 +29,4 @@ const emergencyContactSchema = new mongoose.Schema({
 
 const EmergencyContact = mongoose.model('EmergencyContact', emergencyContactSchema);
 
-module.exports = EmergencyContact;
+export default EmergencyContact;

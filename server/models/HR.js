@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+const Schema = mongoose.Schema;
 
-const hrSchema = new mongoose.Schema({
+const hrSchema = new Schema({
     username: {
         type: String,
         required: true,
@@ -24,4 +25,4 @@ const hrSchema = new mongoose.Schema({
 
 const HR = mongoose.model('HR', hrSchema);
 
-module.exports = HR;
+export default HR;
