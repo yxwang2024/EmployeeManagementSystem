@@ -1,6 +1,6 @@
-const MailHistory = require('../../models/MailHistory');
-const { generateToken } = require('../../services/registrationToken');
-const { sendEmail } = require('../../services/emailServices');
+import MailHistory from '../../models/MailHistory.js';
+import { generateToken } from '../../services/registrationToken.js';
+import { sendEmail } from '../../services/emailServices.js';
 
 const mailHistoryResolvers = {
   Query: {
@@ -14,6 +14,7 @@ const mailHistoryResolvers = {
     },
     getMailHistory: async (_, { id }) => {
       try {
+        console.log(id);
         const mailHistory = await MailHistory.findById(id);
         return mailHistory;
       } catch (err) {
@@ -31,18 +32,28 @@ const mailHistoryResolvers = {
           name,
         } = mailHistoryInput;
         console.log(hrId, email, name);
-        // check if there is an existing mail history
+        // check if there is an existing mail history, if expired, reset the token, if used, throw error
         const existingMailHistory = await MailHistory.findOne
         ({
           email,
-          status: "pending",
+          status: "expired",
         });
+        const existingMailHistoryUsed = await MailHistory.findOne
+        ({
+          email,
+          status: "completed",
+        });
+        if (existingMailHistoryUsed) {
+          throw new Error("Email already used");
+        }
         const registrationToken = await generateToken(hrId, email, name);
         if (existingMailHistory) {
+          existingMailHistory.name = name;
+          existingMailHistory.status = "pending";
           existingMailHistory.registrationToken = registrationToken;
           existingMailHistory.expiration = Date.now() + 3 * 60 * 60 * 1000;
           await existingMailHistory.save();
-          const subject = "Registration Token";
+          const subject = "Registration Token Reset";
           const html = `<p>Hi ${name},</p><p>Here is your registration token: ${registrationToken}</p>`;
           await sendEmail(email, subject, html);
           console.log(subject, html);
@@ -83,4 +94,4 @@ const mailHistoryResolvers = {
   },
 };
 
-module.exports = mailHistoryResolvers;
+export default mailHistoryResolvers;

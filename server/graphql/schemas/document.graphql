@@ -1,4 +1,3 @@
-const documentSchema = `#graphql
   type Document {
     _id: ID!
     title: String!
@@ -22,8 +21,5 @@ const documentSchema = `#graphql
 
   extend type Mutation {
     createDocument(input: DocumentInput!): Document
-    deleteDocument(id: ID!): Document
+    deleteDocument(id: ID!): String
   }
-`;
-
-module.exports = documentSchema;

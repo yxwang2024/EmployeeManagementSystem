@@ -1,21 +1,22 @@
-const mongoose = require("mongoose");
+// const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const visaStatusSchema = new Schema({
-  employee: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Employee",
-    required: true,
-  },
+  // employee: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Employee",
+  //   required: true,
+  // },
   step: {
     type: String,
     enum: ["registration", "OPT Receipt", "OPT EAD", "i983", "I20" ],
-    required: true,
+    default: "registration",
   },
   status: {
     type: String,
     enum: ["Pending", "Reviewing", "Approved", "Rejected"],
-    required: true,
+    default: "Pending",
   },
   hrFeedback: {
     type: String,
@@ -45,4 +46,4 @@ const visaStatusSchema = new Schema({
 
 const VisaStatus = mongoose.model("VisaStatus", visaStatusSchema);
 
-module.exports = VisaStatus;
+export default VisaStatus;

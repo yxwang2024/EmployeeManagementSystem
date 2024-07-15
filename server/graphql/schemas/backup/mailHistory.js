@@ -1,4 +1,4 @@
-const mailHistorySchema = `#graphql
+const mailHistorySchema = /* GraphQL */`
   type MailHistory {
     _id: ID!
     email: String!
@@ -27,4 +27,4 @@ const mailHistorySchema = `#graphql
   }
 `;
 
-module.exports = mailHistorySchema;
+export default mailHistorySchema;

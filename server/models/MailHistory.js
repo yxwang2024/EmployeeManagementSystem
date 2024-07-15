@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+// const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const mailHistorySchema = new Schema({
@@ -35,4 +36,4 @@ const mailHistorySchema = new Schema({
 
 const MailHistory = mongoose.model("MailHistory", mailHistorySchema);
 
-module.exports = MailHistory;
+export default MailHistory;

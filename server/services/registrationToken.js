@@ -15,7 +15,4 @@ const decodeToken = async (token) => {
   return { hrId, employeeEmail, employeeName };
 }
 
-module.exports = {
-  generateToken,
-  decodeToken,
-};
+export { generateToken, decodeToken };

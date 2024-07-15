@@ -1,6 +1,8 @@
-const Document = require('../../models/Document');
-const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
+import Document from '../../models/Document.js';
+import { v4 as uuidv4 } from 'uuid';
+import AWS from 'aws-sdk';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -30,10 +32,11 @@ const documentResolvers = {
   },
   Mutation: {
     createDocument: async (_, { input: { title, file } }) => {
-      const { createReadStream, filename, mimetype, encoding } = await file;
+      console.log("create document");
+      const resolveFile = await file.promise;
+      const { createReadStream, filename, mimetype, encoding } = resolveFile;
       const stream = createReadStream();
       const key = uuidv4() + '-' + filename;
-
       const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
         Key: key,
@@ -61,8 +64,8 @@ const documentResolvers = {
           Key: document.key
         };
         await s3.deleteObject(params).promise();
-        await document.delete();
-        return document;
+        await Document.findByIdAndDelete(id);
+        return "Document deleted";
       } catch (err) {
         throw new Error(err);
       }
@@ -70,4 +73,4 @@ const documentResolvers = {
   }
 };
 
-module.exports = documentResolvers;
+export default documentResolvers;

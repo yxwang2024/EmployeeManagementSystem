@@ -11,33 +11,52 @@
 // emailService.sendEmail(toEmail,subject,html);
 
 
-const express = require('express');
-const cors = require('cors');
-const { graphqlHTTP } = require('express-graphql');
-const schema = require('./graphql/schemas');
-const resolvers = require('./graphql/resolvers');
-require('dotenv').config();
-const { makeExecutableSchema } = require('@graphql-tools/schema')
+import express from 'express';
+import cors from 'cors';
+import resolvers from './graphql/resolvers/index.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const connectDB = require('./db');
+import { ApolloServer } from '@apollo/server';
+import { buildSubgraphSchema } from '@apollo/subgraph';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { readFileSync } from "fs";
+import { mergeTypeDefs } from '@graphql-tools/merge';
 
+const { default: graphqlUploadExpress } = await (eval(
+  `import('graphql-upload/graphqlUploadExpress.mjs')`,
+));
+
+import connectDB from './db/index.js';
 connectDB();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-const graphql = graphqlHTTP({
-  schema: makeExecutableSchema({
-    typeDefs: schema,
-    resolvers,
-  }),
-  graphiql: true,
+const indexSchema = readFileSync("./graphql/schemas/index.graphql", { encoding: "utf-8" });
+const documentSchema = readFileSync("./graphql/schemas/document.graphql", { encoding: "utf-8" });
+const mailHistorySchema = readFileSync("./graphql/schemas/mailHistory.graphql", { encoding: "utf-8" });
+const visaStatusSchema = readFileSync("./graphql/schemas/visaStatus.graphql", { encoding: "utf-8" });
+const typeDefs = mergeTypeDefs([indexSchema, documentSchema, mailHistorySchema, visaStatusSchema]);
+
+const server = new ApolloServer({
+  schema: buildSubgraphSchema({ typeDefs, resolvers }),
+  csrfPrevention: true,
+  // plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 });
 
-app.use('/graphql', graphql);
+await server.start();
+
+app.use(
+  '/graphql',
+  cors(),
+  express.json(),
+  express.urlencoded({ extended: true }),
+  graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
+  expressMiddleware(server),
+);
+
 
 app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
+  console.log(`Server is running on http://localhost:${process.env.PORT}/graphql`);
 });
