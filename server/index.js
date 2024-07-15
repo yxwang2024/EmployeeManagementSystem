@@ -62,19 +62,21 @@ const server = new ApolloServer({
 // console.log(`🚀 Server listening at: ${url}`);
 await server.start();
 
+const authMiddleware = async (req, res, next) => {
+  const token = req.headers.authorization || '';
+  const user = await getUser(token);
+  req.user = user;
+  next();
+};
+
 app.use(
   '/graphql',
   cors(),
   express.json({ limit: '50mb' }),
   express.urlencoded({ extended: true }),
   graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
-  expressMiddleware(server, {
-    context: async ({ req, res }) => {
-      const token = req.headers.authorization || '';
-      const user = await getUser(token);
-      return { user };
-    },
-  }),
+  authMiddleware,
+  expressMiddleware(server),
 );
 // app.use(
 //   '/graphql',

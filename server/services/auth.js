@@ -4,9 +4,10 @@ import jwt from 'jsonwebtoken';
 
 const getUser = async (token) => {
     try {
-        const decoded ='';
+        const jwtToken = token.split(' ')[1];
+        let decoded ='';
         if(token){
-            decoded = await jwt.verify(token, process.env.JWT_SECRET_KEY);
+            decoded = await jwt.verify(jwtToken, process.env.JWT_SECRET_KEY);
         }
         const user = {
             _id: decoded.id||'',
