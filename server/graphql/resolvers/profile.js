@@ -23,12 +23,13 @@ const profileResolvers = {
         profile: async (parent, { id }, context, info) => {
             try {
                 //auth
-                //const user = auth.checkAuth(context);
-                //const employee = Employee.findOne(id);
-                //const employeeId = employee._id;
-                // if (!auth.isEmployee(user, employeeId) || !auth.isHR(user)) {
-                //     throw new Error('Authorization failed.');
-                // }
+                console.log(context);
+                const user = auth.checkAuth(context);
+                const employee = Employee.findOne(id);
+                const employeeId = employee._id;
+                if (!auth.isEmployee(user, employeeId) || !auth.isHR(user)) {
+                    throw new Error('Authorization failed.');
+                }
 
                 const profile = await Profile.findById(id);
                 if (!profile) {
