@@ -1,6 +1,12 @@
 import MailHistory from '../../models/MailHistory.js';
 import { generateToken } from '../../services/registrationToken.js';
 import { sendEmail } from '../../services/emailServices.js';
+import Joi from 'joi';
+
+const mailHistoryInputSchema = Joi.object({
+  email: Joi.string().email().required(),
+  name: Joi.string().required(),
+});
 
 const mailHistoryResolvers = {
   Query: {
@@ -31,12 +37,16 @@ const mailHistoryResolvers = {
           email,
           name,
         } = mailHistoryInput;
-        console.log(hrId, email, name);
+        // validate input
+        const { error } = mailHistoryInputSchema.validate({ email, name });
+        if (error) {
+          throw new Error(error);
+        }
         // check if there is an existing mail history, if expired, reset the token, if used, throw error
         const existingMailHistory = await MailHistory.findOne
         ({
           email,
-          status: "expired",
+          status: "expired" || "pending",
         });
         const existingMailHistoryUsed = await MailHistory.findOne
         ({
