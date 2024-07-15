@@ -36,7 +36,7 @@ const mailHistoryResolvers = {
         const existingMailHistory = await MailHistory.findOne
         ({
           email,
-          status: "expired",
+          status: "expired" || "pending",
         });
         const existingMailHistoryUsed = await MailHistory.findOne
         ({
