@@ -5,7 +5,6 @@ const typeDefs = gql`
         profiles: [Profile]
         profile(id: ID!): Profile
         profileByEmployeeId(employeeId: ID!): Profile
-        profileByEmail(email: String!): Profile
     }
 
     extend type Mutation {

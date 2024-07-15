@@ -17,7 +17,8 @@ const resolvers = {
       const token = await jwt.sign(
         {
           id: employee._id,
-          username: employee.username
+          username: employee.username,
+          role: "Employee"
         },
         process.env.JWT_SECRET_KEY,
         { expiresIn: '30d' }
@@ -29,27 +30,31 @@ const resolvers = {
   },
   Mutation: {
     signUp: async (_, { input }) => {
+      //check registration token
+
+
       const { email, username, password } = input;
       // Check if the email is already in use
-    const existing = await db.Employee.findOne({
-      email,
-    });
-    if(existing){
-      throw new Error('Existing email');
-    }
-    const profile = new db.Profile({ email:email });
-    await profile.save();
-    const employee = new db.Employee({
-      username,
-      email,
-      password,
-      profile: profile._id,
-    });
-    await employee.save();
+      const existing = await db.Employee.findOne({
+        email,
+      });
+      if (existing) {
+        throw new Error('Existing email');
+      }
+      const profile = new db.Profile({ email: email });
+      await profile.save();
+      const employee = new db.Employee({
+        username,
+        email,
+        password,
+        profile: profile._id,
+      });
+      await employee.save();
       const token = await jwt.sign(
         {
           id: employee._id,
           username: employee.username,
+          role: "Employee"
         },
         process.env.JWT_SECRET_KEY,
         { expiresIn: '30d' }
