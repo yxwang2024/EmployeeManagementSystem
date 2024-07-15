@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+// const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const mailHistorySchema = new Schema({
@@ -10,6 +11,12 @@ const mailHistorySchema = new Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+    enum: ["pending", "completed", "expired"],
+    required: true,
+    default: "pending",
+  },
   expiration: {
     type: Date,
     required: true,
@@ -20,9 +27,13 @@ const mailHistorySchema = new Schema({
     type: String,
     required: true,
   },
-  onboardingApp: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "OnboardingApp",
-    required: true,
-  },
+  // onboardingApp: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "OnboardingApp",
+  //   required: true,
+  // },
 });
+
+const MailHistory = mongoose.model("MailHistory", mailHistorySchema);
+
+export default MailHistory;

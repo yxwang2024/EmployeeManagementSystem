@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const documentSchema = new Schema({
@@ -26,4 +27,4 @@ const documentSchema = new Schema({
 
 const Document = mongoose.model('Document', documentSchema);
 
-module.exports = Document;
+export default Document;
