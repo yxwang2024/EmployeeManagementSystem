@@ -6,6 +6,7 @@ import documentResolvers from "./document.js";
 import mailHistoryResolvers from "./mailHistory.js";
 import employeeResolvers from "./employee.js";
 import profileResolvers from "./profile.js";
+import hrResolvers from "./hr.js";
 
 // const { mergeResolvers } = require("@graphql-tools/merge");
 // const { merge } = require("lodash");
@@ -28,7 +29,7 @@ const testResolvers = {
   },
 };
 
-const resolvers = merge(testResolvers, visaStatusResolvers, documentResolvers, mailHistoryResolvers,employeeResolvers,profileResolvers);
+const resolvers = merge(testResolvers, visaStatusResolvers, documentResolvers, mailHistoryResolvers,employeeResolvers,profileResolvers,hrResolvers);
 // const resolvers = mergeResolvers([testResolvers, visaStatusResolvers, documentResolvers, mailHistoryResolvers]);
 
 export default resolvers;

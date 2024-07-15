@@ -81,7 +81,7 @@ const employeeResolvers = {
                     process.env.JWT_SECRET_KEY,
                     { expiresIn: '30d' }
                 );
-                return { employee, token, message: 'Employee signed in successfully' };
+                return { employee, token, message: 'Employee registered successfully' };
 
             } catch (err) {
                 throw new Error(err);

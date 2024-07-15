@@ -1,0 +1,27 @@
+type HR {
+  id: ID!
+  username: String!
+  email: String!
+  password: String!
+}
+
+type HRResponse {
+  token: String
+  message: String
+  hr: HR!
+}
+input HRLogin {
+  email: String!
+  password: String!
+}
+
+input HRRegister {
+  username: String!
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  loginHR(input: HRLogin!): HRResponse
+  registerHR(input: HRRegister!): HRResponse
+}

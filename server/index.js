@@ -43,7 +43,8 @@ const mailHistorySchema = readFileSync("./graphql/schemas/mailHistory.graphql", 
 const visaStatusSchema = readFileSync("./graphql/schemas/visaStatus.graphql", { encoding: "utf-8" });
 const employeeSchema = readFileSync("./graphql/schemas/employee.graphql", { encoding: "utf-8" });
 const profileSchema = readFileSync("./graphql/schemas/profile.graphql", { encoding: "utf-8" });
-const typeDefs = mergeTypeDefs([indexSchema, documentSchema, mailHistorySchema, visaStatusSchema, employeeSchema,profileSchema]);
+const hrSchema = readFileSync("./graphql/schemas/hr.graphql", { encoding: "utf-8" });
+const typeDefs = mergeTypeDefs([indexSchema, documentSchema, mailHistorySchema, visaStatusSchema, employeeSchema,profileSchema,hrSchema]);
 
 const server = new ApolloServer({
   schema: buildSubgraphSchema({ typeDefs, resolvers }),
