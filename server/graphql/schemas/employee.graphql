@@ -1,0 +1,37 @@
+type Query {
+  employees: [Employee]
+  employee(id: ID!): Employee
+}
+
+type Mutation {
+  logIn(input: EmployeeLogin!): Response
+  register(input: EmployeeRegister!): Response
+}
+
+type Employee {
+  id: ID!
+  email: String!
+  username: String!
+  password: String!
+}
+
+type Response {
+  employee: Employee
+  token: String
+  message: String
+}
+
+type Token {
+  token: String!
+}
+
+input EmployeeLogin {
+  email: String!
+  password: String!
+}
+
+input EmployeeRegister {
+  email: String!
+  username: String!
+  password: String!
+}

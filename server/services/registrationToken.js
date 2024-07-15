@@ -1,5 +1,5 @@
 const generateEncryptedKey = async (hrId, email, name) => {
-  const key = await Buffer.from(hrId + email + name).toString('base64');
+  const key = await Buffer.from(hrId + "," + email + "," + name).toString('base64');
   return key;
 }
 
@@ -10,9 +10,8 @@ const generateToken = async (hrId, email, name) => {
 }
 
 const decodeToken = async (token) => {
-  const decoded = await Buffer.from(token, 'base64').toString('ascii');
-  const { hrId: hrId, email: employeeEmail, name: employeeName } = decoded;
+  const decodedString = Buffer.from(token, 'base64').toString('ascii');
+  const [hrId, employeeEmail, employeeName] = decodedString.split(',');
   return { hrId, employeeEmail, employeeName };
 }
-
 export { generateToken, decodeToken };
