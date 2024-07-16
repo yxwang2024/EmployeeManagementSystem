@@ -5,17 +5,17 @@ import jwt from 'jsonwebtoken';
 const getUser = async (token) => {
     try {
         //const jwtToken = token.split(' ')[1];
-        let decoded ='';
-        if(token){
+        let decoded = '';
+        if (token) {
             decoded = await jwt.verify(token, process.env.JWT_SECRET_KEY);
         }
         const user = {
-            _id: decoded.id||'',
-            username:decoded.username||'',
-            role: decoded.role||'',
+            _id: decoded.id || '',
+            username: decoded.username || '',
+            role: decoded.role || '',
         };
         return user;
-        
+
     } catch (err) {
         console.log(err);
     }
@@ -23,7 +23,7 @@ const getUser = async (token) => {
 
 const checkAuth = async (context) => {
     try {
-        console.log("context:",context);
+        console.log("context:", context);
         const token = context.token;
         if (!token) {
             throw new Error('Unauthorized');
@@ -34,7 +34,7 @@ const checkAuth = async (context) => {
         }
         const user = {
             _id: decoded.id,
-            username:decoded.username,
+            username: decoded.username,
             role: decoded.role,
         };
         return user;
@@ -44,9 +44,15 @@ const checkAuth = async (context) => {
 
 }
 
-const isEmployee = (user, employeeId) => user && user._id === employeeId;
+//check userId decoded from token == userId from query. Ensure that only employee self can access his/her info.
+const checkUser = (decodedUser, userId) => {
+    return decodedUser && user._id === userId;
+}
 
+//check user role is Employee
+const isEmployee = (decodedUser) => decodedUser && decodedUser.role === "Employee";
 
-const isHR = (user) => user && user.role === "HR";
+//check user role is HR
+const isHR = (decodedUser) => decodedUser && decodedUser.role === "HR";
 
-export {getUser,checkAuth,isEmployee,isHR};
+export { getUser, checkAuth,checkUser, isEmployee, isHR };

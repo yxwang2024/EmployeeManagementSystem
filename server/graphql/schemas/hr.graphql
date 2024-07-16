@@ -2,26 +2,6 @@ type HR {
   id: ID!
   username: String!
   email: String!
-  password: String!
+  mailHistory: MailHistory!
 }
 
-type HRResponse {
-  token: String
-  message: String
-  hr: HR!
-}
-input HRLoginInput {
-  email: String!
-  password: String!
-}
-
-input HRRegisterInput {
-  username: String!
-  email: String!
-  password: String!
-}
-
-type Mutation {
-  loginHR(input: HRLoginInput!): HRResponse
-  registerHR(input: HRRegisterInput!): HRResponse
-}
