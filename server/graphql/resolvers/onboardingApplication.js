@@ -41,32 +41,32 @@ const onboardingApplicationResolvers = {
             }
         },
 
-        getVisaStatusWithQuery: async (_, { query }) => {
-            try {
-                // find employees by first name, last name or preferred name
-                // cover one found, multiple found, none found
-                // Name { First name, Last name, Middle name, Preferred name } is under Employee/profile
-                const filteredEmployees = await Employee.find({
-                    $or: [
-                        { "profile.firstName": { $regex: query, $options: "i" } },
-                        { "profile.lastName": { $regex: query, $options: "i" } },
-                        { "profile.middleName": { $regex: query, $options: "i" } },
-                        { "profile.preferredName": { $regex: query, $options: "i" } },
-                    ],
-                }).populate(["profile", "onboardingApplication", "onboardingApplication.documents"]);
-                const filteredResults = filteredEmployees.map(employee => {
-                    const Obj = {
-                        name: `${employee.profile.firstName} ${employee.profile.middleName ? employee.profile.middleName + " " : ""}${employee.profile.lastName}`,
-                        onboardingApplication: employee.onboardingApplication,
-                    };
-                    return Obj;
-                });
-                return filteredResults;
-            } catch (err) {
-                throw new Error(err);
-            }
-        },
-
+        // getVisaStatusWithQuery: async (_, { query }) => {
+        //     try {
+        //       // find employees by first name, last name or preferred name
+        //       // cover one found, multiple found, none found
+        //       // Name { First name, Last name, Middle name, Preferred name } is under Employee/profile
+        //       const filteredEmployees = await Employee.find({
+        //         $or: [
+        //           { "profile.firstName": { $regex: query, $options: "i" } },
+        //           { "profile.lastName": { $regex: query, $options: "i" } },
+        //           { "profile.middleName": { $regex: query, $options: "i" } },
+        //           { "profile.preferredName": { $regex: query, $options: "i" } },
+        //         ],
+        //       }).populate(["profile", "onboardingApplication", "onboardingApplication.documents"]);
+        //       const filteredResults = filteredEmployees.map(employee => {
+        //         const Obj = {
+        //           name: `${employee.profile.firstName} ${employee.profile.middleName? employee.profile.middleName + " " : ""}${employee.profile.lastName}`,
+        //           onboardingApplication: employee.onboardingApplication,
+        //         };
+        //         return Obj;
+        //       });
+        //       return filteredResults; 
+        //     } catch (err) {
+        //       throw new Error(err);
+        //     }
+        //   },
+        
     },
     Mutation: {
         updateOAName: async (parent, { input }, context, info) => {

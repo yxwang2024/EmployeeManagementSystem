@@ -1,8 +1,8 @@
 // import Employee from '../../models/Employee';
-import VisaStatus from '../../models/VisaStatus.js';
-import Document from '../../models/Document.js';
-import Joi from 'joi';
-import Employee from '../../models/Employee.js';
+import VisaStatus from "../../models/VisaStatus.js";
+import Document from "../../models/Document.js";
+import Joi from "joi";
+import Employee from "../../models/Employee.js";
 
 const visaStatusInputSchema = Joi.object({
   employee: Joi.string().required(),
@@ -22,7 +22,11 @@ const visaStatusResolvers = {
     getVisaStatuses: async () => {
       try {
         // const visaStatuses = await VisaStatus.find().populate("documents");
-        const visaStatuses = await VisaStatus.find().populate(["documents", "employee", "employee.profile"]);
+        const visaStatuses = await VisaStatus.find().populate([
+          "documents",
+          "employee",
+          { path: "employee", populate: "profile" },
+        ]);
         return visaStatuses;
       } catch (err) {
         throw new Error(err);
@@ -31,7 +35,11 @@ const visaStatusResolvers = {
     getVisaStatus: async (_, { id }) => {
       try {
         // const visaStatus = await VisaStatus.findById(id).populate("documents");
-        const visaStatus = await VisaStatus.findById(id).populate(["documents", "employee", "employee.profile"]);
+        const visaStatus = await VisaStatus.findById(id).populate([
+          "documents",
+          "employee",
+          { path: "employee", populate: "profile" },
+        ]);
         return visaStatus;
       } catch (err) {
         throw new Error(err);
@@ -39,7 +47,13 @@ const visaStatusResolvers = {
     },
     getVisaStatusByEmployee: async (_, { employeeId }) => {
       try {
-        const visaStatus = await VisaStatus.findOne({ employee: employeeId }).populate(["documents", "employee", "employee.profile"]);
+        const visaStatus = await VisaStatus.findOne({
+          employee: employeeId,
+        }).populate([
+          "documents",
+          "employee",
+          { path: "employee", populate: "profile" },
+        ]);
         if (!visaStatus) {
           throw new Error("Visa status not found");
         }
@@ -53,22 +67,32 @@ const visaStatusResolvers = {
         // find employees by first name, last name or preferred name
         // cover one found, multiple found, none found
         // Name { First name, Last name, Middle name, Preferred name } is under Employee/profile
-        const filteredEmployees = await Employee.find({
+        // allow partial search
+        
+        // if query is empty, return all visa statuses
+        if (query === "") {
+          const visaStatuses = await VisaStatus.find().populate([
+            "documents",
+            "employee",
+            { path: "employee", populate: "profile" },
+          ]);
+          return visaStatuses;
+        }
+        const employees = await Employee.find({
           $or: [
             { "profile.firstName": { $regex: query, $options: "i" } },
             { "profile.lastName": { $regex: query, $options: "i" } },
-            { "profile.middleName": { $regex: query, $options: "i" } },
             { "profile.preferredName": { $regex: query, $options: "i" } },
           ],
-        }).populate(["profile", "visaStatus", "visaStatus.documents"]);
-        const filteredResults = filteredEmployees.map(employee => {
-          const Obj = {
-            name: `${employee.profile.firstName} ${employee.profile.middleName? employee.profile.middleName + " " : ""}${employee.profile.lastName}`,
-            visaStatus: employee.visaStatus,
-          };
-          return Obj;
-        });
-        return filteredResults; 
+        });      
+        const filteredResults = await VisaStatus.find({
+          employee: { $in: employees },
+        }).populate([
+          "documents",
+          "employee",
+          { path: "employee", populate: "profile" },
+        ]);
+        return filteredResults;
       } catch (err) {
         throw new Error(err);
       }
@@ -76,9 +100,28 @@ const visaStatusResolvers = {
   },
   Mutation: {
     // add employee to visa status
-    createVisaStatus: async (_, { visaStatusInput: {employee, step, status, hrFeedback, workAuthorization, documents } }) => {
+    createVisaStatus: async (
+      _,
+      {
+        visaStatusInput: {
+          employee,
+          step,
+          status,
+          hrFeedback,
+          workAuthorization,
+          documents,
+        },
+      }
+    ) => {
       try {
-        const { error } = visaStatusInputSchema.validate({employee, step, status, hrFeedback, workAuthorization, documents });
+        const { error } = visaStatusInputSchema.validate({
+          employee,
+          step,
+          status,
+          hrFeedback,
+          workAuthorization,
+          documents,
+        });
         if (error) {
           throw new Error(error);
         }
@@ -91,13 +134,12 @@ const visaStatusResolvers = {
           employee,
           step,
           status,
-          hrFeedback:"",
+          hrFeedback: "",
           workAuthorization,
           documents: [],
         });
         const visaStatus = await newVisaStatus.save();
         return visaStatus;
-        
       } catch (err) {
         throw new Error(err);
       }
@@ -115,7 +157,11 @@ const visaStatusResolvers = {
     },
     approveVisaStatus: async (_, { id }) => {
       try {
-        const visaStatus = await VisaStatus.findByIdAndUpdate(id, { status: "Approved" }, { new: true }).populate("documents");
+        const visaStatus = await VisaStatus.findByIdAndUpdate(
+          id,
+          { status: "Approved" },
+          { new: true }
+        ).populate("documents");
         if (!visaStatus) {
           throw new Error("Visa status not found");
         }
@@ -127,17 +173,23 @@ const visaStatusResolvers = {
     moveToNextStep: async (_, { id }) => {
       try {
         const visaStatus = await VisaStatus.findById(id);
-        const steps = [ "OPT Receipt", "OPT EAD", "i983", "I20"];
+        const steps = ["OPT Receipt", "OPT EAD", "i983", "I20"];
         const currentStepIndex = steps.indexOf(visaStatus.step);
         if (visaStatus.status !== "Approved") {
-          throw new Error("You can only move to the next step if the visa status is approved");
+          throw new Error(
+            "You can only move to the next step if the visa status is approved"
+          );
         }
         let nextStep = steps[currentStepIndex];
         // if the visa status is approved, move to the next step
         if (visaStatus.status === "Approved") {
           nextStep = steps[currentStepIndex + 1];
-        } 
-        const updatedVisaStatus = await VisaStatus.findByIdAndUpdate(id, { step: nextStep, status: "Pending" }, { new: true }).populate("documents");
+        }
+        const updatedVisaStatus = await VisaStatus.findByIdAndUpdate(
+          id,
+          { step: nextStep, status: "Pending" },
+          { new: true }
+        ).populate("documents");
         return updatedVisaStatus;
       } catch (err) {
         throw new Error(err);
@@ -145,7 +197,11 @@ const visaStatusResolvers = {
     },
     rejectVisaStatus: async (_, { id, hrFeedback }) => {
       try {
-        const visaStatus = await VisaStatus.findByIdAndUpdate(id, { status: "Rejected", hrFeedback: hrFeedback }, { new: true }).populate("documents");
+        const visaStatus = await VisaStatus.findByIdAndUpdate(
+          id,
+          { status: "Rejected", hrFeedback: hrFeedback },
+          { new: true }
+        ).populate("documents");
         if (!visaStatus) {
           throw new Error("Visa status not found");
         }
@@ -160,15 +216,19 @@ const visaStatusResolvers = {
         if (!document) {
           throw new Error("Document not found");
         }
-        const visaStatus = await VisaStatus.findByIdAndUpdate(id, {
-          $push: {"documents": documentId},
-          $set: { status: "Reviewing" },
-        }, { new: true }).populate("documents");
+        const visaStatus = await VisaStatus.findByIdAndUpdate(
+          id,
+          {
+            $push: { documents: documentId },
+            $set: { status: "Reviewing" },
+          },
+          { new: true }
+        ).populate("documents");
         return visaStatus;
       } catch (err) {
         throw new Error(err);
       }
-    },   
+    },
     reUploadDocument: async (_, { id, documentId }) => {
       try {
         const document = await Document.findById(documentId);
@@ -178,28 +238,56 @@ const visaStatusResolvers = {
         // check if current status is "Rejected"
         const visaStatus = await VisaStatus.findById(id);
         if (visaStatus.status !== "Rejected") {
-          throw new Error("You can only re-upload document if the visa status is rejected");
+          throw new Error(
+            "You can only re-upload document if the visa status is rejected"
+          );
         }
         // remove the last document and add the new one
         await VisaStatus.findByIdAndUpdate(id, {
-          $pop: {"documents": -1},
+          $pop: { documents: -1 },
         });
-        const updatedVisaStatus = await VisaStatus.findByIdAndUpdate(id, {
-          $push: {"documents": documentId},
-          $set: { status: "Reviewing", hrFeedback: "" },
-        }, { new: true }).populate("documents");
+        const updatedVisaStatus = await VisaStatus.findByIdAndUpdate(
+          id,
+          {
+            $push: { documents: documentId },
+            $set: { status: "Reviewing", hrFeedback: "" },
+          },
+          { new: true }
+        ).populate("documents");
         return updatedVisaStatus;
       } catch (err) {
         throw new Error(err);
       }
     },
-    updateVisaStatus: async (_, { id, visaStatusInput: { step, status, hrFeedback, workAuthorization, documents } }) => {
+    updateVisaStatus: async (
+      _,
+      {
+        id,
+        visaStatusInput: {
+          step,
+          status,
+          hrFeedback,
+          workAuthorization,
+          documents,
+        },
+      }
+    ) => {
       try {
-        const { error } = visaStatusInputSchema.validate({ step, status, hrFeedback, workAuthorization, documents });
+        const { error } = visaStatusInputSchema.validate({
+          step,
+          status,
+          hrFeedback,
+          workAuthorization,
+          documents,
+        });
         if (error) {
           throw new Error(error);
         }
-        const visaStatus = await VisaStatus.findByIdAndUpdate(id, { step, status, hrFeedback, workAuthorization, documents }, { new: true }).populate("documents");
+        const visaStatus = await VisaStatus.findByIdAndUpdate(
+          id,
+          { step, status, hrFeedback, workAuthorization, documents },
+          { new: true }
+        ).populate("documents");
         return visaStatus;
       } catch (err) {
         throw new Error(err);
@@ -217,6 +305,6 @@ const visaStatusResolvers = {
   //     subscribe: () => pubsub.asyncIterator('VISA_STATUS_DELETED'),
   //   },
   // },
-};  
+};
 
 export default visaStatusResolvers;

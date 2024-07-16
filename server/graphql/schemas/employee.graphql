@@ -13,6 +13,9 @@ type Employee {
   email: String!
   username: String!
   password: String!
+  profile: Profile
+  visaStatus: VisaStatus
+  onboardingApplication: OnboardingApplication
 }
 
 type Response {
