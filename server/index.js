@@ -45,7 +45,8 @@ const employeeSchema = readFileSync("./graphql/schemas/employee.graphql", { enco
 const profileSchema = readFileSync("./graphql/schemas/profile.graphql", { encoding: "utf-8" });
 const hrSchema = readFileSync("./graphql/schemas/hr.graphql", { encoding: "utf-8" });
 const onboardingApplicationSchema = readFileSync("./graphql/schemas/onboardingApplication.graphql", { encoding: "utf-8" });
-const typeDefs = mergeTypeDefs([indexSchema, documentSchema, mailHistorySchema, visaStatusSchema, employeeSchema,profileSchema,hrSchema,onboardingApplicationSchema]);
+const userSchema = readFileSync("./graphql/schemas/user.graphql", { encoding: "utf-8" });
+const typeDefs = mergeTypeDefs([indexSchema, documentSchema, mailHistorySchema, visaStatusSchema, employeeSchema,profileSchema,hrSchema,onboardingApplicationSchema,userSchema]);
 
 const server = new ApolloServer({
   schema: buildSubgraphSchema({ typeDefs, resolvers }),
@@ -64,12 +65,12 @@ const server = new ApolloServer({
 // console.log(`🚀 Server listening at: ${url}`);
 await server.start();
 
-// const authMiddleware = async (req, res, next) => {
-//   const token = req.headers.authorization || '';
-//   const user = await getUser(token);
-//   req.user = user;
-//   next();
-// };
+const authMiddleware = async (req, res, next) => {
+  const token = req.headers.authorization || '';
+  const user = await getUser(token);
+  req.user = user;
+  next();
+};
 
 // app.use(
 //   '/graphql',

@@ -1,41 +1,13 @@
 type Query {
   getEmployees: [Employee]
-  getEmployee(id: ID!): Employee
-}
-
-type Mutation {
-  loginEmployee(input: EmployeeLogin!): Response
-  registerEmployee(input: EmployeeRegister!): Response
+  getEmployee(employeeId: ID!): Employee
 }
 
 type Employee {
   id: ID!
   email: String!
   username: String!
-  password: String!
   profile: Profile
   visaStatus: VisaStatus
   onboardingApplication: OnboardingApplication
-}
-
-type Response {
-  employee: Employee
-  token: String
-  message: String
-}
-
-type Token {
-  token: String!
-}
-
-input EmployeeLogin {
-  email: String!
-  password: String!
-}
-
-input EmployeeRegister {
-  email: String!
-  username: String!
-  password: String!
-  registrationToken: String!
 }

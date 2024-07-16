@@ -14,7 +14,7 @@ type VisaStatusResponse {
   step: String
   status: String
   hrFeedback: String
-  workAuthorization: WorkAuthorization!
+  workAuthorization: WorkAuthorization
   documents: [Document]
 }
 

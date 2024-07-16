@@ -4,6 +4,7 @@ const { merge } = pkg;
 import visaStatusResolvers from "./visaStatus.js";
 import documentResolvers from "./document.js";
 import mailHistoryResolvers from "./mailHistory.js";
+import userResolvers from "./user.js";
 import employeeResolvers from "./employee.js";
 import profileResolvers from "./profile.js";
 import hrResolvers from "./hr.js";
@@ -30,7 +31,7 @@ const testResolvers = {
   },
 };
 
-const resolvers = merge(testResolvers, visaStatusResolvers, documentResolvers, mailHistoryResolvers,employeeResolvers,profileResolvers,hrResolvers,onboardingApplicationResolvers);
+const resolvers = merge(testResolvers, visaStatusResolvers, documentResolvers, mailHistoryResolvers,employeeResolvers,profileResolvers,hrResolvers,onboardingApplicationResolvers,userResolvers);
 // const resolvers = mergeResolvers([testResolvers, visaStatusResolvers, documentResolvers, mailHistoryResolvers]);
 
 export default resolvers;

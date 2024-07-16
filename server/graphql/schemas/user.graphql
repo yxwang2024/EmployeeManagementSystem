@@ -1,0 +1,45 @@
+type Query {
+  getEmployees: [Employee]
+  getEmployee(id: ID!): Employee
+}
+
+type Mutation {
+  Login(input: LoginInput!): UserResponse
+  EmployeeRegister(input: EmployeeRegisterInput!): UserResponse
+  HRRegister(input: HRRegisterInput!): UserResponse
+}
+
+union UserInstance = Employee | HR
+
+type User {
+  id: ID!
+  email: String!
+  username: String!
+  password: String!
+  role: String!
+  instance: UserInstance!
+}
+
+type UserResponse {
+  user: User
+  token: String
+  message: String
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input EmployeeRegisterInput {
+  email: String!
+  username: String!
+  password: String!
+  registrationToken: String!
+}
+
+input HRRegisterInput {
+  username: String!
+  email: String!
+  password: String!
+}
