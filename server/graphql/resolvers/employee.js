@@ -7,7 +7,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import jwt from 'jsonwebtoken';
 import { generateToken, decodeToken } from '../../services/registrationToken.js';
-import { checkAuth, isHR, isEmployee } from '../../services/auth.js';
+import { checkAuth, isHR, checkUser, isEmployee } from '../../services/auth.js';
 const employeeResolvers = {
     Query: {
         getEmployee: async (_, { employeeId }, context) => {
@@ -16,12 +16,13 @@ const employeeResolvers = {
                 const decodedUser = await checkAuth(context);
 
                 const user = await User.findOne({instance:employeeId});
+                //console.log("user:     ",user);
                 const userId = user._id.toString();
-                if(!checkUser(decodedUser,userId)&&!isHR(decodedUser)){
+                if( !checkUser(decodedUser,userId) && !isHR(decodedUser)){
                     throw new Error('Query id and auth user do not match.');
                 }
 
-                return await Employee.findById(id);
+                return await Employee.findById(employeeId);
             } catch (err) {
                 throw new Error(err);
             }
