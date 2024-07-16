@@ -34,8 +34,8 @@ input EmployeeLogin {
 }
 
 input EmployeeRegister {
-  registrationToken: String!
   email: String!
   username: String!
   password: String!
+  registrationToken: String!
 }
