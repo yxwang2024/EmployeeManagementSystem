@@ -44,7 +44,8 @@ const visaStatusSchema = readFileSync("./graphql/schemas/visaStatus.graphql", { 
 const employeeSchema = readFileSync("./graphql/schemas/employee.graphql", { encoding: "utf-8" });
 const profileSchema = readFileSync("./graphql/schemas/profile.graphql", { encoding: "utf-8" });
 const hrSchema = readFileSync("./graphql/schemas/hr.graphql", { encoding: "utf-8" });
-const typeDefs = mergeTypeDefs([indexSchema, documentSchema, mailHistorySchema, visaStatusSchema, employeeSchema,profileSchema,hrSchema]);
+const onboardingApplicationSchema = readFileSync("./graphql/schemas/onboardingApplication.graphql", { encoding: "utf-8" });
+const typeDefs = mergeTypeDefs([indexSchema, documentSchema, mailHistorySchema, visaStatusSchema, employeeSchema,profileSchema,hrSchema,onboardingApplicationSchema]);
 
 const server = new ApolloServer({
   schema: buildSubgraphSchema({ typeDefs, resolvers }),
@@ -63,21 +64,35 @@ const server = new ApolloServer({
 // console.log(`🚀 Server listening at: ${url}`);
 await server.start();
 
-const authMiddleware = async (req, res, next) => {
-  const token = req.headers.authorization || '';
-  const user = await getUser(token);
-  req.user = user;
-  next();
-};
+// const authMiddleware = async (req, res, next) => {
+//   const token = req.headers.authorization || '';
+//   const user = await getUser(token);
+//   req.user = user;
+//   next();
+// };
 
+// app.use(
+//   '/graphql',
+//   cors(),
+//   express.json({ limit: '50mb' }),
+//   express.urlencoded({ extended: true }),
+//   graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
+//   authMiddleware,
+//   expressMiddleware(server),
+// );
 app.use(
   '/graphql',
   cors(),
   express.json({ limit: '50mb' }),
   express.urlencoded({ extended: true }),
   graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
-  authMiddleware,
-  expressMiddleware(server),
+  expressMiddleware(server, {
+    context: async ({ req, res }) => {
+      const token = req.headers?.authorization?.split(' ')?.[1] || '';
+      const user = await getUser(token);
+      return {token, user };
+    },
+  }),
 );
 // app.use(
 //   '/graphql',

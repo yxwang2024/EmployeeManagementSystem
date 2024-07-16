@@ -1,6 +1,6 @@
 type VisaStatus {
   _id: ID!
-  # employee: Employee!
+  employee: Employee!
   step: String
   status: String
   hrFeedback: String
@@ -21,7 +21,7 @@ input WorkAuthorizationInput {
 }
 
 input VisaStatusInput {
-  # employee: ID!
+  employee: ID!
   step: String
   status: String
   hrFeedback: String

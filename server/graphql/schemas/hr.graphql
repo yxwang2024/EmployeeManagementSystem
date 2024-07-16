@@ -10,18 +10,18 @@ type HRResponse {
   message: String
   hr: HR!
 }
-input HRLogin {
+input HRLoginInput {
   email: String!
   password: String!
 }
 
-input HRRegister {
+input HRRegisterInput {
   username: String!
   email: String!
   password: String!
 }
 
 type Mutation {
-  loginHR(input: HRLogin!): HRResponse
-  registerHR(input: HRRegister!): HRResponse
+  loginHR(input: HRLoginInput!): HRResponse
+  registerHR(input: HRRegisterInput!): HRResponse
 }

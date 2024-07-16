@@ -1,6 +1,32 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
+const emergencyContactSchema = new Schema({
+    firstName: {
+        type: String,
+        required: true
+    },
+    lastName: {
+        type: String,
+        required: true
+    },
+    middleName: {
+        type: String
+    },
+    phone: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    relationship: {
+        type: String,
+        required: true
+    }
+});
+
 const profileSchema = new Schema({
     name: {
         firstName: {
@@ -74,16 +100,34 @@ const profileSchema = new Schema({
         }
     },
     reference: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Reference'
+        firstName: {
+            type: String,
+        },
+        lastName: {
+            type: String,
+        },
+        middleName: {
+            type: String
+        },
+        phone: {
+            type: String,
+        },
+        email: {
+            type: String,
+        },
+        relationship: {
+            type: String,
+        }
     },
-    emergencyContacts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'EmergencyContacts'
-    }],
+    emergencyContacts: {
+        type: [emergencyContactSchema],
+    },
     documents: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Documents'
+        type: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Document",
+        }],
+        default: [],
     }
 });
 

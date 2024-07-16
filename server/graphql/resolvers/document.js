@@ -31,7 +31,7 @@ const documentResolvers = {
     },
   },
   Mutation: {
-    createDocument: async (_, { input: { title, file } }) => {
+    createDocument: async (_, { input: { title, file } },contextValue) => {
       console.log("create document");
       const resolveFile = await file.promise;
       const { createReadStream, filename, mimetype, encoding } = resolveFile;

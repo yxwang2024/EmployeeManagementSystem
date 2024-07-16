@@ -2,11 +2,11 @@
 import VisaStatus from '../../models/VisaStatus.js';
 import Document from '../../models/Document.js';
 import Joi from 'joi';
-
+import Employee from '../../models/Employee.js';
 
 const visaStatusInputSchema = Joi.object({
-  employee: Joi.string(),
-  step: Joi.string().valid("registration", "OPT Receipt", "OPT EAD", "i983", "I20"),
+  employee: Joi.string().required(),
+  step: Joi.string().valid("OPT Receipt", "OPT EAD", "i983", "I20"),
   status: Joi.string().valid("Pending", "Reviewing", "Approved", "Rejected"),
   hrFeedback: Joi.string(),
   workAuthorization: Joi.object({
@@ -21,8 +21,8 @@ const visaStatusResolvers = {
   Query: {
     getVisaStatuses: async () => {
       try {
-        const visaStatuses = await VisaStatus.find().populate("documents");
-        // const visaStatuses = await VisaStatus.find().populate(["documents", "employee", "employee.profile"]);
+        // const visaStatuses = await VisaStatus.find().populate("documents");
+        const visaStatuses = await VisaStatus.find().populate(["documents", "employee", "employee.profile"]);
         return visaStatuses;
       } catch (err) {
         throw new Error(err);
@@ -30,7 +30,19 @@ const visaStatusResolvers = {
     },
     getVisaStatus: async (_, { id }) => {
       try {
-        const visaStatus = await VisaStatus.findById(id).populate("documents");
+        // const visaStatus = await VisaStatus.findById(id).populate("documents");
+        const visaStatus = await VisaStatus.findById(id).populate(["documents", "employee", "employee.profile"]);
+        return visaStatus;
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+    getVisaStatusByEmployee: async (_, { employeeId }) => {
+      try {
+        const visaStatus = await VisaStatus.findOne({ employee: employeeId }).populate(["documents", "employee", "employee.profile"]);
+        if (!visaStatus) {
+          throw new Error("Visa status not found");
+        }
         return visaStatus;
       } catch (err) {
         throw new Error(err);
@@ -41,7 +53,7 @@ const visaStatusResolvers = {
         // find employees by first name, last name or preferred name
         // cover one found, multiple found, none found
         // Name { First name, Last name, Middle name, Preferred name } is under Employee/profile
-        const filterdEmployees = await Employee.find({
+        const filteredEmployees = await Employee.find({
           $or: [
             { "profile.firstName": { $regex: query, $options: "i" } },
             { "profile.lastName": { $regex: query, $options: "i" } },
@@ -49,7 +61,7 @@ const visaStatusResolvers = {
             { "profile.preferredName": { $regex: query, $options: "i" } },
           ],
         }).populate(["profile", "visaStatus", "visaStatus.documents"]);
-        const filteredResults = filterdEmployees.map(employee => {
+        const filteredResults = filteredEmployees.map(employee => {
           const Obj = {
             name: `${employee.profile.firstName} ${employee.profile.middleName? employee.profile.middleName + " " : ""}${employee.profile.lastName}`,
             visaStatus: employee.visaStatus,
@@ -64,14 +76,19 @@ const visaStatusResolvers = {
   },
   Mutation: {
     // add employee to visa status
-    createVisaStatus: async (_, { visaStatusInput: { step, status, hrFeedback, workAuthorization, documents } }) => {
+    createVisaStatus: async (_, { visaStatusInput: {employee, step, status, hrFeedback, workAuthorization, documents } }) => {
       try {
-        const { error } = visaStatusInputSchema.validate({ step, status, hrFeedback, workAuthorization, documents });
+        const { error } = visaStatusInputSchema.validate({employee, step, status, hrFeedback, workAuthorization, documents });
         if (error) {
           throw new Error(error);
         }
+        // check if the employee exists
+        const employeeExists = await Employee.findById(employee);
+        if (!employeeExists) {
+          throw new Error("Employee not found");
+        }
         const newVisaStatus = new VisaStatus({
-          // employee,
+          employee,
           step,
           status,
           hrFeedback:"",
@@ -110,9 +127,9 @@ const visaStatusResolvers = {
     moveToNextStep: async (_, { id }) => {
       try {
         const visaStatus = await VisaStatus.findById(id);
-        const steps = ["registration", "OPT Receipt", "OPT EAD", "i983", "I20"];
+        const steps = [ "OPT Receipt", "OPT EAD", "i983", "I20"];
         const currentStepIndex = steps.indexOf(visaStatus.step);
-        if (visaStatus.status !== "Approved" && steps[currentStepIndex] !== "registration") {
+        if (visaStatus.status !== "Approved") {
           throw new Error("You can only move to the next step if the visa status is approved");
         }
         let nextStep = steps[currentStepIndex];

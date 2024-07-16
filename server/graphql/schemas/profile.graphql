@@ -1,7 +1,6 @@
 type Query {
-  profiles: [Profile]
-  profile(id: ID!): Profile
-  profileByEmployeeId(employeeId: ID!): Profile
+  getAllProfiles: [Profile]
+  getProfile(id: ID!): Profile
 }
 
 extend type Mutation {
@@ -10,6 +9,8 @@ extend type Mutation {
   updateProfileCurrentAddress(input: AddressInput): Profile
   updateProfileContactInfo(input: ContactInfoInput): Profile
   updateProfileEmployment(input: EmploymentInput): Profile
+  updateProfileReference(input: ReferenceInput): Profile
+  updateProfileEmergencyContact(input: EmergencyContactUpdateInput): Profile
 }
 
 type Name {
@@ -44,6 +45,24 @@ type Employment {
   endDate: String!
 }
 
+type Reference {
+  firstName: String!
+  lastName: String!
+  middleName: String
+  phone: String!
+  email: String!
+  relationship: String!
+}
+
+type EmergencyContact {
+  firstName: String!
+  lastName: String!
+  middleName: String
+  phone: String!
+  email: String!
+  relationship: String!
+}
+
 type Profile {
   id: ID!
   employee: Employee!
@@ -54,6 +73,9 @@ type Profile {
   currentAddress: Address
   contactInfo: ContactInfo
   employment: Employment
+  reference: Reference
+  emergencyContacts: [EmergencyContact]
+  documents: [Document]
 }
 
 input NameInput {
@@ -92,3 +114,29 @@ input EmploymentInput {
   startDate: String!
   endDate: String!
 }
+
+input ReferenceInput {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  middleName: String
+  phone: String!
+  email: String!
+  relationship: String!
+}
+
+input EmergencyContactInput {
+  firstName: String!
+  lastName: String!
+  middleName: String
+  phone: String!
+  email: String!
+  relationship: String!
+}
+
+input EmergencyContactUpdateInput {
+  id: ID!
+  emergencyContacts: [EmergencyContactInput]!
+}
+
+
