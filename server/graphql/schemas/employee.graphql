@@ -35,4 +35,5 @@ input EmployeeRegister {
   email: String!
   username: String!
   password: String!
+  registrationToken: String!
 }
