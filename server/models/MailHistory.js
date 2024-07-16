@@ -5,6 +5,7 @@ const Schema = mongoose.Schema;
 const mailHistorySchema = new Schema({
   email: {
     type: String,
+    unique: true,
     required: true,
   },
   registrationToken: {

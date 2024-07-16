@@ -65,7 +65,6 @@ type EmergencyContact {
 
 type Profile {
   id: ID!
-  employee: Employee!
   email: String!
   name: Name
   profilePicture: String

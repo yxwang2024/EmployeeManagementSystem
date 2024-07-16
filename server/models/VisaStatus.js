@@ -3,11 +3,12 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const visaStatusSchema = new Schema({
-  // employee: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Employee",
-  //   required: true,
-  // },
+  employee: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Employee",
+    unique: true,
+    required: true,
+  },
   step: {
     type: String,
     enum: ["registration", "OPT Receipt", "OPT EAD", "i983", "I20" ],
@@ -24,15 +25,12 @@ const visaStatusSchema = new Schema({
   workAuthorization: {
     title: {
       type: String,
-      required: true,
     },
     startDate: {
       type: Date,
-      required: true,
     },
     endDate: {
       type: Date,
-      required: true,
     },
   },
   documents: {

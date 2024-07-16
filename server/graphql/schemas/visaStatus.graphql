@@ -1,10 +1,20 @@
 type VisaStatus {
   _id: ID!
-  employee: Employee!
+  employee: ID!
   step: String
   status: String
   hrFeedback: String
   workAuthorization: WorkAuthorization!
+  documents: [Document]
+}
+
+type VisaStatusResponse {
+  _id: ID!
+  employee: Employee!
+  step: String
+  status: String
+  hrFeedback: String
+  workAuthorization: WorkAuthorization
   documents: [Document]
 }
 
@@ -30,9 +40,10 @@ input VisaStatusInput {
 }
 
 extend type Query {
-  getVisaStatuses: [VisaStatus]
-  getVisaStatus(id: ID!): VisaStatus
-  getVisaStatusWithQuery(query: String): VisaStatus
+  getVisaStatuses: [VisaStatusResponse]
+  getVisaStatus(id: ID!): VisaStatusResponse
+  getVisaStatusByEmployee(employeeId: ID!): VisaStatusResponse
+  getVisaStatusWithQuery(query: String!): [VisaStatusResponse]
 }
 
 extend type Mutation {
