@@ -41,7 +41,7 @@ const visaStatusResolvers = {
         // find employees by first name, last name or preferred name
         // cover one found, multiple found, none found
         // Name { First name, Last name, Middle name, Preferred name } is under Employee/profile
-        const filterdEmployees = await Employee.find({
+        const filteredEmployees = await Employee.find({
           $or: [
             { "profile.firstName": { $regex: query, $options: "i" } },
             { "profile.lastName": { $regex: query, $options: "i" } },
@@ -49,7 +49,7 @@ const visaStatusResolvers = {
             { "profile.preferredName": { $regex: query, $options: "i" } },
           ],
         }).populate(["profile", "visaStatus", "visaStatus.documents"]);
-        const filteredResults = filterdEmployees.map(employee => {
+        const filteredResults = filteredEmployees.map(employee => {
           const Obj = {
             name: `${employee.profile.firstName} ${employee.profile.middleName? employee.profile.middleName + " " : ""}${employee.profile.lastName}`,
             visaStatus: employee.visaStatus,

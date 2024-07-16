@@ -1,11 +1,11 @@
 type Query {
-  employees: [Employee]
-  employee(id: ID!): Employee
+  getEmployees: [Employee]
+  getEmployee(id: ID!): Employee
 }
 
 type Mutation {
-  logIn(input: EmployeeLogin!): Response
-  register(input: EmployeeRegister!): Response
+  loginEmployee(input: EmployeeLogin!): Response
+  registerEmployee(input: EmployeeRegister!): Response
 }
 
 type Employee {
@@ -31,6 +31,7 @@ input EmployeeLogin {
 }
 
 input EmployeeRegister {
+  registrationToken: String!
   email: String!
   username: String!
   password: String!

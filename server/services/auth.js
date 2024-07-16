@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken';
 
 const getUser = async (token) => {
     try {
-        const jwtToken = token.split(' ')[1];
+        //const jwtToken = token.split(' ')[1];
         let decoded ='';
         if(token){
-            decoded = await jwt.verify(jwtToken, process.env.JWT_SECRET_KEY);
+            decoded = await jwt.verify(token, process.env.JWT_SECRET_KEY);
         }
         const user = {
             _id: decoded.id||'',
@@ -23,8 +23,11 @@ const getUser = async (token) => {
 
 const checkAuth = async (context) => {
     try {
-        const token = context.headers?.authorization?.split(' ')?.[1];
-        console.log(token);
+        console.log("context:",context);
+        const token = context.token;
+        if (!token) {
+            throw new Error('Unauthorized');
+        }
         const decoded = await jwt.verify(token, process.env.JWT_SECRET_KEY);
         if (!decoded) {
             throw new Error('Unauthorized');
@@ -41,7 +44,7 @@ const checkAuth = async (context) => {
 
 }
 
-const isEmployee = (user, employeeId) => user && user.id === employeeId;
+const isEmployee = (user, employeeId) => user && user._id === employeeId;
 
 
 const isHR = (user) => user && user.role === "HR";

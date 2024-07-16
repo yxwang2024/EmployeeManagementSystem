@@ -1,0 +1,41 @@
+type Query {
+  getAllOnboardingApplications: [OnboardingApplication]
+  getOnboardingApplication(id: ID!): OnboardingApplication
+  getOnboardingApplicationWithQuery(query: String): OnboardingApplication
+}
+
+extend type Mutation {
+  updateOAName(input: NameInput): OnboardingApplication
+  updateOAIdentity(input: IdentityInput): OnboardingApplication
+  updateOACurrentAddress(input: AddressInput): OnboardingApplication
+  updateOAContactInfo(input: ContactInfoInput): OnboardingApplication
+  updateOAEmployment(input: EmploymentInput): OnboardingApplication
+  updateOAReference(input: ReferenceInput): OnboardingApplication
+  updateOAEmergencyContact(input: EmergencyContactUpdateInput): OnboardingApplication
+  updateOAStatus(status:String!): OnboardingApplication
+  updateOAHrFeedback(hrFeedback:String!): OnboardingApplication
+  addOADocument(input:uploadDocumentInput!): OnboardingApplication
+  deleteOADocument(input:uploadDocumentInput!): OnboardingApplication
+}
+
+type OnboardingApplication {
+  id: ID!
+  employee: Employee!
+  email: String!
+  name: Name
+  profilePicture: String
+  identity: Identity
+  currentAddress: Address
+  contactInfo: ContactInfo
+  employment: Employment
+  reference: Reference
+  emergencyContacts: [EmergencyContact]
+  documents: [Document]
+  status:String!
+  hrFeedback:String
+}
+
+input uploadDocumentInput {
+  id: ID!
+  documentId: ID!
+}
