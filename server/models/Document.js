@@ -21,6 +21,7 @@ const documentSchema = new Schema({
   },
   key: {
     type: String,
+    unique: true,
     required: true
   }
 });
