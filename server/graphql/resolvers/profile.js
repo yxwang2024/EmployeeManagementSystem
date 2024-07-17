@@ -1,13 +1,16 @@
 import Employee from '../../models/Employee.js';
 import Profile from '../../models/Profile.js';
+import User from '../../models/User.js';
+
+import { checkAuth, isHR, checkUser, isEmployee } from '../../services/auth.js';
+
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { checkAuth, isHR, isEmployee } from '../../services/auth.js';
 
 const profileResolvers = {
     Query: {
-        getAllProfiles: async (parent, context, info) => {
+        getAllProfiles: async (parent, args, context) => {
             try {
                 //auth:HR
                 const user = await checkAuth(context);
@@ -27,11 +30,13 @@ const profileResolvers = {
         getProfile: async (parent, { id }, context, info) => {
             try {
                 //auth: employee self or HR
-                const user = checkAuth(context);
-                const employee = Employee.findOne({ profile: id });
-                const employeeId = employee._id;
-                if (!isEmployee(user, employeeId) && !isHR(user)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({profile:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId) && !isHR(decodedUser)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                 const profile = await Profile.findById(id);
@@ -52,11 +57,13 @@ const profileResolvers = {
             const name = { firstName, middleName, lastName, preferredName };
 
             //auth: employee self
-            const user = checkAuth(context);
-            const employee = Employee.findOne({ profile: id });
-            const employeeId = employee._id;
-            if (!isEmployee(user, employeeId)) {
-                throw new Error('Authorization failed.');
+            const decodedUser = await checkAuth(context);
+
+            const employee = await Employee.findOne({profile:id});
+            const user = await User.findOne({instance:employee._id});
+            const userId = user._id.toString();
+            if( !checkUser(decodedUser,userId)){
+                throw new Error('Query id and auth user do not match.');
             }
 
             const updatedProfile = await Profile.findByIdAndUpdate(
@@ -72,12 +79,14 @@ const profileResolvers = {
             const identity = { ssn, dob, gender };
 
              //auth: employee self
-             const user = checkAuth(context);
-             const employee = Employee.findOne({ profile: id });
-             const employeeId = employee._id;
-             if (!isEmployee(user, employeeId)) {
-                 throw new Error('Authorization failed.');
-             }
+            const decodedUser = await checkAuth(context);
+
+            const employee = await Employee.findOne({profile:id});
+            const user = await User.findOne({instance:employee._id});
+            const userId = user._id.toString();
+            if( !checkUser(decodedUser,userId)){
+                throw new Error('Query id and auth user do not match.');
+            }
 
             const updatedProfile = await Profile.findByIdAndUpdate(
                 id,
@@ -92,12 +101,14 @@ const profileResolvers = {
             const address = { street, building, city, state, zip };
 
              //auth: employee self
-             const user = checkAuth(context);
-             const employee = Employee.findOne({ profile: id });
-             const employeeId = employee._id;
-             if (!isEmployee(user, employeeId)) {
-                 throw new Error('Authorization failed.');
-             }
+            const decodedUser = await checkAuth(context);
+
+            const employee = await Employee.findOne({profile:id});
+            const user = await User.findOne({instance:employee._id});
+            const userId = user._id.toString();
+            if( !checkUser(decodedUser,userId)){
+                throw new Error('Query id and auth user do not match.');
+            }
 
             const updatedProfile = await Profile.findByIdAndUpdate(
                 id,
@@ -111,13 +122,15 @@ const profileResolvers = {
             const { id, cellPhone, workPhone } = input;
             const contactInfo = { cellPhone, workPhone };
 
-             //auth: employee self
-             const user = checkAuth(context);
-             const employee = Employee.findOne({ profile: id });
-             const employeeId = employee._id;
-             if (!isEmployee(user, employeeId)) {
-                 throw new Error('Authorization failed.');
-             }
+            //auth: employee self
+            const decodedUser = await checkAuth(context);
+
+            const employee = await Employee.findOne({profile:id});
+            const user = await User.findOne({instance:employee._id});
+            const userId = user._id.toString();
+            if( !checkUser(decodedUser,userId)){
+                throw new Error('Query id and auth user do not match.');
+            }
 
             const updatedProfile = await Profile.findByIdAndUpdate(
                 id,
@@ -132,11 +145,13 @@ const profileResolvers = {
             const employment = { visaTitle, startDate, endDate };
 
             //auth: employee self
-            const user = checkAuth(context);
-            const employee = Employee.findOne({ profile: id });
-            const employeeId = employee._id;
-            if (!isEmployee(user, employeeId)) {
-                throw new Error('Authorization failed.');
+            const decodedUser = await checkAuth(context);
+
+            const employee = await Employee.findOne({profile:id});
+            const user = await User.findOne({instance:employee._id});
+            const userId = user._id.toString();
+            if( !checkUser(decodedUser,userId)){
+                throw new Error('Query id and auth user do not match.');
             }
 
             const updatedProfile = await Profile.findByIdAndUpdate(
@@ -152,12 +167,14 @@ const profileResolvers = {
             const reference = { firstName, lastName, middleName, phone, email, relationship };
 
              //auth: employee self
-             const user = checkAuth(context);
-             const employee = Employee.findOne({ profile: id });
-             const employeeId = employee._id;
-             if (!isEmployee(user, employeeId)) {
-                 throw new Error('Authorization failed.');
-             }
+            const decodedUser = await checkAuth(context);
+
+            const employee = await Employee.findOne({profile:id});
+            const user = await User.findOne({instance:employee._id});
+            const userId = user._id.toString();
+            if( !checkUser(decodedUser,userId)){
+                throw new Error('Query id and auth user do not match.');
+            }
 
             const updatedProfile = await Profile.findByIdAndUpdate(
                 id,
@@ -170,13 +187,15 @@ const profileResolvers = {
             console.log(input);
             const { id, emergencyContacts } = input;
 
-             //auth: employee self
-             const user = checkAuth(context);
-             const employee = Employee.findOne({ profile: id });
-             const employeeId = employee._id;
-             if (!isEmployee(user, employeeId)) {
-                 throw new Error('Authorization failed.');
-             }
+            //auth: employee self
+            const decodedUser = await checkAuth(context);
+
+            const employee = await Employee.findOne({profile:id});
+            const user = await User.findOne({instance:employee._id});
+            const userId = user._id.toString();
+            if( !checkUser(decodedUser,userId)){
+                throw new Error('Query id and auth user do not match.');
+            }
 
             const updatedProfile = await Profile.findByIdAndUpdate(
                 id,

@@ -1,7 +1,6 @@
 type Query {
   getAllOnboardingApplications: [OnboardingApplication]
-  getOnboardingApplication(id: ID!): OnboardingApplication
-  getOnboardingApplicationWithQuery(query: String): OnboardingApplication
+  getOnboardingApplication(oaId: ID!): OnboardingApplication
 }
 
 extend type Mutation {
@@ -11,16 +10,17 @@ extend type Mutation {
   updateOAContactInfo(input: ContactInfoInput): OnboardingApplication
   updateOAEmployment(input: EmploymentInput): OnboardingApplication
   updateOAReference(input: ReferenceInput): OnboardingApplication
-  updateOAEmergencyContact(input: EmergencyContactUpdateInput): OnboardingApplication
-  updateOAStatus(status:String!): OnboardingApplication
-  updateOAHrFeedback(hrFeedback:String!): OnboardingApplication
-  addOADocument(input:uploadDocumentInput!): OnboardingApplication
-  deleteOADocument(input:uploadDocumentInput!): OnboardingApplication
+  updateOAEmergencyContact(
+    input: EmergencyContactUpdateInput
+  ): OnboardingApplication
+  updateOAStatus(input: OAStatusInput): OnboardingApplication
+  updateOAHrFeedback(input: OAHrFeedbackInput): OnboardingApplication
+  addOADocument(input: uploadDocumentInput!): OnboardingApplication
+  deleteOADocument(input: uploadDocumentInput!): OnboardingApplication
 }
 
 type OnboardingApplication {
   id: ID!
-  employee: Employee!
   email: String!
   name: Name
   profilePicture: String
@@ -31,11 +31,21 @@ type OnboardingApplication {
   reference: Reference
   emergencyContacts: [EmergencyContact]
   documents: [Document]
-  status:String!
-  hrFeedback:String
+  status: String!
+  hrFeedback: String
 }
 
 input uploadDocumentInput {
   id: ID!
   documentId: ID!
+}
+
+input OAStatusInput {
+  id: ID!
+  status: String!
+}
+
+input OAHrFeedbackInput {
+  id: ID!
+  hrFeedback: String!
 }

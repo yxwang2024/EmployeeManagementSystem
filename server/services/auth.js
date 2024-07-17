@@ -46,7 +46,7 @@ const checkAuth = async (context) => {
 
 //check userId decoded from token == userId from query. Ensure that only employee self can access his/her info.
 const checkUser = (decodedUser, userId) => {
-    return decodedUser && user._id === userId;
+    return decodedUser && decodedUser._id === userId;
 }
 
 //check user role is Employee
