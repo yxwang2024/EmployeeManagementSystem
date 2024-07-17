@@ -6,6 +6,7 @@ import SignIn from './pages/LogIn';
 import SignUp from './pages/SignUp';
 import Home from "./pages/Home";
 import Header from "./components/Header"
+import VisaStatus from "./pages/VisaStatus";
 
 const App: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="login" element={<SignIn />} />
         <Route path="signup" element={<SignUp />} />
+        <Route path="visa-status" element={<VisaStatus />} />
       </Routes>
     </Router>
   );

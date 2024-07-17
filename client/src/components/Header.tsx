@@ -19,7 +19,7 @@ import { RootState } from '../store';
 import { logout } from '../store/authSlice';
 import { useNavigate } from 'react-router-dom';
 
-const UserPages = ['Personal Information', 'Visa Status Management'];
+const UserPages = ['Personal Information', 'Visa Status'];
 const HRpages = ['Home', 'Employee Profiles', 'Visa Status Management', 'Hiring Management'];
 
 function Header() {
@@ -127,7 +127,8 @@ function Header() {
                 }}
               >
                 {isHR !== null && (isHR ? HRpages : UserPages).map((page) => (
-                  <MenuItem key={page} onClick={handleCloseNavMenu}>
+                  // <MenuItem key={page} onClick={handleCloseNavMenu}>
+                  <MenuItem key={page} onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}>
                     <Typography textAlign="center">{page}</Typography>
                   </MenuItem>
                 ))}
@@ -157,7 +158,7 @@ function Header() {
             {isHR !== null && (isHR ? HRpages : UserPages).map((page) => (
               <Button
                 key={page}
-                onClick={handleCloseNavMenu}
+                onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}
                 sx={{ fontSize: '18px', my: 2, color: 'white', display: 'block', textTransform: 'none' }}
               >
                 {page}

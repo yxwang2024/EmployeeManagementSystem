@@ -13,16 +13,16 @@ const validationSchema = Yup.object({
 });
 
 const LOGIN_EMPLOYEE_MUTATION = `
-  mutation LogInEmployee($input: EmployeeLogin!) {
-    logIn(input: $input) {
-      token
-      employee {
-        username
-        email
-      }
-      message
+  mutation Login($input: LoginInput!) {
+  Login(input: $input) {
+    token
+    message
+    user {
+      email
+      username
     }
   }
+}
 `;
 
 const LOGIN_HR_MUTATION = `
@@ -68,7 +68,7 @@ const LogIn: React.FC = () => {
         throw new Error(response.data.errors[0].message);
       }
 
-      const { token, employee, hr } = response.data.data.logIn || response.data.data.loginHR;
+      const { token, employee, hr } = response.data.data.Login
       localStorage.setItem('token', token);
       dispatch(login({ token, user: employee || hr }));
     } catch (error) {
