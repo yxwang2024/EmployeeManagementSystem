@@ -316,8 +316,10 @@ const onboardingApplicationResolvers = {
             }
         },
 
-        updateOAStatus: async (parent, { status }, context, info) => {
+        updateOAStatus: async (parent, { input }, context, info) => {
             try {
+                const { id, status } = input;
+
                 //auth:HR
                 const user = await checkAuth(context);
                 if (!isHR(user)) {
@@ -335,10 +337,10 @@ const onboardingApplicationResolvers = {
             }
         },
 
-        updateOAHrFeedback: async (parent, { hrFeedback }, context, info) => {
+        updateOAHrFeedback: async (parent, { input }, context, info) => {
             try {
                 console.log(input);
-                const { id, emergencyContacts } = input;
+                const { id, hrFeedback } = input;
 
                 //auth:HR
                 const user = await checkAuth(context);
