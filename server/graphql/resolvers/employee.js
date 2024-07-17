@@ -16,7 +16,6 @@ const employeeResolvers = {
                 const decodedUser = await checkAuth(context);
 
                 const user = await User.findOne({instance:employeeId});
-                //console.log("user:     ",user);
                 const userId = user._id.toString();
                 if( !checkUser(decodedUser,userId) && !isHR(decodedUser)){
                     throw new Error('Query id and auth user do not match.');

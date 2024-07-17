@@ -1,7 +1,6 @@
 type Query {
   getAllOnboardingApplications: [OnboardingApplication]
-  getOnboardingApplication(id: ID!): OnboardingApplication
-  getOnboardingApplicationWithQuery(query: String): OnboardingApplication
+  getOnboardingApplication(oaId: ID!): OnboardingApplication
 }
 
 extend type Mutation {
@@ -20,7 +19,6 @@ extend type Mutation {
 
 type OnboardingApplication {
   id: ID!
-  employee: Employee!
   email: String!
   name: Name
   profilePicture: String

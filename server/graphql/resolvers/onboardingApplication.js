@@ -1,26 +1,28 @@
 import OnboardingApplication from '../../models/OnboardingApplication.js';
 import Employee from '../../models/Employee.js';
 import Document from '../../models/Document.js';
+import User from '../../models/User.js';
+import { checkAuth, isHR, checkUser, isEmployee } from '../../services/auth.js';
 import mongoose from 'mongoose';
 
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { checkAuth, isHR, isEmployee } from '../../services/auth.js';
-
 const onboardingApplicationResolvers = {
     Query: {
-        getOnboardingApplication: async (_, { id }, context) => {
+        getOnboardingApplication: async (_, { oaId }, context) => {
             try {
                 //auth: employee self or HR
-                const user = await checkAuth(context);
-                const employee = Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id;
-                if (!isEmployee(user, employeeId) && !isHR(user)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:oaId});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId) && !isHR(decodedUser)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
-                return await OnboardingApplication.findById(id);
+                return await OnboardingApplication.findById(oaId);
             } catch (err) {
                 throw new Error(err);
             }
@@ -76,11 +78,13 @@ const onboardingApplicationResolvers = {
                 const name = { firstName, middleName, lastName, preferredName };
 
                 //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                 //oa status should not be Pending or Approved
@@ -109,11 +113,13 @@ const onboardingApplicationResolvers = {
                 const identity = { ssn, dob, gender };
 
                 //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                  //oa status should not be Pending or Approved
@@ -142,11 +148,13 @@ const onboardingApplicationResolvers = {
                 const address = { street, building, city, state, zip };
 
                 //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                  //oa status should not be Pending or Approved
@@ -175,11 +183,13 @@ const onboardingApplicationResolvers = {
                 const contactInfo = { cellPhone, workPhone };
 
                 //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                  //oa status should not be Pending or Approved
@@ -208,11 +218,13 @@ const onboardingApplicationResolvers = {
                 const employment = { visaTitle, startDate, endDate };
 
                 //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                  //oa status should not be Pending or Approved
@@ -241,11 +253,13 @@ const onboardingApplicationResolvers = {
                 const reference = { firstName, lastName, middleName, phone, email, relationship };
 
                 //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                  //oa status should not be Pending or Approved
@@ -273,11 +287,13 @@ const onboardingApplicationResolvers = {
                 const { id, emergencyContacts } = input;
 
                 //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
+                const decodedUser = await checkAuth(context);
+
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                  //oa status should not be Pending or Approved
@@ -345,13 +361,15 @@ const onboardingApplicationResolvers = {
                 console.log(input);
                 const { id, documentId } = input;
 
-                //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
-                }
+                 //auth: employee self
+                 const decodedUser = await checkAuth(context);
+
+                 const employee = await Employee.findOne({onboardingApplication:id});
+                 const user = await User.findOne({instance:employee._id});
+                 const userId = user._id.toString();
+                 if( !checkUser(decodedUser,userId)){
+                     throw new Error('Query id and auth user do not match.');
+                 }
 
                  //oa status should not be Pending or Approved
                  const oa = await OnboardingApplication.findById(id);
@@ -380,13 +398,15 @@ const onboardingApplicationResolvers = {
                 console.log(input);
                 const { id, documentId } = input;
 
-                //auth: employee self
-                const user = await checkAuth(context);
-                const employee = await Employee.findOne({ onboardingApplication: id });
-                const employeeId = employee._id.toString();
-                if (!isEmployee(user, employeeId)) {
-                    throw new Error('Authorization failed.');
-                }
+                 //auth: employee self
+                 const decodedUser = await checkAuth(context);
+
+                 const employee = await Employee.findOne({onboardingApplication:id});
+                 const user = await User.findOne({instance:employee._id});
+                 const userId = user._id.toString();
+                 if( !checkUser(decodedUser,userId)){
+                     throw new Error('Query id and auth user do not match.');
+                 }
 
                 const document = await Document.findById(documentId);
                 if (!document) {
