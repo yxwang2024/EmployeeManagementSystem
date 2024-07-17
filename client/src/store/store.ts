@@ -1,9 +1,11 @@
 import { configureStore, ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import onboardingApplicationReducer from './onboardingApplicationSlice';
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
+    onboardingApplication: onboardingApplicationReducer,
   },
 });
 
