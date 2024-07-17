@@ -11,7 +11,7 @@ const visaStatusSchema = new Schema({
   },
   step: {
     type: String,
-    enum: ["registration", "OPT Receipt", "OPT EAD", "i983", "I20" ],
+    enum: ["registration", "OPT Receipt", "OPT EAD", "i983", "I20"],
     default: "registration",
   },
   status: {
@@ -21,24 +21,28 @@ const visaStatusSchema = new Schema({
   },
   hrFeedback: {
     type: String,
+    default: '',
   },
   workAuthorization: {
     title: {
       type: String,
+      default: '',
     },
     startDate: {
       type: Date,
+      default: '2000-01-01',
     },
     endDate: {
       type: Date,
+      default: '2000-01-01',
     },
   },
   documents: {
-   type: [{
-     type: mongoose.Schema.Types.ObjectId,
-     ref: "Document",
-   }],
-   default: [], 
+    type: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Document",
+    }],
+    default: [],
   }
 });
 
