@@ -4,7 +4,7 @@ import HR from '../../models/HR.js';
 import Profile from '../../models/Profile.js';
 import MailHistory from '../../models/MailHistory.js';
 import OnboardingApplication from '../../models/OnboardingApplication.js';
-import VisaStatus from '../../models/VisaStatus.js';
+
 import * as dotenv from 'dotenv';
 dotenv.config();
 import jwt from 'jsonwebtoken';
@@ -124,13 +124,6 @@ const userResolvers = {
                     onboardingApplication: onboardingApplication
                 });
                 await employee.save();
-                const visaStatus = new VisaStatus({
-                    employee:employee._id,
-                    step:"registration",
-                    status: "Pending"
-                });
-                await visaStatus.save();
-                await Employee.findByIdAndUpdate(employee._id,{visaStatus:visaStatus});
 
                 const newUser = new User({
                     username,
