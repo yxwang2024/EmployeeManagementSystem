@@ -8,6 +8,5 @@ type Employee {
   email: String!
   username: String!
   profile: Profile
-  visaStatus: VisaStatus
   onboardingApplication: OnboardingApplication
 }

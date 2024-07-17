@@ -22,10 +22,6 @@ const employeeSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'OnboardingApplication',
     unique: true
-  },
-  visaStatus: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'VisaStatus'
   }
 });
 
