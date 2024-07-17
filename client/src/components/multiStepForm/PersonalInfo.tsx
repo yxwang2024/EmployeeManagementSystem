@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,6 +6,7 @@ import { RootState } from '../../store/store';
 import { updatePersonalInfo, setCurrentStep } from '../../store/onboardingApplicationSlice';
 import CustomTextField from '../../components/CustomTextField';
 import CustomSelectField from '../../components/CustomSelectField';
+import { jwtDecode } from 'jwt-decode';
 
 const PersonalInfoSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
@@ -18,7 +19,21 @@ const PersonalInfoSchema = Yup.object().shape({
 
 const PersonalInfo: React.FC = () => {
   const dispatch = useDispatch();
+  const token = useSelector((state: RootState) => state.auth.token);
   const personalInfo = useSelector((state: RootState) => state.onboardingApplication.personalInfo);
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        if (decoded.email) {
+          dispatch(updatePersonalInfo({ ...personalInfo, email: decoded.email }));
+        }
+      } catch (error) {
+        console.error('Token decoding failed:', error);
+      }
+    }
+  }, [token, dispatch]);
 
   const genderOptions = [
     { value: 'male', label: 'Male' },
@@ -28,6 +43,7 @@ const PersonalInfo: React.FC = () => {
 
   return (
     <Formik
+      enableReinitialize
       initialValues={personalInfo}
       validationSchema={PersonalInfoSchema}
       onSubmit={(values) => {
@@ -35,7 +51,7 @@ const PersonalInfo: React.FC = () => {
         dispatch(setCurrentStep(2));
       }}
     >
-      {({ handleSubmit }) => (
+      {({ handleSubmit, values }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Personal Information</h2>
           <CustomTextField name="firstName" label="First Name" />
@@ -43,7 +59,7 @@ const PersonalInfo: React.FC = () => {
           <CustomTextField name="lastName" label="Last Name" />
           <CustomTextField name="preferredName" label="Preferred Name" />
           <CustomTextField name="profilePicture" label="Profile Picture" type="file" />
-          <CustomTextField name="email" label="Email" type="email" disabled />
+          <CustomTextField name="email" label="Email" type="email" disabled value={values.email} />
           <CustomTextField name="ssn" label="SSN" />
           <CustomTextField name="dob" label="Date of Birth" type="date" />
           <CustomSelectField name="gender" label="Gender" options={genderOptions} />

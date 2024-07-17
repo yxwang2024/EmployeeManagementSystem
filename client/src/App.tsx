@@ -7,6 +7,7 @@ import SignUp from './pages/SignUp';
 import Home from "./pages/Home";
 import Header from "./components/Header"
 import OnboardingApplication from "./pages/OnboardingApplication";
+import DebugPage from "./pages/Debug";
 
 const App: React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const App: React.FC = () => {
         <Route path="login" element={<SignIn />} />
         <Route path="signup" element={<SignUp />} />
         <Route path="onboardingapplication" element={<OnboardingApplication />} />
+        <Route path="debug" element={<DebugPage />} />
       </Routes>
     </Router>
   );
