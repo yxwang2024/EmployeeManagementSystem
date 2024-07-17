@@ -15,7 +15,7 @@ import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import NoAccountsIcon from '@mui/icons-material/NoAccounts';
 import { jwtDecode } from 'jwt-decode';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
+import { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
 import { useNavigate } from 'react-router-dom';
 

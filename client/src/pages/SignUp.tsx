@@ -15,10 +15,10 @@ const validationSchema = Yup.object({
 });
 
 const SIGNUP_MUTATION = `
-  mutation RegisterEmployee($input: EmployeeRegister!) {
-    register(input: $input) {
+  mutation EmployeeRegister($input: EmployeeRegisterInput!) {
+    EmployeeRegister(input: $input) {
       token
-      employee {
+      user {
         username
         email
       }
@@ -64,13 +64,13 @@ const SignUp: React.FC = () => {
       );
 
       if (response.data.errors) {
-        console.log('Response data errors:', response.data.errors);
         throw new Error(response.data.errors[0].message);
       }
 
-      const { token, employee } = response.data.data.register;
+      const { token, user } = response.data.data.EmployeeRegister;
       localStorage.setItem('token', token);
-      dispatch(login({ token, user: employee }));
+      localStorage.setItem('user', JSON.stringify(user));
+      dispatch(login({ token, user }));
     } catch (error) {
       const errorMessage = (error as Error).message;
       console.error('Registration failed:', errorMessage);
