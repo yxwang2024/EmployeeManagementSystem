@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { login } from '../store/authSlice';
 import CustomTextField from '../components/CustomTextField';
+import { jwtDecode } from 'jwt-decode';
 
 const validationSchema = Yup.object({
   email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -62,20 +63,24 @@ const LogIn: React.FC = () => {
 
       const { token, user } = response.data.data.Login;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      dispatch(login({ token, user }));
+
+      // Decode the token to extract user info if needed
+      const decoded: any = jwtDecode(token);
+      const userInfo = {
+        username: decoded.username,
+        email: decoded.email,
+      };
+
+      dispatch(login({ token, user: userInfo }));
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Axios error:', error.response);
         if (error.response?.data?.errors) {
           console.error('GraphQL errors:', error.response.data.errors);
-          alert(`GraphQL error: ${error.response.data.errors[0].message}`);
-        } else {
-          alert(`Axios error: ${error.message}`);
         }
       } else {
         console.error('Login failed:', error);
-        alert(`${(error as Error).message}`);
+        alert(`Login failed: ${error.message}`);
       }
     }
   };

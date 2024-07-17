@@ -60,6 +60,7 @@ export interface OnboardingApplicationState {
   reference?: Reference;
   emergencyContacts: EmergencyContact[];
   currentStep: number;
+  status: 'NotSubmitted' | 'Pending' | 'Approved' | 'Rejected' | null;
 }
 
 const initialState: OnboardingApplicationState = {
@@ -91,6 +92,7 @@ const initialState: OnboardingApplicationState = {
   },
   emergencyContacts: [],
   currentStep: 1,
+  status: null,
 };
 
 const onboardingApplicationSlice = createSlice({
@@ -98,7 +100,7 @@ const onboardingApplicationSlice = createSlice({
   initialState,
   reducers: {
     updatePersonalInfo: (state, action: PayloadAction<PersonalInfo>) => {
-      state.personalInfo = action.payload;
+      state.personalInfo = { ...state.personalInfo, ...action.payload };
     },
     updateAddress: (state, action: PayloadAction<Address>) => {
       state.address = action.payload;
@@ -121,6 +123,12 @@ const onboardingApplicationSlice = createSlice({
     setCurrentStep: (state, action: PayloadAction<number>) => {
       state.currentStep = action.payload;
     },
+    setOnboardingApplicationData: (state, action: PayloadAction<OnboardingApplicationState>) => {
+      return action.payload;
+    },
+    setStatus: (state, action: PayloadAction<'NotSubmitted' | 'Pending' | 'Approved' | 'Rejected'>) => {
+      state.status = action.payload;
+    },
   },
 });
 
@@ -133,6 +141,8 @@ export const {
   addEmergencyContact,
   updateEmergencyContact,
   setCurrentStep,
+  setOnboardingApplicationData,
+  setStatus,
 } = onboardingApplicationSlice.actions;
 
 export default onboardingApplicationSlice.reducer;

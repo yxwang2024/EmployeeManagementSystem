@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { jwtDecode } from 'jwt-decode';
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -10,11 +11,24 @@ export interface AuthState {
 }
 
 const tokenFromLocalStorage = localStorage.getItem('token');
+let initialUser = null;
+
+if (tokenFromLocalStorage) {
+  try {
+    const decoded: any = jwtDecode(tokenFromLocalStorage);
+    initialUser = {
+      username: decoded.username,
+      email: decoded.email,
+    };
+  } catch (error) {
+    console.error('Token decoding failed:', error);
+  }
+}
 
 const initialState: AuthState = {
   isAuthenticated: !!tokenFromLocalStorage,
   token: tokenFromLocalStorage,
-  user: null,
+  user: initialUser,
 };
 
 const authSlice = createSlice({
