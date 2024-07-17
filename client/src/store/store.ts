@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
 import authReducer from './authSlice.ts';
 
 const store = configureStore({
@@ -8,6 +8,6 @@ const store = configureStore({
 });
 
 export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type AppDispatch = ThunkDispatch<RootState, void, AnyAction>;
 
 export default store;
