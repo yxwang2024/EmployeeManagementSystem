@@ -11,7 +11,7 @@ const PersonalInfoSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
   lastName: Yup.string().required('Last name is required'),
   email: Yup.string().email('Invalid email').required('Email is required'),
-  ssn: Yup.string().required('SSN is required'),
+  ssn: Yup.string().matches(/^[0-9]+$/, "Must be only digits").length(9, 'Must be exactly 9 digits').required('SSN is required'),
   dob: Yup.date().required('Date of birth is required'),
   gender: Yup.string().required('Gender is required'),
 });
