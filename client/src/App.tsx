@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Header from "./components/Header"
 import OnboardingApplication from "./pages/OnboardingApplication";
 import DebugPage from "./pages/Debug";
+import HrVisaStatusManagement from "./pages/HrVisaStatusManagement";
 
 const App: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ const App: React.FC = () => {
         <Route path="signup" element={<SignUp />} />
         <Route path="onboardingapplication" element={<OnboardingApplication />} />
         <Route path="debug" element={<DebugPage />} />
+        <Route path="hrvisastatusmanagement" element={<HrVisaStatusManagement />} />
       </Routes>
     </Router>
   );
