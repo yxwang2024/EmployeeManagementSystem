@@ -41,10 +41,15 @@ const VisaStatus: React.FC = () => {
   const { showLoading, showMessage } = useGlobal();
 
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
   const visaStatus: VisaStatusType = useAppSelector((state) => state.employee.visaStatus);
 
   useEffect(() => { 
-    const EmployeeId = "66984ab27070f38efac60db4"; // get this from redux
+    if (!user || user.role !== "Employee") {
+      navigate('/login');
+      return;
+    }
+    const EmployeeId = user.instance.id;
     showLoading(true);
     dispatch(fetchVisaStatus(EmployeeId)).then(() => {
       delayFunctionCall(showLoading, 300, false);
@@ -54,7 +59,7 @@ const VisaStatus: React.FC = () => {
       showLoading(false);
       navigate('/login');
     });
-  }, []);
+  }, [user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

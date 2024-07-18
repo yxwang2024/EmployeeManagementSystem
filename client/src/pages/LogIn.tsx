@@ -1,34 +1,59 @@
-import React from 'react';
-import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
-import { useDispatch } from 'react-redux';
-import axios from 'axios';
-import { login } from '../store/authSlice';
-import CustomTextField from '../components/CustomTextField';
-import { jwtDecode } from 'jwt-decode';
+import React from "react";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import { useDispatch } from "react-redux";
+import axios from "axios";
+import { login } from "../store/authSlice";
+import CustomTextField from "../components/CustomTextField";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 const validationSchema = Yup.object({
-  email: Yup.string().email('Invalid email address').required('Email is required'),
-  password: Yup.string().required('Password is required'),
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required"),
+  password: Yup.string().required("Password is required"),
 });
 
 const LOGIN_MUTATION = `
   mutation Login($input: LoginInput!) {
-    Login(input: $input) {
-      token
-      user {
-        id
-        username
-        email
-        role
+  Login(input: $input) {
+    token
+    message
+    user {
+      id
+      email
+      username
+      password
+      role
+      instance {
+        ... on EmployeeInstance {
+          id
+          onboardingApplication {
+            id
+            status
+          }
+        }
+        ... on HRInstance {
+          id
+          mailHistory {
+            _id
+            email
+            registrationToken
+            expiration
+            name
+            status
+          }
+        }
       }
-      message
     }
   }
+}
 `;
 
 const LogIn: React.FC = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleLogin = async (values: { email: string; password: string }) => {
     try {
@@ -42,62 +67,85 @@ const LogIn: React.FC = () => {
         },
       };
 
-      console.log('Request payload:', JSON.stringify(payload, null, 2));
+      console.log("Request payload:", JSON.stringify(payload, null, 2));
 
       const response = await axios.post(
-        'http://localhost:3000/graphql',
+        "http://localhost:3000/graphql",
         payload,
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
 
-      console.log('Backend response:', JSON.stringify(response.data, null, 2));
+      console.log("Backend response:", JSON.stringify(response.data, null, 2));
 
       if (response.data.errors) {
-        console.log('GraphQL errors:', response.data.errors);
+        console.log("GraphQL errors:", response.data.errors);
         throw new Error(response.data.errors[0].message);
       }
 
       const { token, user } = response.data.data.Login;
-      localStorage.setItem('token', token);
+      if (!token || !user) {
+        throw new Error("Invalid response");
+      }
+
+      localStorage.setItem("token", token);
 
       // Decode the token to extract user info if needed
       const decoded: any = jwtDecode(token);
-      const userInfo = {
-        username: decoded.username,
-        email: decoded.email,
-      };
+      // check the decoded token
+      if (decoded.id !== user.id || decoded.role !== user.role) {
+        throw new Error("Token mismatch");
+      }
 
-      dispatch(login({ token, user: userInfo }));
+      if (user.instance && user.instance.onboardingApplication && user.instance.onboardingApplication.status === "Approved") {
+        navigate("/visa-status");
+      } else {
+        navigate("/onboardingapplication");
+      }
+
+      dispatch(login({ token, user: user }));
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Axios error:', error.response);
+        console.error("Axios error:", error.response);
         if (error.response?.data?.errors) {
-          console.error('GraphQL errors:', error.response.data.errors);
+          console.error("GraphQL errors:", error.response.data.errors);
         }
       } else {
-        console.error('Login failed:', error);
+        console.error("Login failed:", error);
         alert(`Login failed: ${error.message}`);
       }
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="flex items-center w-full justify-center h-screen bg-gray-100">
       <div className="w-full max-w-md">
-        <h2 className="text-center text-4xl font-bold mb-4 text-gray-800">Log in</h2>
+        <h2 className="text-center text-4xl font-bold mb-4 text-gray-800">
+          Log in
+        </h2>
         <Formik
-          initialValues={{ email: '', password: '' }}
+          initialValues={{ email: "", password: "" }}
           validationSchema={validationSchema}
           onSubmit={handleLogin}
         >
           {({ handleSubmit }) => (
-            <Form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-              <CustomTextField name="email" label="Email Address" type="email" />
-              <CustomTextField name="password" label="Password" type="password" />
+            <Form
+              onSubmit={handleSubmit}
+              className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+            >
+              <CustomTextField
+                name="email"
+                label="Email Address"
+                type="email"
+              />
+              <CustomTextField
+                name="password"
+                label="Password"
+                type="password"
+              />
               <div className="flex items-center justify-between pt-2">
                 <button
                   type="submit"

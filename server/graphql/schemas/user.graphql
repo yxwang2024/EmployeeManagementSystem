@@ -9,7 +9,22 @@ type Mutation {
   HRRegister(input: HRRegisterInput!): UserResponse
 }
 
-union UserInstance = Employee | HR
+union UserInstance = EmployeeInstance | HRInstance
+
+type OnboardingApp {
+  id: ID!
+  status: String!
+}
+
+type EmployeeInstance {
+  id: ID!
+  onboardingApplication: OnboardingApp
+}
+
+type HRInstance {
+  id: ID!
+  mailHistory: MailHistory
+}
 
 type User {
   id: ID!
@@ -17,7 +32,7 @@ type User {
   username: String!
   password: String!
   role: String!
-  instance: UserInstance!
+  instance: UserInstance
 }
 
 type UserResponse {

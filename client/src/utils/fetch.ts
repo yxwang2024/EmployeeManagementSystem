@@ -91,11 +91,17 @@ const fileUploadRequest = async <T>(
     window.location.href = "/signin";
     return Promise.reject(new Error("Unauthorized"));
   }
+
+  if(response.status === 200 &&  response.data.errors) {
+    const err: errType = await response.data.errors[0];
+    return Promise.reject(err) as Promise<T>;
+  }
+
   if (response.status === 200 || response.status === 201) {
     return response.data as Promise<T>;
   } else {
     const err: errType = await response.data.errors[0];
-    return Promise.reject(new Error(err.message));
+    return Promise.reject(err) as Promise<T>;
   }
 };
 
