@@ -76,13 +76,31 @@ const visaStatusResolvers = {
           ]);
           return visaStatuses;
         }
-        const employees = await Employee.find({
-          $or: [
-            { "profile.firstName": { $regex: query, $options: "i" } },
-            { "profile.lastName": { $regex: query, $options: "i" } },
-            { "profile.preferredName": { $regex: query, $options: "i" } },
-          ],
-        });      
+        const employees = await Employee.aggregate([
+          {
+            $lookup: {
+              from: "profiles", // The name of the collection containing profile details
+              localField: "profile",
+              foreignField: "_id",
+              as: "profileDetails"
+            }
+          },
+          {
+            $unwind: "$profileDetails" // Unwind the array to make it easier to query
+          },
+          {
+            $match: {
+              $or: [
+                { "profileDetails.name.firstName": { $regex: query, $options: "i" } },
+                { "profileDetails.name.middleName": { $regex: query, $options: "i" } },
+                { "profileDetails.name.lastName": { $regex: query, $options: "i" } },
+                { "profileDetails.name.preferredName": { $regex: query, $options: "i" } },
+              ]
+            }
+          }
+        ]);
+        
+        console.log(employees);
         const filteredResults = await VisaStatus.find({
           employee: { $in: employees },
         }).populate([

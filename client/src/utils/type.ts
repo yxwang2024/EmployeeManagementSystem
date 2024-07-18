@@ -24,6 +24,16 @@ export interface HRInstanceType {
   }[];
 }
 
+export interface HRStateType {
+  hr: HRInstanceType;
+}
+
+export interface HRResponseType {
+  data: {
+    getHR: HRInstanceType;
+  };
+}
+
 export interface UserLoginType {
     id: string;
     username: string;

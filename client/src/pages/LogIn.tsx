@@ -108,7 +108,7 @@ const LogIn: React.FC = () => {
           navigate("/onboardingapplication");
         }
       } else if (user.role === "HR") {
-        navigate("/mail-history");
+        navigate("/hiring-management");
       } else {
         throw new Error("Invalid role");
       }
@@ -123,7 +123,7 @@ const LogIn: React.FC = () => {
         }
       } else {
         console.error("Login failed:", error);
-        alert(`Login failed: ${error.message}`);
+        alert(`Login failed: ${error}`);
       }
     }
   };  

@@ -31,20 +31,20 @@ const DocViewerComponent: React.FC<{
       <Button
         variant="contained"
         color="primary"
-        sx={{ display: { xs: "none", md: "block" } }}
+        sx={{ display: { xs: "none", md: "block" }, alignItems: "center", justifyContent: "center" }}
         onClick={() => setOpenPreview(true)}
       >
         Preview
       </Button>
       <IconButton
         onClick={() => setOpenPreview(true)}
-        sx={{ display: { xs: "block", md: "none" } }}
+        sx={{ display: { xs: "block", md: "none" }, alignItems: "center", justifyContent: "center" }}
       >
         <VisibilityIcon />
       </IconButton>
       <IconButton
         onClick={() => window.open(url, "_blank")}
-        // sx={{ display: { xs: "block", md: "none" } }}
+        sx={{ display: 'block' }}
       >
         <DownloadIcon />
       </IconButton>

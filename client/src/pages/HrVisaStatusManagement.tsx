@@ -8,7 +8,7 @@ import SearchBar from '../components/SearchBar';
 const HrVisaStatusManagement: React.FC = () => {
 
   return (
-    <div className="visa-status-management"> 
+    <div className="visa-status-management md:pt-24"> 
         <SearchBar></SearchBar>
         <Paper >
           <Box sx={{ my: 3 }}>
