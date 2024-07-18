@@ -13,6 +13,7 @@ import { VisaStatusType } from "../utils/type";
 import { useGlobal } from "../store/hooks";
 import { delayFunctionCall } from "../utils/utilities";
 import { useNavigate } from "react-router-dom";
+import { EmployeeInstanceType } from "../utils/type";
 
 const approveMessages: Record<string, Record<string, string>> = {
   "OPT Receipt": {
@@ -47,6 +48,10 @@ const VisaStatus: React.FC = () => {
   useEffect(() => { 
     if (!user || user.role !== "Employee") {
       navigate('/login');
+      return;
+    }
+    if ( (user.instance as EmployeeInstanceType).onboardingApplication.status !== "Approved") {
+      navigate('/onboardingapplication');
       return;
     }
     const EmployeeId = user.instance.id;
