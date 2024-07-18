@@ -72,3 +72,7 @@ export interface MoveToNextStepResponseType {
     moveToNextStep: VisaStatusType;
   };
 }
+
+export interface ErrorResponseType {
+    message: string;
+}

@@ -8,6 +8,7 @@ import {
   ReUploadDocumentResponseType,
   AddDocumentResponseType,
   MoveToNextStepResponseType,
+  ErrorResponseType,
 } from "../../utils/type";
 
 export const fetchVisaStatus =
@@ -41,11 +42,14 @@ export const fetchVisaStatus =
         employeeId: employee,
       });
       const visaStatus = response.data.getVisaStatusByEmployee;
-      console.log("res", visaStatus);
       dispatch(updateVisaStatus({ visaStatus: visaStatus }));
     } catch (error) {
-      console.error(error);
-      // const message = error.errors[0].message;
+      console.log(error);
+      const err = error as ErrorResponseType;
+      const message = err.message;
+      console.log(message);
+      // return message;
+      return Promise.reject(message);
     }
   };
 
