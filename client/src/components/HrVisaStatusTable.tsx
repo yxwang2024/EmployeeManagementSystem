@@ -1,4 +1,9 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+import {calculateRemainingDays,getDateString} from "../services/dateServices";
+import { VisaStatusListItemType } from "../utils/type";
+
 import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
@@ -16,6 +21,52 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
+
+
+const getAllVisaStatus = async () => {
+  //graphql query to get visa status
+  const query = `
+    query GetVisaStatuses {
+      getVisaStatuses {
+        _id
+        employee {
+          profile {
+            name {
+              firstName
+              middleName
+              lastName
+            }
+          }
+        }
+        workAuthorization {
+          title
+          startDate
+          endDate
+        }
+        step
+        status
+      }
+    }
+  `;
+  try {
+    const response = await axios.post("http://localhost:3000/graphql", {
+      query,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.data.errors) {
+      console.log("Response data errors:", response.data.errors);
+      throw new Error(response.data.errors[0].message);
+    }
+
+    return response.data.data.getVisaStatuses;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
 interface TablePaginationActionsProps {
   count: number;
@@ -97,16 +148,6 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
   );
 }
 
-function createData(
-  name: string,
-  title: string,
-  startDate: string,
-  endDate: string,
-  remainingDays: string,
-  nextStep: string
-) {
-  return { name, title, startDate, endDate, remainingDays, nextStep };
-}
 
 interface Column {
   id:
@@ -147,7 +188,7 @@ const columns: Column[] = [
   {
     id: "nextStep",
     label: "Next\u00a0Step",
-    minWidth: 170,
+    minWidth: 300,
     align: "center",
   },
   {
@@ -158,71 +199,49 @@ const columns: Column[] = [
   },
 ];
 
-const rows = [
-  createData("Cupcake", "OPT", "2024-01-01", "2025-01-01", "190", "HR Review"),
-  createData("Donut", "OPT", "2024-01-01", "2025-01-01", "190", "HR Review"),
-  createData("Eclair", "OPT", "2024-01-01", "2025-01-01", "190", "HR Review"),
-  createData(
-    "Frozen yoghurt",
-    "OPT",
-    "2024-01-01",
-    "2025-01-01",
-    "190",
-    "HR Review"
-  ),
-  createData(
-    "Gingerbread",
-    "OPT",
-    "2024-01-01",
-    "2025-01-01",
-    "190",
-    "HR Review"
-  ),
-  createData(
-    "Honeycomb",
-    "OPT",
-    "2024-01-01",
-    "2025-01-01",
-    "190",
-    "HR Review"
-  ),
-  createData(
-    "Ice cream sandwich",
-    "OPT",
-    "2024-01-01",
-    "2025-01-01",
-    "190",
-    "HR Review"
-  ),
-  createData(
-    "Jelly Bean",
-    "OPT",
-    "2024-01-01",
-    "2025-01-01",
-    "190",
-    "HR Review"
-  ),
-  createData("KitKat", "OPT", "2024-01-01", "2025-01-01", "190", "HR Review"),
-  createData("Lollipop", "OPT", "2024-01-01", "2025-01-01", "190", "HR Review"),
-  createData(
-    "Marshmallow",
-    "OPT",
-    "2024-01-01",
-    "2025-01-01",
-    "190",
-    "HR Review"
-  ),
-  createData("Nougat", "OPT", "2024-01-01", "2025-01-01", "190", "HR Review"),
-  createData("Oreo", "OPT", "2024-01-01", "2025-01-01", "190", "HR Review"),
-].sort();
 
-export default function HrVisaStatusTable() {
+const HrVisaStatusTable: React.FC = ({option}) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [visaStatuses, setVisaStatuses] = useState<VisaStatusListItemType[]>([]);
+  console.log("option",option);
+  useEffect(() => {
+    if(option == "InProgress"){
+      getAllVisaStatus().then((statuses) => {
+        console.log("statuses", statuses);
+        const statusList:VisaStatusListItemType[] = [];
+        statuses.map((status)=>{
+
+          if(status.step!="I20"&&status.status!="Approved"){
+
+            const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
+            statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
+          }
+        })
+        setVisaStatuses(statusList);
+        console.log("visaStatuses", statusList);
+      });
+    }
+    else if(option == "All"){
+      getAllVisaStatus().then((statuses) => {
+        console.log("statuses", statuses);
+        const statusList:VisaStatusListItemType[] = [];
+        statuses.map((status)=>{
+          const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
+          statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
+        })
+        setVisaStatuses(statusList);
+        console.log("visaStatuses", statusList);
+      });
+    }
+    
+  }, [option]);
+
+
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - visaStatuses.length) : 0;
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -238,12 +257,13 @@ export default function HrVisaStatusTable() {
     setPage(0);
   };
 
+
   return (
     <Paper>
       <TableContainer component={Paper}>
         <Table
           stickyHeader
-          sx={{ minWidth: 500 }}
+          sx={{ minWidth: 500, maxWidth:800}}
           aria-label="custom pagination table"
         >
           <TableHead>
@@ -261,27 +281,27 @@ export default function HrVisaStatusTable() {
           </TableHead>
           <TableBody>
             {(rowsPerPage > 0
-              ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              : rows
-            ).map((row) => (
-              <TableRow hover key={row.name}>
+              ? visaStatuses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              : visaStatuses
+            ).map((statusListItem) => (
+              <TableRow hover key={statusListItem.legalName}>
                 <TableCell style={{ width: 200 }} component="th" scope="row">
-                  {row.name}
+                  {statusListItem.legalName }
                 </TableCell>
                 <TableCell style={{ width: 100 }} align="center">
-                  {row.title}
+                  {statusListItem.title}
                 </TableCell>
                 <TableCell style={{ width: 170 }} align="center">
-                  {row.startDate}
+                  {getDateString(statusListItem.startDate)}
                 </TableCell>
                 <TableCell style={{ width: 170 }} align="center">
-                  {row.endDate}
+                  {getDateString(statusListItem.endDate)}
                 </TableCell>
                 <TableCell style={{ width: 100 }} align="center">
-                  {row.remainingDays}
+                  {calculateRemainingDays(statusListItem.endDate)+' days'}
                 </TableCell>
-                <TableCell style={{ width: 170 }} align="center">
-                  {row.nextStep}
+                <TableCell style={{ width: 300 }} align="center">
+                  {statusListItem.step+'-'+statusListItem.status}
                 </TableCell>
                 <TableCell align="right">
                   <Button size="small" variant="contained">
@@ -303,7 +323,7 @@ export default function HrVisaStatusTable() {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
           colSpan={3}
-          count={rows.length}
+          count={visaStatuses.length}
           rowsPerPage={rowsPerPage}
           page={page}
           slotProps={{
@@ -322,3 +342,5 @@ export default function HrVisaStatusTable() {
     </Paper>
   );
 }
+
+export default HrVisaStatusTable;

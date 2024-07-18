@@ -1,3 +1,12 @@
+export interface VisaStatusListItemType {
+  legalName: string,
+  title: string,
+  startDate: string,
+  endDate: string,
+  status: string,
+  step: string,
+}
+
 export interface AuthStateType {
   isAuthenticated: boolean;
   token: string | null;
