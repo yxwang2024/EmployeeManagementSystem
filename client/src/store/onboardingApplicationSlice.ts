@@ -63,7 +63,7 @@ interface OnboardingApplicationStateType {
   emergencyContacts: EmergencyContactType[];
   currentStep: number;
   status: string | null;
-  employeeId: string | null; 
+  employeeId: string | null;
   loading: boolean;
 }
 
@@ -88,6 +88,7 @@ const initialState: OnboardingApplicationStateType = {
   },
   contactInfo: {
     cellPhone: "",
+    workPhone: "",
   },
   document: {
     visaTitle: "",
@@ -100,6 +101,8 @@ const initialState: OnboardingApplicationStateType = {
   emergencyContacts: [],
   currentStep: 1,
   status: null,
+  employeeId: null,
+  loading: false,
 };
 
 const token: string = localStorage.getItem('token') || '';
@@ -112,78 +115,6 @@ const axiosInstance = axios.create({
   },
 });
 
-export const fetchUser = createAsyncThunk(
-  "onboardingApplication/fetchUser",
-  async (userId: string, { rejectWithValue }) => {
-    const query = `
-      query GetUser($id: ID!) {
-        getUser(id: $id) {
-          instance {
-            ... on Employee {
-              id
-            }
-          }
-        }
-      }
-    `;
-    try {
-      const response = await axios.post('http://localhost:3000/graphql', {
-        query,
-        variables: { id: userId },
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      const employeeId = response.data.data.getUser.instance.id;
-      return employeeId;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-
-// 获取员工数据
-export const fetchEmployee = createAsyncThunk(
-  "onboardingApplication/fetchEmployee",
-  async (employeeId: string, { rejectWithValue }) => {
-    const query = `
-      query GetEmployee($employeeId: ID!) {
-        getEmployee(employeeId: $employeeId) {
-          id
-          onboardingApplication {
-            id
-          }
-        }
-      }
-    `;
-    try {
-      const response = await axios.post("http://localhost:3000/graphql", {
-        query,
-        variables: { employeeId },
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const employee = response.data.data.getEmployee;
-      if (!employee) {
-        throw new Error(`Employee with id ${employeeId} not found`);
-      }
-      const onboardingApplicationId = employee.onboardingApplication.id;
-      return onboardingApplicationId;
-    } catch (error) {
-      console.error("Fetch employee failed:", error);
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-
 // 获取 OnboardingApplication 数据
 export const fetchOnboardingApplication = createAsyncThunk(
   "onboardingApplication/fetchOnboardingApplication",
@@ -195,7 +126,9 @@ export const fetchOnboardingApplication = createAsyncThunk(
           email
           name {
             firstName
+            middleName
             lastName
+            preferredName
           }
           identity {
             ssn
@@ -222,7 +155,7 @@ export const fetchOnboardingApplication = createAsyncThunk(
       }
     `;
     try {
-      const response = await axios.post("http://localhost:3000/graphql", {
+      const response = await axiosInstance.post("http://localhost:3000/graphql", {
         query,
         variables: { oaId: onboardingApplicationId },
       }, {
@@ -233,7 +166,6 @@ export const fetchOnboardingApplication = createAsyncThunk(
       });
 
       const onboardingApplication = response.data.data.getOnboardingApplication;
-      console.log("Fetched onboarding application:", onboardingApplication);
       return onboardingApplication;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -244,19 +176,28 @@ export const fetchOnboardingApplication = createAsyncThunk(
 // 更新 Onboarding Application Name
 export const updateOAName = createAsyncThunk(
   "onboardingApplication/updateOAName",
-  async (personalInfo: Partial<PersonalInfoType>, { rejectWithValue }) => {
+  async (personalInfo: Partial<PersonalInfoType>, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
     const query = `
       mutation UpdateOAName($input: NameInput!) {
         updateOAName(input: $input) {
-          firstName
-          lastName
+          id
+          email
+          name {
+            firstName
+            lastName
+            middleName
+            preferredName
+          }
         }
       }
     `;
     try {
-      const response = await axios.post("http://localhost:3000/graphql", {
+      const response = await axiosInstance.post("", {
         query,
-        variables: { input: personalInfo },
+        variables: { input: { ...personalInfo, id: onboardingApplicationId } },
       });
       return response.data.data.updateOAName;
     } catch (error) {
@@ -269,21 +210,30 @@ export const updateOAName = createAsyncThunk(
 // 更新 Onboarding Application Identity
 export const updateOAIdentity = createAsyncThunk(
   "onboardingApplication/updateOAIdentity",
-  async (identity: Partial<PersonalInfoType>, { rejectWithValue }) => {
+  async (personalInfo: Partial<PersonalInfoType>, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
     const query = `
       mutation UpdateOAIdentity($input: IdentityInput!) {
         updateOAIdentity(input: $input) {
-          ssn
-          dob
-          gender
+          id
+          email
+          identity {
+            ssn
+            dob
+            gender
+          }
         }
       }
     `;
     try {
-      const response = await axios.post("http://localhost:3000/graphql", {
+      console.log("Sending UpdateOAIdentity mutation with input:", { ...personalInfo, id: onboardingApplicationId });
+      const response = await axiosInstance.post("", {
         query,
-        variables: { input: identity },
+        variables: { input: { ...personalInfo, id: onboardingApplicationId } },
       });
+      console.log("UpdateOAIdentity response:", response.data);
       return response.data.data.updateOAIdentity;
     } catch (error) {
       console.error("Update OA Identity failed:", error);
@@ -292,28 +242,71 @@ export const updateOAIdentity = createAsyncThunk(
   }
 );
 
+
 // 更新 Onboarding Application Address
 export const updateOACurrentAddress = createAsyncThunk(
   "onboardingApplication/updateOACurrentAddress",
-  async (address: Partial<AddressType>, { rejectWithValue }) => {
+  async (address: Partial<AddressType>, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
     const query = `
       mutation UpdateOACurrentAddress($input: AddressInput!) {
         updateOACurrentAddress(input: $input) {
-          street
-          city
-          state
-          zip
+          id
+          email
+          currentAddress {
+            street
+            building
+            city
+            state
+            zip
+          }
         }
       }
     `;
     try {
-      const response = await axios.post("http://localhost:3000/graphql", {
+      const response = await axiosInstance.post("", {
         query,
-        variables: { input: address },
+        variables: { input: { ...address, id: onboardingApplicationId } },
       });
       return response.data.data.updateOACurrentAddress;
     } catch (error) {
       console.error("Update OA Address failed:", error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// 更新 Onboarding Application Contact Info
+export const updateOAContactInfo = createAsyncThunk(
+  "onboardingApplication/updateOAContactInfo",
+  async (contactInfo: Partial<ContactInfoType>, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
+    const query = `
+      mutation UpdateOAContactInfo($input: ContactInfoInput!) {
+        updateOAContactInfo(input: $input) {
+          id
+          email
+          contactInfo {
+            cellPhone
+            workPhone
+          }
+        }
+      }
+    `;
+    try {
+      console.log("Sending UpdateOAContactInfo mutation with input:", { ...contactInfo, id: onboardingApplicationId });
+      const response = await axiosInstance.post("", {
+        query,
+        variables: { input: { ...contactInfo, id: onboardingApplicationId } },
+      });
+      console.log("UpdateOAContactInfo response:", response.data);
+      return response.data.data.updateOAContactInfo;
+    } catch (error) {
+      console.error("Update OA Contact Info failed:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -368,16 +361,43 @@ const onboardingApplicationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchUser.pending, (state) => {
+      .addCase(fetchOnboardingApplication.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchUser.fulfilled, (state, action) => {
+      .addCase(fetchOnboardingApplication.fulfilled, (state, action) => {
         state.loading = false;
-        state.employeeId = action.payload;
+        const data = action.payload;
+        state.personalInfo = {
+          ...state.personalInfo,
+          firstName: data.name.firstName,
+          middleName: data.name.middleName,
+          lastName: data.name.lastName,
+          preferredName: data.name.preferredName,
+          email: data.email,
+          ssn: data.identity.ssn,
+          dob: data.identity.dob,
+          gender: data.identity.gender,
+        };
+        state.address = { ...state.address, ...action.payload.currentAddress };
+        state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
+        state.document = { ...state.document, ...action.payload.employment };
+        state.status = action.payload.status;
       })
-      .addCase(fetchUser.rejected, (state, action) => {
+      .addCase(fetchOnboardingApplication.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(updateOAName.fulfilled, (state, action) => {
+        state.personalInfo = { ...state.personalInfo, ...action.payload.name };
+      })
+      .addCase(updateOAIdentity.fulfilled, (state, action) => {
+        state.personalInfo = { ...state.personalInfo, ...action.payload.identity };
+      })      
+      .addCase(updateOACurrentAddress.fulfilled, (state, action) => {
+        state.address = { ...state.address, ...action.payload.currentAddress };
+      })
+      .addCase(updateOAContactInfo.fulfilled, (state, action) => {
+        state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
       });
   },
 });

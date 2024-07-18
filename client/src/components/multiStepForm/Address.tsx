@@ -11,7 +11,7 @@ const AddressSchema = Yup.object().shape({
   building: Yup.string(),
   city: Yup.string().required('City is required'),
   state: Yup.string().required('State is required'),
-  zip: Yup.string().required('Zip is required'),
+  zip: Yup.string().matches(/^[0-9]+$/, "Must be only digits").min(5, 'Less than 5, must be exactly 5 digits').max(5, 'More than 5, must be exactly 5 digits').required('Zip code is required'),
 });
 
 const Address: React.FC = () => {
@@ -33,12 +33,24 @@ const Address: React.FC = () => {
       {({ handleSubmit }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Address</h2>
-          <CustomTextField name="street" label="Street" />
-          <CustomTextField name="building" label="Building" />
+          <CustomTextField name="street" label="Street Name" />
+          <CustomTextField name="building" label="Building/Apt Number" />
           <CustomTextField name="city" label="City" />
           <CustomTextField name="state" label="State" />
           <CustomTextField name="zip" label="Zip" />
-          <button type="submit" className='flex mb-32 bg-blue-600 text-white border rounded text-center ms-auto px-4 py-2 text-md md:text-lg font-semibold'>Next</button>
+          <div className='flex'>
+            <button 
+              type="button" 
+              className='bg-blue-600 text-white border rounded text-center w-1/2 sm:w-fit e-auto px-4 py-2 text-md md:text-lg font-semibold'
+              onClick={() => dispatch(setCurrentStep(1))}>
+              Previous
+            </button>
+            <button 
+            type="submit"
+            className='bg-blue-600 text-white border rounded text-center w-1/2 sm:w-fit ms-auto px-4 py-2 text-md md:text-lg font-semibold'>
+              Next
+            </button>
+          </div>
         </Form>
       )}
     </Formik>
