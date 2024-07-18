@@ -51,7 +51,7 @@ const VisaStatus: React.FC = () => {
       return;
     }
     if ( (user.instance as EmployeeInstanceType).onboardingApplication.status !== "Approved") {
-      navigate('/login');
+      navigate('/onboardingapplication');
       return;
     }
     const EmployeeId = user.instance.id;
