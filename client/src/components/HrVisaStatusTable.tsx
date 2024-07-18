@@ -200,7 +200,7 @@ const columns: Column[] = [
 ];
 
 
-const HrVisaStatusTable: React.FC = ({option}) => {
+const HrVisaStatusTable: React.FC = ({option,search}) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -212,9 +212,7 @@ const HrVisaStatusTable: React.FC = ({option}) => {
         console.log("statuses", statuses);
         const statusList:VisaStatusListItemType[] = [];
         statuses.map((status)=>{
-
           if(status.step!="I20"&&status.status!="Approved"){
-
             const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
             statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
           }
@@ -228,6 +226,15 @@ const HrVisaStatusTable: React.FC = ({option}) => {
         console.log("statuses", statuses);
         const statusList:VisaStatusListItemType[] = [];
         statuses.map((status)=>{
+          let filter = {};
+          if (search) {
+            const regex = new RegExp(search, 'i');
+            filter = {
+              $or: [
+                { name: regex }
+              ]
+            }
+          }
           const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
           statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
         })
