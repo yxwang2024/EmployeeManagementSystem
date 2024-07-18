@@ -117,6 +117,7 @@ export const fetchOnboardingApplication = createAsyncThunk(
         getOnboardingApplication(oaId: $oaId) {
           id
           email
+          profilePicture
           name {
             firstName
             middleName
@@ -431,6 +432,7 @@ const onboardingApplicationSlice = createSlice({
           ssn: data.identity.ssn,
           dob: data.identity.dob,
           gender: data.identity.gender,
+          profilePicture: data.profilePicture || '',
         };
         state.address = { ...state.address, ...action.payload.currentAddress };
         state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
@@ -454,7 +456,7 @@ const onboardingApplicationSlice = createSlice({
         state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
       })
       .addCase(updateOAProfilePic.fulfilled, (state, action) => {
-        state.personalInfo = { ...state.personalInfo, profilePicture: action.payload.profilePicture };
+        state.personalInfo = action.payload.profilePicture ;
       });
   },
 });

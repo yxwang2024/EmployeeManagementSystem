@@ -24,13 +24,19 @@ const PersonalInfoSchema = Yup.object().shape({
   dob: Yup.date().required('Date of birth is required'),
   gender: Yup.string().required('Gender is required'),
   profilePicture: Yup.mixed().optional()
-  .test("fileFormat", "Unsupported Format", value => !value || (value && ["image/jpg", "image/jpeg", "image/png"].includes(value.type)))
-  .test("fileSize", "File too large", value => !value || (value && value.size <= 3 * 1024 * 1024)),
+    .test("fileFormat", "Unsupported Format", value => {
+      if (typeof value === 'string') return true; 
+      return value && ["image/jpg", "image/jpeg", "image/png"].includes(value.type);
+    })
+    .test("fileSize", "File too large", value => {
+      if (typeof value === 'string') return true; 
+      return value && value.size <= 3 * 1024 * 1024;
+    }),
 });
 
 const PersonalInfo: React.FC = () => {
   const dispatch = useDispatch();
-  const personalInfo = useSelector((state: RootState) => state.onboardingApplication.personalInfo);
+  const personalInfoState = useSelector((state: RootState) => state.onboardingApplication.personalInfo);
   const auth = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
@@ -47,9 +53,10 @@ const PersonalInfo: React.FC = () => {
 
   // Initialize form values with auth.user.email and format the date
   const initialValues = {
-    ...personalInfo,
+    ...personalInfoState,
     email: auth.user?.email || '', // Use auth.user.email
-    dob: formatDate(personalInfo.dob), // Ensure the date is formatted correctly
+    dob: formatDate(personalInfoState.dob), // Ensure the date is formatted correctly
+    profilePicture: personalInfoState.profilePicture || 'placeholder'
   };
 
   const genderOptions = [
@@ -70,7 +77,7 @@ const PersonalInfo: React.FC = () => {
           middleName: values.middleName || '',
           lastName: values.lastName,
           preferredName: values.preferredName || '',
-          profilePicture: '',
+          profilePicture: values.profilePicture || '',
           email: values.email,
           ssn: values.ssn,
           dob: values.dob,
@@ -89,25 +96,33 @@ const PersonalInfo: React.FC = () => {
           dob: values.dob,
           gender: values.gender
         }));
-        if (values.profilePicture) {
+        if (values.profilePicture && typeof(values.profilePicture) === 'object') {
           await dispatch(getProfilePicUrl("profilePicture", values.profilePicture));
         }
         setSubmitting(false);
         dispatch(setCurrentStep(2));
       }}
     >
-      {({ handleSubmit, setFieldValue }) => (
+      {({ handleSubmit, setFieldValue, values }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Personal Information</h2>
           <CustomTextField name="firstName" label="First Name" />
           <CustomTextField name="middleName" label="Middle Name" />
           <CustomTextField name="lastName" label="Last Name" />
           <CustomTextField name="preferredName" label="Preferred Name" />
-          <CustomPNGorJPG name="profilePicture" label="Profile Picture" type="file" onChange={(event) => {
+          {personalInfoState.profilePicture !== "placeholder" && 
+            <>
+              <img className='pt-4' src={personalInfoState.profilePicture}/>
+              <p className='text-gray-600 ml-4 text-sm md:text-md mb-4'>Here's the profile picture you just upload, if you want to modify it, do that later in edit profile.</p>
+            </> 
+          }
+          {personalInfoState.profilePicture === "placeholder" && 
+            <CustomPNGorJPG name="profilePicture" label="Profile Picture" type="file" onChange={(event) => {
             if (event.currentTarget.files) {
               setFieldValue("profilePicture", event.currentTarget.files[0]);
             }
           }} />
+          }
           <CustomTextField name="email" label="Email" type="email" disabled />
           <CustomTextField name="ssn" label="SSN" />
           <CustomTextField name="dob" label="Date of Birth" type="date" />
