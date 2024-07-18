@@ -273,7 +273,7 @@ const HrVisaStatusTable: React.FC = ({option,search}) => {
                 </TableCell>
                 <TableCell align="right">
                   <Button size="small" variant="contained">
-                    View All
+                    Details
                   </Button>
                 </TableCell>
               </TableRow>
