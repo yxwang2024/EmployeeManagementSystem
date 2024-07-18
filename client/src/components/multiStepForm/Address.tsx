@@ -38,7 +38,19 @@ const Address: React.FC = () => {
           <CustomTextField name="city" label="City" />
           <CustomTextField name="state" label="State" />
           <CustomTextField name="zip" label="Zip" />
-          <button type="submit" className='flex mb-32 bg-blue-600 text-white border rounded text-center ms-auto px-4 py-2 text-md md:text-lg font-semibold'>Next</button>
+          <div className='flex'>
+            <button 
+              type="button" 
+              className='bg-blue-600 text-white border rounded text-center w-1/2 sm:w-fit e-auto px-4 py-2 text-md md:text-lg font-semibold'
+              onClick={() => dispatch(setCurrentStep(1))}>
+              Previous
+            </button>
+            <button 
+            type="submit"
+            className='bg-blue-600 text-white border rounded text-center w-1/2 sm:w-fit ms-auto px-4 py-2 text-md md:text-lg font-semibold'>
+              Next
+            </button>
+          </div>
         </Form>
       )}
     </Formik>

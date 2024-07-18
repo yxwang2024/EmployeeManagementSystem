@@ -37,7 +37,9 @@ const router = createBrowserRouter([
       },
       {
         path: '/onboardingapplication',
+
         element: <ProtectedRouteEmployee><OnboardingApplication /></ProtectedRouteEmployee>,
+
         errorElement: <ErrorPage />
       },
       {

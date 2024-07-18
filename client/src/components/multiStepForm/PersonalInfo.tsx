@@ -1,17 +1,25 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { fetchUser, fetchEmployee, fetchOnboardingApplication, updatePersonalInfo } from '../../store/onboardingApplicationSlice';
+import { fetchOnboardingApplication, updatePersonalInfo, setCurrentStep, updateOAName, updateOAIdentity } from '../../store/onboardingApplicationSlice';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import CustomTextField from '../../components/CustomTextField';
 import CustomSelectField from '../../components/CustomSelectField';
 
+// Helper function to format date to YYYY-MM-DD
+const formatDate = (timestamp: string | number | undefined): string => {
+  if (!timestamp) return '';
+  const date = new Date(parseInt(timestamp.toString(), 10));
+  return date.toISOString().split('T')[0]; 
+};
+
+
 const PersonalInfoSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
   lastName: Yup.string().required('Last name is required'),
   email: Yup.string().email('Invalid email').required('Email is required'),
-  ssn: Yup.string().matches(/^[0-9]+$/, "Must be only digits").length(9, 'Must be exactly 9 digits').required('SSN is required'),
+  ssn: Yup.string().matches(/^[0-9]+$/, "Must be only digits").min(9, 'Less than 9, must be exactly 9 digits').max(9, 'More than 9, must be exactly 9 digits').required('SSN is required'),
   dob: Yup.date().required('Date of birth is required'),
   gender: Yup.string().required('Gender is required'),
 });
@@ -22,31 +30,23 @@ const PersonalInfo: React.FC = () => {
   const auth = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    if (auth.user?.userId) {
-      dispatch(fetchUser(auth.user.userId))
+    if (auth.user?.instance?.onboardingApplication?.id) {
+      dispatch(fetchOnboardingApplication(auth.user.instance.onboardingApplication.id))
         .unwrap()
-        .then((employeeId) => {
-          if (employeeId) {
-            dispatch(fetchEmployee(employeeId))
-              .unwrap()
-              .then((onboardingApplicationId) => {
-                dispatch(fetchOnboardingApplication(onboardingApplicationId));
-              })
-              .catch((error) => {
-                console.error('Failed to fetch employee:', error);
-              });
-          } else {
-            console.error('Employee ID is undefined');
-          }
-        })
         .catch((error) => {
-          console.error('Failed to fetch user:', error);
+          console.error('Failed to fetch onboarding application:', error);
         });
     } else {
-      console.error('auth.user.userId is undefined');
+      console.error('auth.user.instance.onboardingApplication.id is undefined');
     }
-  }, [dispatch, auth.user?.userId]);
+  }, [dispatch, auth.user?.instance?.onboardingApplication?.id]);
 
+  // Initialize form values with auth.user.email and format the date
+  const initialValues = {
+    ...personalInfo,
+    email: auth.user?.email || '', // Use auth.user.email
+    dob: formatDate(personalInfo.dob), // Ensure the date is formatted correctly
+  };
 
   const genderOptions = [
     { value: 'male', label: 'Male' },
@@ -57,10 +57,22 @@ const PersonalInfo: React.FC = () => {
   return (
     <Formik
       enableReinitialize
-      initialValues={personalInfo}
+      initialValues={initialValues}
       validationSchema={PersonalInfoSchema}
       onSubmit={(values) => {
+        console.log('Submitting form with values:', values);
         dispatch(updatePersonalInfo(values));
+        dispatch(updateOAName({
+          firstName: values.firstName,
+          middleName: values.middleName,
+          lastName: values.lastName,
+          preferredName: values.preferredName
+        }));
+        dispatch(updateOAIdentity({
+          ssn: values.ssn,
+          dob: values.dob,
+          gender: values.gender
+        }));
         dispatch(setCurrentStep(2));
       }}
     >

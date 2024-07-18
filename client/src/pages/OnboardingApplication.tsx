@@ -10,33 +10,9 @@ import DocumentStep from '../components/multiStepForm/Document';
 import ReferenceStep from '../components/multiStepForm/Reference';
 import EmergencyContactStep from '../components/multiStepForm/EmergencyContact';
 import SummaryStep from '../components/multiStepForm/Summary';
-import { jwtDecode } from 'jwt-decode';
 
 const OnboardingApplication: React.FC = () => {
   const currentStep = useSelector((state: RootState) => state.onboardingApplication.currentStep);
-  const token = useSelector((state: RootState) => state.auth.token);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!token) {
-      alert('No token found. Please log in.');
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const decoded: any = jwtDecode(token);
-      if (decoded.role !== 'Employee') {
-        alert('Only employees need to fill their on borading application.');
-        navigate('/');
-        return;
-      }
-    } catch (error) {
-      console.error('Token decoding failed:', error);
-      navigate('/login');
-
-    }
-  }, [token, navigate]);
 
   const displayStep = (step: number) => {
     switch (step) {
