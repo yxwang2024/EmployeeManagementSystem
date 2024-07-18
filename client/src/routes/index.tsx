@@ -32,17 +32,17 @@ const router = createBrowserRouter([
       },
       {
         path: '/visa-status',
-        element: <VisaStatus />,
+        element: <ProtectedRouteEmployee><VisaStatus /></ProtectedRouteEmployee>,
         errorElement: <ErrorPage />
       },
       {
         path: '/onboardingapplication',
-        element: <OnboardingApplication />,
+        element: <ProtectedRouteEmployee><OnboardingApplication /></ProtectedRouteEmployee>,
         errorElement: <ErrorPage />
       },
       {
         path: '/hrvisastatusmanagement',
-        element: <HrVisaStatusManagement />,
+        element: <ProtectedRouteHR><HrVisaStatusManagement /></ProtectedRouteHR>,
         errorElement: <ErrorPage />
       },
       {
