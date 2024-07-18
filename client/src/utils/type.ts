@@ -1,11 +1,36 @@
 export interface AuthStateType {
   isAuthenticated: boolean;
   token: string | null;
-  user: {
+  user: UserLoginType | null;
+}
+
+export interface EmployeeInstanceType {
+  id: string;
+  onboardingApplication: {
+    _id: string;
+    status: string;
+  };
+}
+
+export interface HRInstanceType {
+  id: string;
+  mailHistory: {
+    _id: string;
+    email: string;
+    registrationToken: string;
+    expiration: string;
+    name: string;
+    status: string;
+  }[];
+}
+
+export interface UserLoginType {
+    id: string;
     username: string;
     email: string;
-  } | null;
-}
+    role: string;
+    instance: EmployeeInstanceType | HRInstanceType;
+  }
 
 export interface WorkAuthorization {
   title: string;
