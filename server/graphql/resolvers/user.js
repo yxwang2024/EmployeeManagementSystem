@@ -24,17 +24,22 @@ const userResolvers = {
     Query: {
         getUser: async (_, { id }, context) => {
             try {
+                console.log('!!!Starting getUser function with ID:', id); // 添加日志
                 //auth
                 const decodedUser = await checkAuth(context);
+
                 const user = await User.findById(id).populate(['instance', {path:'instance', populate:'onboardingApplication'}]);
                 console.log(user);
                 const userId = user._id.toString();
                 if(!checkUser(decodedUser,userId)){
-                    throw new Error('Query id and auth user do not match.');
+                    console.log('!!!Query id and auth user do not match.'); // 添加日志
+                    throw new Error('!!!Query id and auth user do not match.');
                 }
-
+        
+                console.log('!!!Returning user:', user); // 添加日志
                 return user;
             } catch (err) {
+                console.error('!!!Error in getUser function:', err); // 添加日志
                 throw new Error(err);
             }
         },
