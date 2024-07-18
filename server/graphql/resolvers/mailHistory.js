@@ -2,6 +2,7 @@ import MailHistory from '../../models/MailHistory.js';
 import { generateToken } from '../../services/registrationToken.js';
 import { sendEmail } from '../../services/emailServices.js';
 import Joi from 'joi';
+import HR from '../../models/HR.js';
 
 const mailHistoryInputSchema = Joi.object({
   email: Joi.string().email().required(),
@@ -82,6 +83,12 @@ const mailHistoryResolvers = {
         const html = `<p>Hi ${name},</p><p>Here is your registration token: ${registrationToken}</p>`;
         await sendEmail(email, subject, html);
         console.log(subject, html);
+
+        // update hr 
+        const hr = await HR.findById(hrId);
+        hr.mailHistory.push(mailHistory._id);
+        await hr.save();
+
         return mailHistory;
       } catch (err) {
         throw new Error(err);

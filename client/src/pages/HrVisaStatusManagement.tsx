@@ -49,7 +49,7 @@ const getAllVisaStatus = async () => {
 const HrVisaStatusManagement: React.FC = () => {
   const [option, setOption] = useState("InProgress");
   return (
-    <div className="visa-status-management">
+    <div className="visa-status-management md:pt-24">
       
       <Paper>
         <Stack direction="row" spacing={3}>

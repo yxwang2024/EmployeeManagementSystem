@@ -18,7 +18,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
 import { useNavigate } from 'react-router-dom';
-import { EmployeeInstanceType, HRInstanceType } from '../utils/type';
+import { EmployeeInstanceType } from '../utils/type';
 
 const UserPages = ['Personal Information', 'Visa Status'];
 const HRpages = ['Home', 'Employee Profiles', 'Visa Status Management', 'Hiring Management'];

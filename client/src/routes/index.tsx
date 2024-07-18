@@ -6,6 +6,7 @@ import Home from "../pages/Home";
 import VisaStatus from "../pages/VisaStatus";
 import OnboardingApplication from "../pages/OnboardingApplication";
 import HrVisaStatusManagement from "../pages/HrVisaStatusManagement";
+import HiringManagement from "../pages/HiringManagement";
 import ErrorPage from "../pages/Error";
 import { ProtectedRoute, ProtectedRouteEmployee, ProtectedRouteHR } from "../routes/ProtectedRoute";
 
@@ -45,6 +46,11 @@ const router = createBrowserRouter([
       {
         path: '/hrvisastatusmanagement',
         element: <ProtectedRouteHR><HrVisaStatusManagement /></ProtectedRouteHR>,
+        errorElement: <ErrorPage />
+      },
+      { 
+        path: '/hiring-management',
+        element: <ProtectedRouteHR><HiringManagement /></ProtectedRouteHR>,
         errorElement: <ErrorPage />
       },
       {

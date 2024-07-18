@@ -299,7 +299,9 @@ const VisaStatus: React.FC = () => {
           <div className="flex flex-col items-center space-y-4 w-full">
             {visaStatus?.documents.map((doc, index) => (
               <div key={index} className="flex items-center flex-row justify-between space-x-2 w-full border-b-2 pb-2">
-                <div>{doc.title}</div>
+                <div className="md:min-w-36 md:max-w-56">
+                  {doc.title}
+                </div>
                 <div>
                   <Typography variant="subtitle1" className="hidden md:block">
                     {doc.filename}
