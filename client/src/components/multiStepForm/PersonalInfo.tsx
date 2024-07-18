@@ -85,7 +85,7 @@ const PersonalInfo: React.FC = () => {
           <CustomTextField name="preferredName" label="Preferred Name" />
           <CustomTextField name="profilePicture" label="Profile Picture" type="file" />
           <CustomTextField name="email" label="Email" type="email" disabled />
-          <CustomTextField name="ssn" label="SSN" />
+          <CustomTextField name="ssn" label="Social Security Number (SSN)" />
           <CustomTextField name="dob" label="Date of Birth" type="date" />
           <CustomSelectField name="gender" label="Gender" options={genderOptions} />
           <button type="submit" className='flex mb-32 bg-blue-600 text-white border rounded text-center ms-auto px-4 py-2 text-md md:text-lg font-semibold'>Next</button>

@@ -88,6 +88,7 @@ const initialState: OnboardingApplicationStateType = {
   },
   contactInfo: {
     cellPhone: "",
+    workPhone: "",
   },
   document: {
     visaTitle: "",
@@ -245,25 +246,67 @@ export const updateOAIdentity = createAsyncThunk(
 // 更新 Onboarding Application Address
 export const updateOACurrentAddress = createAsyncThunk(
   "onboardingApplication/updateOACurrentAddress",
-  async (address: Partial<AddressType>, { rejectWithValue }) => {
+  async (address: Partial<AddressType>, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
     const query = `
       mutation UpdateOACurrentAddress($input: AddressInput!) {
         updateOACurrentAddress(input: $input) {
-          street
-          city
-          state
-          zip
+          id
+          email
+          currentAddress {
+            street
+            building
+            city
+            state
+            zip
+          }
         }
       }
     `;
     try {
-      const response = await axios.post("http://localhost:3000/graphql", {
+      const response = await axiosInstance.post("", {
         query,
-        variables: { input: address },
+        variables: { input: { ...address, id: onboardingApplicationId } },
       });
       return response.data.data.updateOACurrentAddress;
     } catch (error) {
       console.error("Update OA Address failed:", error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// 更新 Onboarding Application Contact Info
+export const updateOAContactInfo = createAsyncThunk(
+  "onboardingApplication/updateOAContactInfo",
+  async (contactInfo: Partial<ContactInfoType>, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
+    const query = `
+      mutation UpdateOAContactInfo($input: ContactInfoInput!) {
+        updateOAContactInfo(input: $input) {
+          id
+          email
+          contactInfo {
+            cellPhone
+            workPhone
+          }
+        }
+      }
+    `;
+    try {
+      console.log("Sending UpdateOAContactInfo mutation with input:", { ...contactInfo, id: onboardingApplicationId });
+      const response = await axiosInstance.post("", {
+        query,
+        variables: { input: { ...contactInfo, id: onboardingApplicationId } },
+      });
+      console.log("UpdateOAContactInfo response:", response.data);
+      return response.data.data.updateOAContactInfo;
+    } catch (error) {
+      console.error("Update OA Contact Info failed:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -349,6 +392,12 @@ const onboardingApplicationSlice = createSlice({
       })
       .addCase(updateOAIdentity.fulfilled, (state, action) => {
         state.personalInfo = { ...state.personalInfo, ...action.payload.identity };
+      })      
+      .addCase(updateOACurrentAddress.fulfilled, (state, action) => {
+        state.address = { ...state.address, ...action.payload.currentAddress };
+      })
+      .addCase(updateOAContactInfo.fulfilled, (state, action) => {
+        state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
       });
   },
 });
