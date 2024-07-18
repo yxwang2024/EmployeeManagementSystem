@@ -24,6 +24,17 @@ export interface HRInstanceType {
   }[];
 }
 
+export interface HRStateType {
+  hr: HRInstanceType;
+  allVisaStatuses: [VisaStatusPopulatedType];
+}
+
+export interface HRResponseType {
+  data: {
+    getHR: HRInstanceType;
+  };
+}
+
 export interface UserLoginType {
     id: string;
     username: string;
@@ -109,6 +120,34 @@ export interface PersonalInfoType {
   preferredName: string;
   profilePicture: string;
   email: string;
+
+export interface VisaStatusListItemType {
+  legalName: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  step: string;
+}
+
+export interface Employee {
+  id: string;
+  email: string;
+  username: string;
+  profile: Profile
+  onboardingApplication: OnboardingApplication
+}
+
+
+export interface Name {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  preferredName: string
+}
+
+export interface Identity {
+
   ssn: string;
   dob: string;
   gender: string;
@@ -119,4 +158,103 @@ export interface OaNameType {
   middleName: string;
   lastName: string;
   preferredName: string;
+
+export interface Address {
+  street: string;
+  building: string;
+  city: string;
+  state: string;
+  zip: string;
+}
+
+export interface ContactInfo {
+  cellPhone: string;
+  workPhone: string;
+}
+
+export interface Employment {
+  visaTitle: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface Reference {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  phone: string;
+  email: string;
+  relationship: string;
+}
+
+export interface EmergencyContact {
+  id:string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  phone: string;
+  email: string;
+  relationship: string;
+}
+
+export interface Document {
+  _id: string;
+  title: string;
+  timestamp: string;
+  filename: string;
+  url: string;
+  key: string;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  name: Name;
+  profilePicture: string;
+  identity: Identity;
+  currentAddress: Address;
+  contactInfo: ContactInfo;
+  employment: Employment;
+  reference: Reference;
+  emergencyContacts: [EmergencyContact];
+  documents: Documents[];
+}
+
+export interface OnboardingApplication {
+  id: string;
+  email: string;
+  name: Name
+  profilePicture: string;
+  identity: Identity
+  currentAddress: Address
+  contactInfo: ContactInfo
+  employment: Employment
+  reference: Reference
+  emergencyContacts: [EmergencyContact]
+  documents: Documents[]
+  status: string;
+  hrFeedback: string;
+}
+
+export interface VisaStatusPopulatedType {
+  _id: string;
+  employee: Employee;
+  step: string;
+  status: string;
+  hrFeedback: string;
+  workAuthorization: WorkAuthorization;
+  documents: Documents[];
+}
+
+export interface AllVisaStatusesResponseType {
+  data: {
+    getVisaStatuses: [VisaStatusPopulatedType];
+  };
+}
+
+export interface AllVisaStatusesWithQueryResponseType {
+  data: {
+    getVisaStatusWithQuery: [VisaStatusPopulatedType];
+  };
+
 }

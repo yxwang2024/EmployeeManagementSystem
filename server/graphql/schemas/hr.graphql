@@ -2,6 +2,9 @@ type HR {
   id: ID!
   username: String!
   email: String!
-  mailHistory: MailHistory!
+  mailHistory: [MailHistory]
 }
 
+type Query {
+  getHR(id: ID!): HR
+}
