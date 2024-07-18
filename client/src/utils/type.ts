@@ -101,3 +101,12 @@ export interface MoveToNextStepResponseType {
 export interface ErrorResponseType {
     message: string;
 }
+
+export interface VisaStatusListItemType {
+  legalName: string,
+  title: string,
+  startDate: string,
+  endDate: string,
+  status: string,
+  step: string,
+}
