@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -7,6 +7,7 @@ export interface AuthState {
   user: {
     username: string;
     email: string;
+    userId: string;
   } | null;
 }
 
@@ -19,6 +20,7 @@ if (tokenFromLocalStorage) {
     initialUser = {
       username: decoded.username,
       email: decoded.email,
+      userId: decoded.id, // 确保这里解码了userId
     };
   } catch (error) {
     console.error('Token decoding failed:', error);
@@ -35,7 +37,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ token: string; user: { username: string; email: string } }>) => {
+    login: (state, action: PayloadAction<{ token: string; user: { username: string; email: string; userId: string } }>) => {
       state.isAuthenticated = true;
       state.token = action.payload.token;
       state.user = action.payload.user;

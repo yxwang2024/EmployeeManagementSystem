@@ -4,7 +4,7 @@ import HR from '../../models/HR.js';
 import Profile from '../../models/Profile.js';
 import MailHistory from '../../models/MailHistory.js';
 import OnboardingApplication from '../../models/OnboardingApplication.js';
-import VisaStatus from '../../models/VisaStatus.js';
+
 import * as dotenv from 'dotenv';
 dotenv.config();
 import jwt from 'jsonwebtoken';
@@ -24,16 +24,22 @@ const userResolvers = {
     Query: {
         getUser: async (_, { id }, context) => {
             try {
+                console.log('!!!Starting getUser function with ID:', id); // 添加日志
                 //auth
                 const decodedUser = await checkAuth(context);
+                console.log('!!!Decoded user:', decodedUser); // 添加日志
                 const user = await User.findById(id).populate('instance');
+                console.log('!!!Fetched user from database:', user); // 添加日志
                 const userId = user._id.toString();
                 if(!checkUser(decodedUser,userId)){
-                    throw new Error('Query id and auth user do not match.');
+                    console.log('!!!Query id and auth user do not match.'); // 添加日志
+                    throw new Error('!!!Query id and auth user do not match.');
                 }
-
+        
+                console.log('!!!Returning user:', user); // 添加日志
                 return user;
             } catch (err) {
+                console.error('!!!Error in getUser function:', err); // 添加日志
                 throw new Error(err);
             }
         },
@@ -124,13 +130,6 @@ const userResolvers = {
                     onboardingApplication: onboardingApplication
                 });
                 await employee.save();
-                const visaStatus = new VisaStatus({
-                    employee:employee._id,
-                    step:"registration",
-                    status: "Pending"
-                });
-                await visaStatus.save();
-                await Employee.findByIdAndUpdate(employee._id,{visaStatus:visaStatus});
 
                 const newUser = new User({
                     username,

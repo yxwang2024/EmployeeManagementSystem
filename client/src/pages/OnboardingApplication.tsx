@@ -60,7 +60,7 @@ const OnboardingApplication: React.FC = () => {
   };
 
   return (
-    <div className="onboarding-application mt-24 mx-12 md:mx-auto max-w-screen-md">
+    <div className="onboarding-application mt-24 mx-12 md:mx-auto md:px-12 max-w-screen-md">
       <StepNavigation />
       {displayStep(currentStep)}
     </div>
