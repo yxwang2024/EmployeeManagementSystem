@@ -58,6 +58,7 @@ const documentResolvers = {
     },
     deleteDocument: async (_, { id }) => {
       try {
+        console.log("delete document", id);
         const document = await Document.findById(id);
         const params = {
           Bucket: process.env.AWS_BUCKET_NAME,

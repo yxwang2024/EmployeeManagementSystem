@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
 
-export interface AuthState {
+export interface AuthStateType {
   isAuthenticated: boolean;
   token: string | null;
   user: {
@@ -25,7 +25,7 @@ if (tokenFromLocalStorage) {
   }
 }
 
-const initialState: AuthState = {
+const initialState: AuthStateType = {
   isAuthenticated: !!tokenFromLocalStorage,
   token: tokenFromLocalStorage,
   user: initialUser,
