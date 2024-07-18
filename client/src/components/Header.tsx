@@ -98,7 +98,7 @@ function Header() {
             Workday Chuwa
           </Typography>
 
-          {token && (
+          {token && user && user.role==="Employee" && (user.instance as EmployeeInstanceType).onboardingApplication.status === 'Approved' && (
             <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
               <IconButton
                 size="large"
@@ -179,7 +179,7 @@ function Header() {
                 key={page}
                 onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}
                 sx={{ fontSize: '18px', my: 2, color: 'white', textTransform: 'none', display:
-                  `${(user?.instance as EmployeeInstanceType).onboardingApplication.status === 'Approved' ? 'block' : 'none'}`
+                  `${user&&(user?.instance as EmployeeInstanceType).onboardingApplication.status === 'Approved' ? 'block' : 'none'}`
                 }}
               >
                 {page}

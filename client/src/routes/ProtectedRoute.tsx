@@ -37,12 +37,12 @@ const ProtectedRouteEmployee: FC<ProtectedRouteProps> = ({ children }): ReactNod
     return <Navigate to="/signin" />;
   }
 
-  // if (auth.role !== 'Employee') {
-  //   showMessage("You don't have permission to access this page!");
-  //   // error page
-  //   // return <Navigate to="/error" />
-  //   return <Navigate to="/" />
-  // }
+  if (auth.user?.role !== 'Employee') {
+    showMessage("You don't have permission to access this page!");
+    // error page
+    // return <Navigate to="/error" />
+    return <Navigate to="/" />
+  }
   return children;
 }
  
@@ -56,12 +56,12 @@ const ProtectedRouteHR: FC<ProtectedRouteProps> = ({ children }): ReactNode => {
     return <Navigate to="/signin" />;
   }
 
-  // if (auth.role !== 'HR') {
-  //   showMessage("You don't have permission to access this page!");
-  //   // error page
-  //   // return <Navigate to="/error" />
-  //   return <Navigate to="/" />
-  // }
+  if (auth.user?.role !== 'HR') {
+    showMessage("You don't have permission to access this page!");
+    // error page
+    // return <Navigate to="/error" />
+    return <Navigate to="/" />
+  }
   return children;
 }
 
