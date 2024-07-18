@@ -26,6 +26,7 @@ export interface HRInstanceType {
 
 export interface HRStateType {
   hr: HRInstanceType;
+  allVisaStatuses: [VisaStatusPopulatedType];
 }
 
 export interface HRResponseType {
@@ -201,7 +202,7 @@ export interface Profile {
   employment: Employment;
   reference: Reference;
   emergencyContacts: [EmergencyContact];
-  documents: [Document];
+  documents: Documents[];
 }
 
 export interface OnboardingApplication {
@@ -215,7 +216,7 @@ export interface OnboardingApplication {
   employment: Employment
   reference: Reference
   emergencyContacts: [EmergencyContact]
-  documents: [Document]
+  documents: Documents[]
   status: string;
   hrFeedback: string;
 }

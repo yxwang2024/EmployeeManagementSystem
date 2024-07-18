@@ -5,8 +5,11 @@ import {
   VisaStatusListItemType,
   AllVisaStatusesResponseType,
   ErrorResponseType,
-  HrStateType,
+  HRStateType,
+  HRResponseType,
+  HRInstanceType
 } from "../../utils/type";
+import { updateHR } from "./hrM";
 
 export const fetchAllVisaStatusList =
   () => async (dispatch: AppDispatch) => {
@@ -47,7 +50,46 @@ export const fetchAllVisaStatusList =
     }
   };
 
-const initialState: HrStateType = {
+export const fetchHR = 
+  (hr: string) => async (dispatch: AppDispatch) => {
+    const query = `
+    query GetHR($getHrId: ID!) {
+      getHR(id: $getHrId) {
+        id
+        mailHistory {
+          _id
+          email
+          registrationToken
+          expiration
+          name
+          status
+        }
+        username
+        email
+      }
+    }
+  `;
+    try {
+      const response: HRResponseType = await request(query, {
+        getHrId: hr,
+      });
+      console.log(response);
+      const hrResponse = response.data.getHR;
+      dispatch(updateHRInstance({ hrInstance: hrResponse }));    
+    } catch (error) {
+      console.log(error);
+      const err = error as ErrorResponseType;
+      const message = err.message;
+      console.log(message);
+      return Promise.reject(message);
+    }
+  }
+
+const initialState: HRStateType = {
+  hr: {
+    id: "",
+    mailHistory: [],
+  },
   allVisaStatuses: [
     {
       _id: "",
@@ -179,15 +221,24 @@ export const hrSlice = createSlice({
   name: "hr",
   initialState,
   reducers: {
+    updateHR: (state, action: PayloadAction<HRStateType>) => {
+      state = action.payload;
+    },
+    updateHRInstance: (
+      state,
+      action: PayloadAction<{ hrInstance: HRInstanceType }>
+    ) => {
+      state.hr = action.payload.hrInstance;
+    },
     updateAllVisaStatusList: (
       state,
-      action: PayloadAction<HrStateType>
+      action: PayloadAction<{ allVisaStatuses: VisaStatusListItemType[] }>
     ) => {
       state.allVisaStatuses = action.payload.allVisaStatuses;
     },
   },
 });
 
-export const { updateAllVisaStatusList } = hrSlice.actions;
+export const { updateAllVisaStatusList, updateHRInstance } = hrSlice.actions;
 
 export default hrSlice.reducer;
