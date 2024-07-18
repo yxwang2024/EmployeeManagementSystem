@@ -8,8 +8,11 @@ import React, {useState, useEffect } from "react";
 import DocViewerComponent from "../components/DocViewer";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useAppSelector, useAppDispatch } from "../store/hooks";
-import { fetchVisaStatus, uploadDocument, addVisaStatusDocument, reUploadDocument, moveToNextStep } from "../store/slices/employee";
+import { fetchVisaStatus, uploadDocument, reUploadDocument, moveToNextStep } from "../store/slices/employee";
 import { VisaStatusType } from "../utils/type";
+import { useGlobal } from "../store/hooks";
+import { delayFunctionCall } from "../utils/utilities";
+import { useNavigate } from "react-router-dom";
 
 const approveMessages: Record<string, Record<string, string>> = {
   "OPT Receipt": {
@@ -30,16 +33,27 @@ const approveMessages: Record<string, Record<string, string>> = {
   },
 };
 
+
 const VisaStatus: React.FC = () => {
+  const navigate = useNavigate(); 
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const { showLoading, showMessage } = useGlobal();
 
   const dispatch = useAppDispatch();
   const visaStatus: VisaStatusType = useAppSelector((state) => state.employee.visaStatus);
 
   useEffect(() => { 
     const EmployeeId = "66984ab27070f38efac60db4"; // get this from redux
-    dispatch(fetchVisaStatus(EmployeeId)); 
+    showLoading(true);
+    dispatch(fetchVisaStatus(EmployeeId)).then(() => {
+      delayFunctionCall(showLoading, 300, false);
+    }).catch((error) => {
+      console.error(error);
+      showMessage(`failed to fetch visa status`, "failed", 2000);
+      showLoading(false);
+      navigate('/login');
+    });
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,9 +74,15 @@ const VisaStatus: React.FC = () => {
     if (file) {
       // Implement your upload logic here
       console.log("Uploading file:", file);
+      showLoading(true);
       dispatch(uploadDocument(visaStatus.step, file)).then(() => {
         // reset file input
         setFile(null);
+      }).then(() => {
+        delayFunctionCall(showLoading, 300, false);
+      }).catch((error) => {
+        showMessage("Failed to upload document", error);
+        showLoading(false);
       });
     } else {
       console.log("No file selected");
@@ -75,7 +95,11 @@ const VisaStatus: React.FC = () => {
       console.log("Re-Uploading file:", file);
       dispatch(reUploadDocument(visaStatus.step, file)).then(() => {
         // reset file input
+        delayFunctionCall(showLoading, 300, false);
         setFile(null);
+      }).catch((error) => {
+        showMessage("Failed to re-upload document", error);
+        showLoading(false);
       });
     } else {
       console.log("No file selected");
@@ -83,7 +107,13 @@ const VisaStatus: React.FC = () => {
   }
 
   const handleGoNext = () => {
-    dispatch(moveToNextStep(visaStatus._id));
+    showLoading(true);
+    dispatch(moveToNextStep(visaStatus._id)).then(() => {
+      delayFunctionCall(showLoading, 300, false);
+    }).catch((error) => {
+      showMessage("Failed to move to next step", error);
+      showLoading(false);
+    });
   }
 
   const handleReset = () => {
