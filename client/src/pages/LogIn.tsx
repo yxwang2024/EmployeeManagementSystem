@@ -66,9 +66,9 @@ const LogIn: React.FC = () => {
           },
         },
       };
-
-      console.log("Request payload:", JSON.stringify(payload, null, 2));
-
+  
+      console.log('Request payload:', JSON.stringify(payload, null, 2));
+  
       const response = await axios.post(
         "http://localhost:3000/graphql",
         payload,
@@ -78,15 +78,16 @@ const LogIn: React.FC = () => {
           },
         }
       );
-
-      console.log("Backend response:", JSON.stringify(response.data, null, 2));
-
+  
+      console.log('Backend response:', JSON.stringify(response.data, null, 2));
+  
       if (response.data.errors) {
         console.log("GraphQL errors:", response.data.errors);
         throw new Error(response.data.errors[0].message);
       }
-
+  
       const { token, user } = response.data.data.Login;
+
       if (!token || !user) {
         throw new Error("Invalid response");
       }
@@ -107,6 +108,7 @@ const LogIn: React.FC = () => {
       }
 
       dispatch(login({ token, user: user }));
+
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("Axios error:", error.response);
@@ -118,7 +120,7 @@ const LogIn: React.FC = () => {
         alert(`Login failed: ${error.message}`);
       }
     }
-  };
+  };  
 
   return (
     <div className="flex items-center w-full justify-center h-screen bg-gray-100">

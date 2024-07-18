@@ -14,16 +14,19 @@ const onboardingApplicationResolvers = {
             try {
                 //auth: employee self or HR
                 const decodedUser = await checkAuth(context);
-
-                const employee = await Employee.findOne({onboardingApplication:oaId});
-                const user = await User.findOne({instance:employee._id});
+        
+                const employee = await Employee.findOne({ onboardingApplication: oaId });
+                const user = await User.findOne({ instance: employee._id });
                 const userId = user._id.toString();
-                if( !checkUser(decodedUser,userId) && !isHR(decodedUser)){
+                if (!checkUser(decodedUser, userId) && !isHR(decodedUser)) {
                     throw new Error('Query id and auth user do not match.');
                 }
-
-                return await OnboardingApplication.findById(oaId);
+        
+                const onboardingApplication = await OnboardingApplication.findById(oaId);
+                console.log('Fetched Onboarding Application:', onboardingApplication);
+                return onboardingApplication;
             } catch (err) {
+                console.error(err);
                 throw new Error(err);
             }
         },
