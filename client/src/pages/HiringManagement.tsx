@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchHR } from '../store/slices/hr';
+import { fetchHR } from '../store/slices/hrM';
 import React, { useState, useEffect } from 'react';
 
 const HiringManagement: React.FC = () => {

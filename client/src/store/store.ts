@@ -3,7 +3,7 @@ import authReducer from './authSlice';
 import onboardingApplicationReducer from './onboardingApplicationSlice';
 import globalReducer from './global';
 import employeeReducer from './slices/employee';
-import hrReducer from './slices/hr';
+import hrMReducer from './slices/hrM';
 
 const store = configureStore({
   reducer: {
@@ -11,7 +11,7 @@ const store = configureStore({
     onboardingApplication: onboardingApplicationReducer,
     global: globalReducer,
     employee: employeeReducer,
-    hr: hrReducer,
+    hrM: hrMReducer,
   },
 });
 
