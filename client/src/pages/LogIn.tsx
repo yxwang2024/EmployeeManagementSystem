@@ -22,10 +22,8 @@ const LOGIN_MUTATION = `
         email
         role
       }
+      message
     }
-    token
-    message
-  }
   }
 `;
 
