@@ -28,7 +28,10 @@ const userResolvers = {
                 //auth
                 const decodedUser = await checkAuth(context);
 
-                const user = await User.findById(id).populate(['instance', {path:'instance', populate:'onboardingApplication'}]);
+                const user = await User.findById(id).populate(['instance']);
+                if ( user.role == 'HR' && !isHR(decodedUser)) {
+                    throw new Error('HR role needed.');
+                }
                 console.log(user);
                 const userId = user._id.toString();
                 if(!checkUser(decodedUser,userId)){
@@ -64,7 +67,16 @@ const userResolvers = {
         Login: async (_, { input }, context) => {
             try {
                 const { email, password } = input;
-                const user = await User.findOne({ email }).populate(['instance', {path:'instance', populate:'onboardingApplication'}]);
+                const user = await User.findOne({ email }).populate('instance')
+                let populatedUser;
+                if ( user && user.role == 'HR') {
+                    // populate HR instance
+                    populatedUser = await User.findOne({ email }).populate(['instance', {path: 'instance', populate: 'mailHistory'}]);
+                } else if ( user && user.role == 'Employee') {
+                    // populate Employee instance
+                    populatedUser = await User.findOne({ email }).populate(['instance', {path: 'instance', populate: 'onboardingApplication'}]);
+                }
+                console.log('populatedUser:',populatedUser);
                 if (!user) {
                     throw new Error('No user with that email');
                 }
@@ -83,7 +95,7 @@ const userResolvers = {
                     process.env.JWT_SECRET_KEY,
                     { expiresIn: '30d' }
                 );
-                return { user, token, message: 'Employee signed in successfully' };
+                return { user:populatedUser, token, message: 'Employee signed in successfully' };
 
             } catch (err) {
                 throw new Error(err);

@@ -101,10 +101,16 @@ const LogIn: React.FC = () => {
         throw new Error("Token mismatch");
       }
 
-      if (user.instance && user.instance.onboardingApplication && user.instance.onboardingApplication.status === "Approved") {
-        navigate("/visa-status");
+      if (user.role === "Employee") {
+        if (user.instance && user.instance.onboardingApplication && user.instance.onboardingApplication.status === "Approved") {
+          navigate("/visa-status");
+        } else {
+          navigate("/onboardingapplication");
+        }
+      } else if (user.role === "HR") {
+        navigate("/mail-history");
       } else {
-        navigate("/onboardingapplication");
+        throw new Error("Invalid role");
       }
 
       dispatch(login({ token, user: user }));
