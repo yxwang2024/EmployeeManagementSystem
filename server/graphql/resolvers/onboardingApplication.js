@@ -23,7 +23,7 @@ const onboardingApplicationResolvers = {
                 }
         
                 const onboardingApplication = await OnboardingApplication.findById(oaId);
-                console.log('Fetched Onboarding Application:', onboardingApplication);
+                // console.log('Fetched Onboarding Application:', onboardingApplication);
                 return onboardingApplication;
             } catch (err) {
                 console.error(err);
