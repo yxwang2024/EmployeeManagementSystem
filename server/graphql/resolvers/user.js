@@ -4,7 +4,7 @@ import HR from '../../models/HR.js';
 import Profile from '../../models/Profile.js';
 import MailHistory from '../../models/MailHistory.js';
 import OnboardingApplication from '../../models/OnboardingApplication.js';
-import VisaStatus from '../../models/VisaStatus.js';
+
 import * as dotenv from 'dotenv';
 dotenv.config();
 import jwt from 'jsonwebtoken';
@@ -14,26 +14,32 @@ const userResolvers = {
     UserInstance: {
         __resolveType(obj) {
             if (obj.onboardingApplication) {
-                return 'Employee';
+                return 'EmployeeInstance';
             }
             else{
-                return 'HR';
+                return 'HRInstance';
             }
         }
     },
     Query: {
         getUser: async (_, { id }, context) => {
             try {
+                console.log('!!!Starting getUser function with ID:', id); // 添加日志
                 //auth
                 const decodedUser = await checkAuth(context);
-                const user = await User.findById(id).populate('instance');
+
+                const user = await User.findById(id).populate(['instance', {path:'instance', populate:'onboardingApplication'}]);
+                console.log(user);
                 const userId = user._id.toString();
                 if(!checkUser(decodedUser,userId)){
-                    throw new Error('Query id and auth user do not match.');
+                    console.log('!!!Query id and auth user do not match.'); // 添加日志
+                    throw new Error('!!!Query id and auth user do not match.');
                 }
-
+        
+                console.log('!!!Returning user:', user); // 添加日志
                 return user;
             } catch (err) {
+                console.error('!!!Error in getUser function:', err); // 添加日志
                 throw new Error(err);
             }
         },
@@ -58,7 +64,7 @@ const userResolvers = {
         Login: async (_, { input }, context) => {
             try {
                 const { email, password } = input;
-                const user = await User.findOne({ email }).populate('instance');
+                const user = await User.findOne({ email }).populate(['instance', {path:'instance', populate:'onboardingApplication'}]);
                 if (!user) {
                     throw new Error('No user with that email');
                 }
@@ -124,13 +130,6 @@ const userResolvers = {
                     onboardingApplication: onboardingApplication
                 });
                 await employee.save();
-                const visaStatus = new VisaStatus({
-                    employee:employee._id,
-                    step:"registration",
-                    status: "Pending"
-                });
-                await visaStatus.save();
-                await Employee.findByIdAndUpdate(employee._id,{visaStatus:visaStatus});
 
                 const newUser = new User({
                     username,

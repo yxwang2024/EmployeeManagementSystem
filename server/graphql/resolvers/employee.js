@@ -21,7 +21,7 @@ const employeeResolvers = {
                     throw new Error('Query id and auth user do not match.');
                 }
 
-                return await Employee.findById(employeeId);
+                return await Employee.findById(employeeId).populate('onboardingApplication').populate('profile');
             } catch (err) {
                 throw new Error(err);
             }
@@ -35,7 +35,7 @@ const employeeResolvers = {
                     throw new Error('Authorization failed.');
                 }
 
-                const employees = await Employee.find();
+                const employees = await Employee.find().populate('onboardingApplication').populate('profile');
                 return employees;
             } catch (err) {
                 throw new Error(err);

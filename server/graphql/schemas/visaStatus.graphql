@@ -42,7 +42,7 @@ input VisaStatusInput {
 extend type Query {
   getVisaStatuses: [VisaStatusResponse]
   getVisaStatus(id: ID!): VisaStatusResponse
-  getVisaStatusByEmployee(employeeId: ID!): VisaStatusResponse
+  getVisaStatusByEmployee(employeeId: ID!): VisaStatus
   getVisaStatusWithQuery(query: String!): [VisaStatusResponse]
 }
 

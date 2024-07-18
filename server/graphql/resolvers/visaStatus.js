@@ -51,8 +51,6 @@ const visaStatusResolvers = {
           employee: employeeId,
         }).populate([
           "documents",
-          "employee",
-          { path: "employee", populate: "profile" },
         ]);
         if (!visaStatus) {
           throw new Error("Visa status not found");
@@ -173,7 +171,7 @@ const visaStatusResolvers = {
     moveToNextStep: async (_, { id }) => {
       try {
         const visaStatus = await VisaStatus.findById(id);
-        const steps = ["OPT Receipt", "OPT EAD", "i983", "I20"];
+        const steps = ["OPT Receipt", "OPT EAD", "I-983", "I20"];
         const currentStepIndex = steps.indexOf(visaStatus.step);
         if (visaStatus.status !== "Approved") {
           throw new Error(
@@ -212,12 +210,13 @@ const visaStatusResolvers = {
     },
     addDocument: async (_, { id, documentId }) => {
       try {
+        console.log("add document", id, documentId);
         const document = await Document.findById(documentId);
         if (!document) {
           throw new Error("Document not found");
         }
-        const visaStatus = await VisaStatus.findByIdAndUpdate(
-          id,
+        const visaStatus = await VisaStatus.findOneAndUpdate(
+          { employee: id },
           {
             $push: { documents: documentId },
             $set: { status: "Reviewing" },
@@ -236,18 +235,18 @@ const visaStatusResolvers = {
           throw new Error("Document not found");
         }
         // check if current status is "Rejected"
-        const visaStatus = await VisaStatus.findById(id);
+        const visaStatus = await VisaStatus.findOne({ employee: id });
         if (visaStatus.status !== "Rejected") {
           throw new Error(
             "You can only re-upload document if the visa status is rejected"
           );
         }
         // remove the last document and add the new one
-        await VisaStatus.findByIdAndUpdate(id, {
+        const test = await VisaStatus.findByIdAndUpdate(visaStatus._id, {
           $pop: { documents: -1 },
         });
         const updatedVisaStatus = await VisaStatus.findByIdAndUpdate(
-          id,
+          visaStatus._id,
           {
             $push: { documents: documentId },
             $set: { status: "Reviewing", hrFeedback: "" },
