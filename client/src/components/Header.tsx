@@ -18,6 +18,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { EmployeeInstanceType, HRInstanceType } from '../utils/type';
 
 const UserPages = ['Personal Information', 'Visa Status'];
 const HRpages = ['Home', 'Employee Profiles', 'Visa Status Management', 'Hiring Management'];
@@ -65,6 +66,7 @@ function Header() {
     localStorage.removeItem('token');
     dispatch(logout());
     handleCloseUserMenu();
+    navigate('/login');
   };
 
   const handleLogin = () => {
@@ -155,7 +157,7 @@ function Header() {
             W Chuwa
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end', mr: 4 }}>
-            {isHR !== null && (isHR ? HRpages : UserPages).map((page) => (
+            {/* {isHR !== null && (isHR ? HRpages : UserPages).map((page) => (
               <Button
                 key={page}
                 onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}
@@ -163,7 +165,27 @@ function Header() {
               >
                 {page}
               </Button>
-            ))}
+            ))} */}
+            {isHR !== null && (isHR ? HRpages.map((page) => (
+              <Button
+                key={page}
+                onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}
+                sx={{ fontSize: '18px', my: 2, color: 'white', display: 'block', textTransform: 'none' }}
+              >
+                {page}
+              </Button>
+            )) : UserPages.map((page) => (
+              <Button
+                key={page}
+                onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}
+                sx={{ fontSize: '18px', my: 2, color: 'white', textTransform: 'none', display:
+                  `${(user?.instance as EmployeeInstanceType).onboardingApplication.status === 'Approved' ? 'block' : 'none'}`
+                }}
+              >
+                {page}
+              </Button>
+            ))
+            )}
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>

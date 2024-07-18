@@ -14,10 +14,10 @@ const userResolvers = {
     UserInstance: {
         __resolveType(obj) {
             if (obj.onboardingApplication) {
-                return 'Employee';
+                return 'EmployeeInstance';
             }
             else{
-                return 'HR';
+                return 'HRInstance';
             }
         }
     },
@@ -27,9 +27,9 @@ const userResolvers = {
                 console.log('!!!Starting getUser function with ID:', id); // 添加日志
                 //auth
                 const decodedUser = await checkAuth(context);
-                console.log('!!!Decoded user:', decodedUser); // 添加日志
-                const user = await User.findById(id).populate('instance');
-                console.log('!!!Fetched user from database:', user); // 添加日志
+
+                const user = await User.findById(id).populate(['instance', {path:'instance', populate:'onboardingApplication'}]);
+                console.log(user);
                 const userId = user._id.toString();
                 if(!checkUser(decodedUser,userId)){
                     console.log('!!!Query id and auth user do not match.'); // 添加日志
@@ -64,7 +64,7 @@ const userResolvers = {
         Login: async (_, { input }, context) => {
             try {
                 const { email, password } = input;
-                const user = await User.findOne({ email }).populate('instance');
+                const user = await User.findOne({ email }).populate(['instance', {path:'instance', populate:'onboardingApplication'}]);
                 if (!user) {
                     throw new Error('No user with that email');
                 }
