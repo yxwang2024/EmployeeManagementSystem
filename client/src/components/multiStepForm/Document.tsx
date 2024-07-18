@@ -6,11 +6,29 @@ import { RootState } from '../../store/store';
 import { updateDocument, setCurrentStep } from '../../store/onboardingApplicationSlice';
 import CustomTextField from '../CustomTextField';
 import CustomSelectField from '../CustomSelectField';
+import CustomCheckbox from '../CustomCheckbox'; 
+
+// Helper function to format date to YYYY-MM-DD
+const formatDate = (timestamp: string | number | undefined): string => {
+  if (!timestamp) return '';
+  const date = new Date(parseInt(timestamp.toString(), 10));
+  return date.toISOString().split('T')[0];
+};
 
 const DocumentSchema = Yup.object().shape({
-  visaTitle: Yup.string().required('Visa Title is required'),
-  startDate: Yup.date().required('Start Date is required'),
-  endDate: Yup.date().required('End Date is required'),
+  isPermanentResidentOrCitizen: Yup.boolean().required('This field is required'),
+  visaTitle: Yup.string().when('isPermanentResidentOrCitizen', {
+    is: false,
+    then: Yup.string().required('Visa Title is required'),
+  }),
+  startDate: Yup.date().when('isPermanentResidentOrCitizen', {
+    is: false,
+    then: Yup.date().required('Start Date is required'),
+  }),
+  endDate: Yup.date().when('isPermanentResidentOrCitizen', {
+    is: false,
+    then: Yup.date().required('End Date is required'),
+  }),
   optReceipt: Yup.string(),
   otherVisa: Yup.string(),
   driverLicense: Yup.string(),
@@ -21,8 +39,6 @@ const Document: React.FC = () => {
   const document = useSelector((state: RootState) => state.onboardingApplication.document);
 
   const visaOptions = [
-    { value: 'Green Card', label: 'Green Card' },
-    { value: 'Citizen', label: 'Citizen' },
     { value: 'H1-B', label: 'H1-B' },
     { value: 'L2', label: 'L2' },
     { value: 'F1(CPT/OPT)', label: 'F1(CPT/OPT)' },
@@ -32,7 +48,7 @@ const Document: React.FC = () => {
 
   return (
     <Formik
-      initialValues={document}
+      initialValues={{ ...document, isPermanentResidentOrCitizen: false }}
       validationSchema={DocumentSchema}
       onSubmit={(values) => {
         dispatch(updateDocument(values));
@@ -42,11 +58,16 @@ const Document: React.FC = () => {
       {({ handleSubmit, values }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Documents</h2>
-          <CustomSelectField name="visaTitle" label="Visa Title" options={visaOptions} />
-          {values.visaTitle === 'F1(CPT/OPT)' && <CustomTextField name="optReceipt" label="OPT Receipt" />}
-          {values.visaTitle === 'Other' && <CustomTextField name="otherVisa" label="Specify Visa Title" />}
-          <CustomTextField name="startDate" label="Start Date" type="date" />
-          <CustomTextField name="endDate" label="End Date" type="date" />
+          <CustomCheckbox name="isPermanentResidentOrCitizen" label="Permanent resident or citizen of the U.S.?" />
+          {!values.isPermanentResidentOrCitizen && (
+            <>
+              <CustomSelectField name="visaTitle" label="What is your work authorization?" options={visaOptions} />
+              {values.visaTitle === 'F1(CPT/OPT)' && <CustomTextField name="optReceipt" label="OPT Receipt" type="file"/>}
+              {values.visaTitle === 'Other' && <CustomTextField name="otherVisa" label="Specify Visa Title" />}
+              <CustomTextField name="startDate" label="Start Date" type="date" />
+              <CustomTextField name="endDate" label="End Date" type="date" />
+            </>
+          )}
           <CustomTextField name="driverLicense" label="Driver's License" type="file" />
           <div className='flex'>
             <button 
