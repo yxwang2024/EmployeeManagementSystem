@@ -56,6 +56,7 @@ const fileUploadRequest = async <T>(
   file: File
 ): Promise<T> => {
   const formData = new FormData();
+  // console.log("??", query, title, file);
   formData.append(
     "operations",
     JSON.stringify({
