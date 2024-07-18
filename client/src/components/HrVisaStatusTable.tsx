@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 import {calculateRemainingDays,getDateString} from "../services/dateServices";
-import { VisaStatusListItemType } from "../utils/type";
+import { VisaStatusListItemType,VisaStatusPopulatedType } from "../utils/type";
+import { useAppSelector, useAppDispatch } from "../store/hooks";
+import { useGlobal } from "../store/hooks";
+import { delayFunctionCall } from "../utils/utilities";
+import {fetchAllVisaStatusList} from '../store/slices/hr'
+import { useNavigate } from "react-router-dom";
 
 import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
@@ -21,51 +26,6 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-
-
-const getAllVisaStatus = async () => {
-  //graphql query to get visa status
-  const query = `
-    query GetVisaStatuses {
-      getVisaStatuses {
-        _id
-        employee {
-          profile {
-            name {
-              firstName
-              middleName
-              lastName
-            }
-          }
-        }
-        workAuthorization {
-          title
-          startDate
-          endDate
-        }
-        step
-        status
-      }
-    }
-  `;
-  try {
-    const response = await axios.post("http://localhost:3000/graphql", {
-      query,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.data.errors) {
-      console.log("Response data errors:", response.data.errors);
-      throw new Error(response.data.errors[0].message);
-    }
-
-    return response.data.data.getVisaStatuses;
-  } catch (error) {
-    console.error(error);
-  }
-};
 
 
 interface TablePaginationActionsProps {
@@ -201,49 +161,50 @@ const columns: Column[] = [
 
 
 const HrVisaStatusTable: React.FC = ({option,search}) => {
+  // const navigate = useNavigate(); 
+  const dispatch = useAppDispatch();
+  const { showLoading, showMessage } = useGlobal();
+
+  const user = useAppSelector((state) => state.auth.user);
+  const allVisaStatuses: [VisaStatusPopulatedType] = useAppSelector((state) => state.hr.allVisaStatuses);
+
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [visaStatuses, setVisaStatuses] = useState<VisaStatusListItemType[]>([]);
   console.log("option",option);
+
   useEffect(() => {
+    showLoading(true);
+    dispatch(fetchAllVisaStatusList()).then(() => {
+      delayFunctionCall(showLoading, 300, false);
+    }).catch((error) => {
+      console.error(error);
+      showMessage(`failed to fetch visa status`, "failed", 2000);
+      showLoading(false);
+      // navigate('/login');
+    });
+    const statusList:VisaStatusListItemType[] = [];
     if(option == "InProgress"){
-      getAllVisaStatus().then((statuses) => {
-        console.log("statuses", statuses);
-        const statusList:VisaStatusListItemType[] = [];
-        statuses.map((status)=>{
-          if(status.step!="I20"&&status.status!="Approved"){
-            const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
-            statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
-          }
-        })
-        setVisaStatuses(statusList);
-        console.log("visaStatuses", statusList);
-      });
-    }
-    else if(option == "All"){
-      getAllVisaStatus().then((statuses) => {
-        console.log("statuses", statuses);
-        const statusList:VisaStatusListItemType[] = [];
-        statuses.map((status)=>{
-          let filter = {};
-          if (search) {
-            const regex = new RegExp(search, 'i');
-            filter = {
-              $or: [
-                { name: regex }
-              ]
-            }
-          }
+      allVisaStatuses.map((status)=>{
+        if(status.step!="I20"&&status.status!="Approved"){
           const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
           statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
-        })
-        setVisaStatuses(statusList);
-        console.log("visaStatuses", statusList);
-      });
+        }
+      })
+    }
+    else if(option == "All"){
+      allVisaStatuses.map((status)=>{
+        const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
+        statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
+      })
     }
     
-  }, [option]);
+    setVisaStatuses(statusList);
+
+    console.log("allVisaStatuses",allVisaStatuses);
+
+  }, [option,user]);
 
 
   // Avoid a layout jump when reaching the last page with empty rows.

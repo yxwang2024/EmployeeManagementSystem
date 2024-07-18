@@ -45,17 +45,10 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function SearchBar() {
-  const [option, setOption] = useState("InProgress");
+export default function SearchBar({option}) {
+  
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Stack direction="row" spacing={3}>
-      <Button size="medium" variant={option === "InProgress" ? "outlined" : "contained"} onClick={() => setOption("InProgress")}>
-        In Progress
-      </Button>
-      <Button size="medium" variant={option === "All" ? "outlined" : "contained"} onClick={() => setOption("All")}>
-        All
-      </Button>
       {option == "All" && (
         <Search sx={{ border: '1px solid grey' }}>
           <SearchIconWrapper>
@@ -67,7 +60,6 @@ export default function SearchBar() {
           />
         </Search>
       )}
-      </Stack>
     </Box>
   );
 }
