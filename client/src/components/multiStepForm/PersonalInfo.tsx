@@ -7,6 +7,7 @@ import * as Yup from 'yup';
 import CustomTextField from '../../components/CustomTextField';
 import CustomSelectField from '../../components/CustomSelectField';
 import CustomPNGorJPG from '../../components/CustomPNGorJPG';
+import { PersonalInfoType, OaNameType } from '../../utils/type';
 
 // Helper function to format date to YYYY-MM-DD
 const formatDate = (timestamp: string | number | undefined): string => {
@@ -64,13 +65,25 @@ const PersonalInfo: React.FC = () => {
       validationSchema={PersonalInfoSchema}
       onSubmit={async (values, { setSubmitting }) => {
         console.log('Submitting form with values:', values);
-        dispatch(updatePersonalInfo(values));
-        dispatch(updateOAName({
+        const personalInfo: PersonalInfoType = {
           firstName: values.firstName,
-          middleName: values.middleName,
+          middleName: values.middleName || '',
           lastName: values.lastName,
-          preferredName: values.preferredName
-        }));
+          preferredName: values.preferredName || '',
+          profilePicture: '',
+          email: values.email,
+          ssn: values.ssn,
+          dob: values.dob,
+          gender: values.gender
+        };
+        dispatch(updatePersonalInfo({ personalInfo }));
+        const oaName: OaNameType = {
+          firstName: values.firstName,
+          middleName: values.middleName || '',
+          lastName: values.lastName,
+          preferredName: values.preferredName || ''
+        };
+        dispatch(updateOAName(oaName));
         dispatch(updateOAIdentity({
           ssn: values.ssn,
           dob: values.dob,

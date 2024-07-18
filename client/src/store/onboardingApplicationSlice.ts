@@ -3,19 +3,9 @@ import axios from "axios";
 import { AppDispatch, RootState } from "./store";
 import { fileUploadRequest } from "../utils/fetch";
 import { FileUploadResponseType } from "../utils/type";
+import { PersonalInfoType, OaNameType } from "../utils/type";
 
 // 定义类型
-interface PersonalInfoType {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  preferredName: string;
-  profilePicture: string;
-  email: string;
-  ssn: string;
-  dob: string;
-  gender: string;
-}
 
 interface AddressType {
   street: string;
@@ -177,9 +167,9 @@ export const fetchOnboardingApplication = createAsyncThunk(
 );
 
 // 更新 Onboarding Application Name
-export const updateOAName = createAsyncThunk(
+export const updateOAName: any = createAsyncThunk(
   "onboardingApplication/updateOAName",
-  async (personalInfo: Partial<PersonalInfoType>, { rejectWithValue, getState }) => {
+  async (personalInfo: Partial<OaNameType>, { rejectWithValue, getState }) => {
     const state = getState() as RootState;
     const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
 
@@ -202,6 +192,7 @@ export const updateOAName = createAsyncThunk(
         query,
         variables: { input: { ...personalInfo, id: onboardingApplicationId } },
       });
+      console.log("UpdateOAName response:", response);
       return response.data.data.updateOAName;
     } catch (error) {
       console.error("Update OA Name failed:", error);
@@ -242,7 +233,7 @@ export const updateOAIdentity = createAsyncThunk(
   }
 );
 
-export const updateOAProfilePic = createAsyncThunk(
+export const updateOAProfilePic: any = createAsyncThunk(
   "onboardingApplication/updateOAProfilePic",
   async (profilePictureUrl: string, { rejectWithValue, getState }) => {
     console.log("!url!: ", profilePictureUrl);
@@ -250,7 +241,7 @@ export const updateOAProfilePic = createAsyncThunk(
     const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
 
     const query = `
-      mutation updateOAProfilePic($input: ProfileInput!) {
+      mutation updateOAProfilePic($input: ProfilePictureInput!) {
         updateOAProfilePic(input: $input) {
           id
           profilePicture

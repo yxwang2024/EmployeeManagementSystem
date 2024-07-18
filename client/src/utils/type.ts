@@ -101,3 +101,22 @@ export interface MoveToNextStepResponseType {
 export interface ErrorResponseType {
     message: string;
 }
+
+export interface PersonalInfoType {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  preferredName: string;
+  profilePicture: string;
+  email: string;
+  ssn: string;
+  dob: string;
+  gender: string;
+}
+
+export interface OaNameType {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  preferredName: string;
+}
