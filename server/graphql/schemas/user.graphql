@@ -23,7 +23,7 @@ type EmployeeInstance {
 
 type HRInstance {
   id: ID!
-  mailHistory: MailHistory
+  mailHistory: [MailHistory]
 }
 
 type User {

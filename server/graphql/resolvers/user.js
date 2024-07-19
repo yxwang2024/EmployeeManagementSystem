@@ -67,35 +67,35 @@ const userResolvers = {
         Login: async (_, { input }, context) => {
             try {
                 const { email, password } = input;
-                const user = await User.findOne({ email }).populate('instance')
-                let populatedUser;
-                if ( user && user.role == 'HR') {
+                const findUser = await User.findOne({ email }).populate('instance')
+                let user;
+                if ( findUser && findUser.role == 'HR') {
                     // populate HR instance
-                    populatedUser = await User.findOne({ email }).populate(['instance', {path: 'instance', populate: 'mailHistory'}]);
-                } else if ( user && user.role == 'Employee') {
+                    user = await User.findOne({ email }).populate(['instance', {path: 'instance', populate: 'mailHistory'}]);
+                } else if ( findUser && findUser.role == 'Employee') {
                     // populate Employee instance
-                    populatedUser = await User.findOne({ email }).populate(['instance', {path: 'instance', populate: 'onboardingApplication'}]);
+                    user = await User.findOne({ email }).populate(['instance', {path: 'instance', populate: 'onboardingApplication'}]);
                 }
-                console.log('populatedUser:',populatedUser);
-                if (!user) {
+                console.log('populatedUser:',user);
+                if (!findUser) {
                     throw new Error('No user with that email');
                 }
 
-                const valid = await user.comparePassword(password);
+                const valid = await findUser.comparePassword(password);
                 if (!valid) {
                     throw new Error('Incorrect password');
                 }
 
                 const token = await jwt.sign(
                     {
-                        id: user._id,
-                        username: user.username,
-                        role: user.role
+                        id: findUser._id,
+                        username: findUser.username,
+                        role: findUser.role
                     },
                     process.env.JWT_SECRET_KEY,
                     { expiresIn: '30d' }
                 );
-                return { user:populatedUser, token, message: 'Employee signed in successfully' };
+                return { user, token, message: 'Employee signed in successfully' };
 
             } catch (err) {
                 throw new Error(err);

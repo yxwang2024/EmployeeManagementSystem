@@ -10,7 +10,7 @@ export interface AuthStateType {
 
 const tokenFromLocalStorage = localStorage.getItem('token');
 
-const initialUser = !!tokenFromLocalStorage && localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}') : null;
+const initialUser = tokenFromLocalStorage && localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}') : null;
 
 if (tokenFromLocalStorage) {
   try {

@@ -49,7 +49,7 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />
       },
       { 
-        path: '/hiring-management',
+        path: `/hiring-management`,
         element: <ProtectedRouteHR><HiringManagement /></ProtectedRouteHR>,
         errorElement: <ErrorPage />
       },
