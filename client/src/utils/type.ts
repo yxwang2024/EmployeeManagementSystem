@@ -113,6 +113,7 @@ export interface ErrorResponseType {
     message: string;
 }
 
+
 export interface createMailHistoryResponseType {
   data: {
     createMailHistory: {
@@ -131,6 +132,15 @@ export interface addMailHistoryResponseType {
     addMailHistory: HRInstanceType;
   };
 }
+
+export interface PersonalInfoType {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  preferredName: string;
+  profilePicture: string;
+  email: string;
+
 
 export interface VisaStatusListItemType {
   legalName: string;
@@ -158,10 +168,17 @@ export interface Name {
 }
 
 export interface Identity {
+
   ssn: string;
   dob: string;
   gender: string;
 }
+
+export interface OaNameType {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  preferredName: string;
 
 export interface Address {
   street: string;
@@ -260,4 +277,5 @@ export interface AllVisaStatusesWithQueryResponseType {
   data: {
     getVisaStatusWithQuery: [VisaStatusPopulatedType];
   };
+
 }

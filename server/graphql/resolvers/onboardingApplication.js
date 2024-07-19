@@ -144,6 +144,39 @@ const onboardingApplicationResolvers = {
                 console.error(error);
             }
         },
+        updateOAProfilePic: async (parent, { input }, context, info) => {
+            try {
+                console.log(input);
+                const { id, profilePicture } = input;
+        
+                const decodedUser = await checkAuth(context);
+        
+                const employee = await Employee.findOne({onboardingApplication:id});
+                const user = await User.findOne({instance:employee._id});
+                const userId = user._id.toString();
+                if( !checkUser(decodedUser,userId)){
+                    throw new Error('Query id and auth user do not match.');
+                }
+        
+                 //oa status should not be Pending or Approved
+                 const oa = await OnboardingApplication.findById(id);
+                 if(oa.status==="Pending"){
+                     throw new Error('The application is waiting for reviewing.');
+                 }
+                 if(oa.status==="Approved"){
+                     throw new Error('The application has been approved.');
+                 }
+                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!", profilePicture);
+                const updatedOA = await OnboardingApplication.findByIdAndUpdate(
+                    id,
+                    { profilePicture: profilePicture },
+                    { new: true }
+                );
+                return updatedOA;
+            } catch (error) {
+                console.error(error);
+            }
+        },
         updateOACurrentAddress: async (parent, { input }, context, info) => {
             try {
                 console.log(input);

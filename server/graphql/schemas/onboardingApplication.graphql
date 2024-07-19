@@ -6,6 +6,7 @@ type Query {
 extend type Mutation {
   updateOAName(input: NameInput): OnboardingApplication
   updateOAIdentity(input: IdentityInput): OnboardingApplication
+  updateOAProfilePic(input: ProfilePictureInput): OnboardingApplication
   updateOACurrentAddress(input: AddressInput): OnboardingApplication
   updateOAContactInfo(input: ContactInfoInput): OnboardingApplication
   updateOAEmployment(input: EmploymentInput): OnboardingApplication

@@ -1,18 +1,11 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { AppDispatch, RootState } from "./store";
+import { fileUploadRequest } from "../utils/fetch";
+import { FileUploadResponseType } from "../utils/type";
+import { PersonalInfoType, OaNameType } from "../utils/type";
 
 // 定义类型
-interface PersonalInfoType {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  preferredName: string;
-  profilePicture: string;
-  email: string;
-  ssn: string;
-  dob: string;
-  gender: string;
-}
 
 interface AddressType {
   street: string;
@@ -124,6 +117,7 @@ export const fetchOnboardingApplication = createAsyncThunk(
         getOnboardingApplication(oaId: $oaId) {
           id
           email
+          profilePicture
           name {
             firstName
             middleName
@@ -174,9 +168,9 @@ export const fetchOnboardingApplication = createAsyncThunk(
 );
 
 // 更新 Onboarding Application Name
-export const updateOAName = createAsyncThunk(
+export const updateOAName: any = createAsyncThunk(
   "onboardingApplication/updateOAName",
-  async (personalInfo: Partial<PersonalInfoType>, { rejectWithValue, getState }) => {
+  async (personalInfo: Partial<OaNameType>, { rejectWithValue, getState }) => {
     const state = getState() as RootState;
     const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
 
@@ -199,6 +193,7 @@ export const updateOAName = createAsyncThunk(
         query,
         variables: { input: { ...personalInfo, id: onboardingApplicationId } },
       });
+      console.log("UpdateOAName response:", response);
       return response.data.data.updateOAName;
     } catch (error) {
       console.error("Update OA Name failed:", error);
@@ -228,19 +223,76 @@ export const updateOAIdentity = createAsyncThunk(
       }
     `;
     try {
-      console.log("Sending UpdateOAIdentity mutation with input:", { ...personalInfo, id: onboardingApplicationId });
       const response = await axiosInstance.post("", {
         query,
         variables: { input: { ...personalInfo, id: onboardingApplicationId } },
       });
-      console.log("UpdateOAIdentity response:", response.data);
       return response.data.data.updateOAIdentity;
     } catch (error) {
-      console.error("Update OA Identity failed:", error);
       return rejectWithValue(error.message);
     }
   }
 );
+
+export const updateOAProfilePic: any = createAsyncThunk(
+  "onboardingApplication/updateOAProfilePic",
+  async (profilePictureUrl: string, { rejectWithValue, getState }) => {
+    console.log("!url!: ", profilePictureUrl);
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
+    const query = `
+      mutation updateOAProfilePic($input: ProfilePictureInput!) {
+        updateOAProfilePic(input: $input) {
+          id
+          profilePicture
+        }
+      }
+    `;
+    try {
+      const response = await axiosInstance.post("", {
+        query,
+        variables: { input: { id: onboardingApplicationId, profilePicture: profilePictureUrl } },
+      });
+      return response.data.data.updateOAProfilePic;
+    } catch (error) {
+      console.error("Update OA Profile failed:", error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getProfilePicUrl = 
+  (title: string, file: File) =>
+  async (dispatch: AppDispatch) => {
+    const query = `
+    mutation CreateDocument($input: DocumentInput!) {
+      createDocument(input: $input) {
+        _id
+        title
+        timestamp
+        filename
+        url
+        key
+      }
+    }
+  `;
+  try {
+    // console.log("title: ", title);
+    // console.log("!!!!!!!!!!!", file);
+    const response: FileUploadResponseType = await fileUploadRequest(
+      query,
+      title,
+      file
+    ).then(response => {console.log("!!!!!!!!!!!!!!!!", response); return response}) 
+    // console.log("!!!!!!!!!!!", response);
+    dispatch(
+      updateOAProfilePic( response.data.createDocument.url )
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 
 // 更新 Onboarding Application Address
@@ -358,6 +410,9 @@ const onboardingApplicationSlice = createSlice({
     updateStatus: (state, action: PayloadAction<{ status: string }>) => {
       state.status = action.payload.status;
     },
+    updateOAProfilePic: (state, action: PayloadAction<{ profilePicture: string }>) => {
+      state.personalInfo.profilePicture = action.payload.profilePicture;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -377,6 +432,7 @@ const onboardingApplicationSlice = createSlice({
           ssn: data.identity.ssn,
           dob: data.identity.dob,
           gender: data.identity.gender,
+          profilePicture: data.profilePicture || '',
         };
         state.address = { ...state.address, ...action.payload.currentAddress };
         state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
@@ -392,12 +448,15 @@ const onboardingApplicationSlice = createSlice({
       })
       .addCase(updateOAIdentity.fulfilled, (state, action) => {
         state.personalInfo = { ...state.personalInfo, ...action.payload.identity };
-      })      
+      })
       .addCase(updateOACurrentAddress.fulfilled, (state, action) => {
         state.address = { ...state.address, ...action.payload.currentAddress };
       })
       .addCase(updateOAContactInfo.fulfilled, (state, action) => {
         state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
+      })
+      .addCase(updateOAProfilePic.fulfilled, (state, action) => {
+        state.personalInfo = action.payload.profilePicture ;
       });
   },
 });

@@ -93,6 +93,11 @@ input IdentityInput {
   gender: String!
 }
 
+input ProfilePictureInput {
+  id: ID!
+  profilePicture: String!
+}
+
 input AddressInput {
   id: ID!
   street: String!
