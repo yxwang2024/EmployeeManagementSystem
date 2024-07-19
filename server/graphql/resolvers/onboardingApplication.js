@@ -166,7 +166,7 @@ const onboardingApplicationResolvers = {
                  if(oa.status==="Approved"){
                      throw new Error('The application has been approved.');
                  }
-                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!", profilePicture);
+                // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!", profilePicture);
                 const updatedOA = await OnboardingApplication.findByIdAndUpdate(
                     id,
                     { profilePicture: profilePicture },
