@@ -64,6 +64,7 @@ function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     dispatch(logout());
     handleCloseUserMenu();
     navigate('/login');

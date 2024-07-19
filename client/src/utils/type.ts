@@ -113,6 +113,26 @@ export interface ErrorResponseType {
     message: string;
 }
 
+
+export interface createMailHistoryResponseType {
+  data: {
+    createMailHistory: {
+      _id: string;
+      email: string;
+      registrationToken: string;
+      expiration: string;
+      name: string;
+      status: string;
+    };
+  };
+}
+
+export interface addMailHistoryResponseType {
+  data: {
+    addMailHistory: HRInstanceType;
+  };
+}
+
 export interface PersonalInfoType {
   firstName: string;
   middleName: string;
@@ -120,6 +140,7 @@ export interface PersonalInfoType {
   preferredName: string;
   profilePicture: string;
   email: string;
+
 
 export interface VisaStatusListItemType {
   legalName: string;
