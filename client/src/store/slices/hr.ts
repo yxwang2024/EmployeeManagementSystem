@@ -7,9 +7,11 @@ import {
   ErrorResponseType,
   HRStateType,
   HRResponseType,
-  HRInstanceType
+  HRInstanceType,
+  createMailHistoryResponseType,
+  addMailHistoryResponseType,
+  AuthStateType,
 } from "../../utils/type";
-import { updateHR } from "./hrM";
 
 export const fetchAllVisaStatusList =
   () => async (dispatch: AppDispatch) => {
@@ -73,7 +75,6 @@ export const fetchHR =
       const response: HRResponseType = await request(query, {
         getHrId: hr,
       });
-      console.log(response);
       const hrResponse = response.data.getHR;
       dispatch(updateHRInstance({ hrInstance: hrResponse }));    
     } catch (error) {
@@ -217,6 +218,67 @@ const initialState: HRStateType = {
   ],
 };
 
+export const sendEmail =
+  (email: string, name: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    const addMailHistory = `
+      mutation AddMailHistory($hrId: ID!, $mailId: ID!) {
+        addMailHistory(hrId: $hrId, mailId: $mailId) {
+          id
+          username
+          email
+          mailHistory {
+            _id
+            email
+            registrationToken
+            expiration
+            name
+            status
+          }
+        }
+      }
+    `;
+    const query = `
+      mutation CreateMailHistory($mailHistoryInput: MailHistoryInput) {
+        createMailHistory(mailHistoryInput: $mailHistoryInput) {
+          _id
+          email
+          registrationToken
+          expiration
+          name
+          status
+        }
+      }
+    `;
+    try {
+      const response: createMailHistoryResponseType = await request(query, {
+        mailHistoryInput: {
+          email: email,
+          name: name,
+        },
+      });
+      const mailId = response.data.createMailHistory._id;
+
+      const state: AuthStateType = getState().auth;
+      const hrId = state.user?.instance.id;
+      if (!hrId) {
+        return Promise.reject("HR id is not found");
+      }
+      const addMailHistoryResponse: addMailHistoryResponseType = await request(addMailHistory, {
+        hrId: hrId,
+        mailId: mailId,
+      });
+      const hr = addMailHistoryResponse.data.addMailHistory;
+
+      dispatch(updateHRInstance({ hrInstance: hr }));   
+    } catch (error) {
+      console.log(error);
+      const err = error as ErrorResponseType;
+      const message = err.message;
+      console.log(message);
+      return Promise.reject(message);
+    }
+  };
+
 export const hrSlice = createSlice({
   name: "hr",
   initialState,
@@ -239,6 +301,6 @@ export const hrSlice = createSlice({
   },
 });
 
-export const { updateAllVisaStatusList, updateHRInstance } = hrSlice.actions;
+export const { updateAllVisaStatusList, updateHRInstance, updateHR } = hrSlice.actions;
 
 export default hrSlice.reducer;

@@ -113,6 +113,25 @@ export interface ErrorResponseType {
     message: string;
 }
 
+export interface createMailHistoryResponseType {
+  data: {
+    createMailHistory: {
+      _id: string;
+      email: string;
+      registrationToken: string;
+      expiration: string;
+      name: string;
+      status: string;
+    };
+  };
+}
+
+export interface addMailHistoryResponseType {
+  data: {
+    addMailHistory: HRInstanceType;
+  };
+}
+
 export interface VisaStatusListItemType {
   legalName: string;
   title: string;

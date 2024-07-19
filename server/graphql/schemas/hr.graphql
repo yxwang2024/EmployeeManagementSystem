@@ -8,3 +8,7 @@ type HR {
 type Query {
   getHR(id: ID!): HR
 }
+
+type Mutation {
+  addMailHistory(hrId: ID!, mailId: ID!): HR
+}

@@ -4,6 +4,8 @@ import { sendEmail } from '../../services/emailServices.js';
 import Joi from 'joi';
 import HR from '../../models/HR.js';
 
+const BASE_URL = "http://localhost:5173/signup?registrationToken=";
+
 const mailHistoryInputSchema = Joi.object({
   email: Joi.string().email().required(),
   name: Joi.string().required(),
@@ -43,33 +45,45 @@ const mailHistoryResolvers = {
         if (error) {
           throw new Error(error);
         }
-        // check if there is an existing mail history, if expired, reset the token, if used, throw error
-        const existingMailHistory = await MailHistory.findOne
-        ({
-          email,
-          status: "expired" || "pending",
-        });
+        // check if there is an existing mail history, if expired, reset the token, if used, throw error     
         const existingMailHistoryUsed = await MailHistory.findOne
         ({
           email,
           status: "completed",
         });
+
+        // check if there's an existing history expired or pending
+        const existingMailHistory = await MailHistory.findOne({
+          email,
+          status: { $in: ["pending", "expired"] },
+        });
+
         if (existingMailHistoryUsed) {
           throw new Error("Email already used");
         }
         const registrationToken = await generateToken(hrId, email, name);
         if (existingMailHistory) {
+          console.log("resetting token");
           existingMailHistory.name = name;
           existingMailHistory.status = "pending";
           existingMailHistory.registrationToken = registrationToken;
           existingMailHistory.expiration = Date.now() + 3 * 60 * 60 * 1000;
           await existingMailHistory.save();
           const subject = "Registration Token Reset";
-          const html = `<p>Hi ${name},</p><p>Here is your registration token: ${registrationToken}</p>`;
+          const html = `
+            <p>Hi ${name},</p>
+            <p>Here is your new registration token: ${registrationToken}</p>
+            <p>Please use the following <a href="${BASE_URL}${registrationToken}">link</a> to register.</p>
+            <a href="${BASE_URL}${registrationToken}">${BASE_URL}${registrationToken}</a>\n
+            <p>We have reset your registration token. So please use the new token to register.</p>
+
+            <p>Thank you!</p>
+          `;
           await sendEmail(email, subject, html);
           console.log(subject, html);
           return existingMailHistory;
         }
+        console.log("creating new mail history");
         const newMailHistory = new MailHistory({
           email,
           registrationToken,
@@ -80,14 +94,17 @@ const mailHistoryResolvers = {
         const mailHistory = await newMailHistory.save();
         
         const subject = "Registration Token";
-        const html = `<p>Hi ${name},</p><p>Here is your registration token: ${registrationToken}</p>`;
+        const html = `
+          <p>Hi ${name},</p>
+          <p>WELCOME TO OUR COMPANY!</p>
+          <p>Here is your registration token: ${registrationToken}</p>
+          <p>Please use the following <a href="${BASE_URL}${registrationToken}">link</a> to register.</p>
+          <a href="${BASE_URL}${registrationToken}">${BASE_URL}${registrationToken}</a>\n
+
+          <p>Thank you!</p>
+        `;
         await sendEmail(email, subject, html);
         console.log(subject, html);
-
-        // update hr 
-        const hr = await HR.findById(hrId);
-        hr.mailHistory.push(mailHistory._id);
-        await hr.save();
 
         return mailHistory;
       } catch (err) {
