@@ -9,7 +9,6 @@ import {
   HRResponseType,
   HRInstanceType
 } from "../../utils/type";
-import { updateHR } from "./hrM";
 
 export const fetchAllVisaStatusList =
   () => async (dispatch: AppDispatch) => {
