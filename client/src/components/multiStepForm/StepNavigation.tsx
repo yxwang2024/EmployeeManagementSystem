@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
+import { setCurrentStep } from '../../store/onboardingApplicationSlice';
 
 const steps = [
   'Personal Information',
@@ -13,6 +14,7 @@ const steps = [
 ];
 
 const StepNavigation: React.FC = () => {
+  const dispatch = useDispatch();
   const currentStep = useSelector((state: RootState) => state.onboardingApplication.currentStep);
   const [newStep, setNewStep] = useState<any[]>([]);
   const stepRef = useRef<any[]>([]);
@@ -45,6 +47,11 @@ const StepNavigation: React.FC = () => {
   };
 
   useEffect(() => {
+    const savedStep = localStorage.getItem('currentStep');
+    if (savedStep) {
+      dispatch(setCurrentStep(parseInt(savedStep, 10)));
+    }
+
     const stepsState = steps.map((step, index) =>
       Object.assign(
         {},
@@ -57,7 +64,7 @@ const StepNavigation: React.FC = () => {
     stepRef.current = stepsState;
     const current = updateStep(currentStep - 1, stepRef.current);
     setNewStep(current);
-  }, [steps, currentStep]);
+  }, [steps, currentStep, dispatch]);
 
   const displaySteps = newStep.map((step, index) => {
     return (

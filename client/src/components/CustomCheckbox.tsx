@@ -14,6 +14,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({ label, ...props }) => {
       <label className="inline-flex items-center">
         <input
           type="checkbox"
+          checked={field.value}
           {...field}
           {...props}
           className="form-checkbox h-5 w-5 text-gray-600"
@@ -21,7 +22,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({ label, ...props }) => {
         <span className="ml-2 text-gray-700 text-md md:text-lg">{label}</span>
       </label>
       {meta.touched && meta.error ? (
-        <p className="text-red-500 text-sm v">{meta.error}</p>
+        <p className="text-red-500 text-sm">{meta.error}</p>
       ) : null}
     </div>
   );
