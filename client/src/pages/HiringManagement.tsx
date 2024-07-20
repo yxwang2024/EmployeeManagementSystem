@@ -147,6 +147,12 @@ const HiringManagement: React.FC = () => {
 
   const [searchParams, setSearchParams] = useSearchParams()
 
+  useEffect(() => {
+    if (searchParams.has('tab')) {
+      setValue(parseInt(searchParams.get('tab') || '0'));
+    }
+  }, [searchParams]);
+
 
   useEffect(() => {
     console.log('user:', user);
