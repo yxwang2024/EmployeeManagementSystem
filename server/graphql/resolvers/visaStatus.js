@@ -222,6 +222,10 @@ const visaStatusResolvers = {
           node: visaStatus,
         }));
 
+        const totalCount = await VisaStatus.countDocuments({
+          employee: { $in: employeeIds },
+        });
+
         const pageInfo = {
           hasNextPage: visaStatuses.length === limit && !before,
           hasPreviousPage: visaStatuses.length === limit && !after,
@@ -230,6 +234,7 @@ const visaStatusResolvers = {
         };
 
         return {
+          totalCount,
           edges,
           pageInfo,
         };
