@@ -140,7 +140,7 @@ export interface PersonalInfoType {
   preferredName: string;
   profilePicture: string;
   email: string;
-
+}
 
 export interface VisaStatusListItemType {
   legalName: string;

@@ -3,6 +3,7 @@ import VisaStatus from "../../models/VisaStatus.js";
 import Document from "../../models/Document.js";
 import Joi from "joi";
 import Employee from "../../models/Employee.js";
+import { ObjectId } from "mongodb";
 
 const visaStatusInputSchema = Joi.object({
   employee: Joi.string().required(),
@@ -49,9 +50,7 @@ const visaStatusResolvers = {
       try {
         const visaStatus = await VisaStatus.findOne({
           employee: employeeId,
-        }).populate([
-          "documents",
-        ]);
+        }).populate(["documents"]);
         if (!visaStatus) {
           throw new Error("Visa status not found");
         }
@@ -66,7 +65,7 @@ const visaStatusResolvers = {
         // cover one found, multiple found, none found
         // Name { First name, Last name, Middle name, Preferred name } is under Employee/profile
         // allow partial search
-        
+
         // if query is empty, return all visa statuses
         if (query === "") {
           const visaStatuses = await VisaStatus.find().populate([
@@ -82,24 +81,44 @@ const visaStatusResolvers = {
               from: "profiles", // The name of the collection containing profile details
               localField: "profile",
               foreignField: "_id",
-              as: "profileDetails"
-            }
+              as: "profileDetails",
+            },
           },
           {
-            $unwind: "$profileDetails" // Unwind the array to make it easier to query
+            $unwind: "$profileDetails", // Unwind the array to make it easier to query
           },
           {
             $match: {
               $or: [
-                { "profileDetails.name.firstName": { $regex: query, $options: "i" } },
-                { "profileDetails.name.middleName": { $regex: query, $options: "i" } },
-                { "profileDetails.name.lastName": { $regex: query, $options: "i" } },
-                { "profileDetails.name.preferredName": { $regex: query, $options: "i" } },
-              ]
-            }
-          }
+                {
+                  "profileDetails.name.firstName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+                {
+                  "profileDetails.name.middleName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+                {
+                  "profileDetails.name.lastName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+                {
+                  "profileDetails.name.preferredName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+              ],
+            },
+          },
         ]);
-        
+
         console.log(employees);
         const filteredResults = await VisaStatus.find({
           employee: { $in: employees },
@@ -109,6 +128,116 @@ const visaStatusResolvers = {
           { path: "employee", populate: "profile" },
         ]);
         return filteredResults;
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+    getVisaStatusConnection: async (
+      _,
+      { query, first, after, last, before }
+    ) => {
+      try {
+        // if query is empty, return all visa statuses
+        const searchQuery = query
+          ? {
+              $or: [
+                {
+                  "profileDetails.name.firstName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+                {
+                  "profileDetails.name.middleName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+                {
+                  "profileDetails.name.lastName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+                {
+                  "profileDetails.name.preferredName": {
+                    $regex: query,
+                    $options: "i",
+                  },
+                },
+              ],
+            }
+          : {};
+
+        let paginationQuery = {};
+        let sort = { _id: -1 };
+        let limit = first || last || 10;
+
+        if (after) {
+          paginationQuery._id = { $gt: ObjectId(after) };
+        }
+
+        if (before) {
+          paginationQuery._id = { $lt: ObjectId(before) };
+          sort = { _id: 1 };
+        }
+
+        const employees = await Employee.aggregate([
+          {
+            $lookup: {
+              from: "profiles", // The name of the collection containing profile details
+              localField: "profile",
+              foreignField: "_id",
+              as: "profileDetails",
+            },
+          },
+          {
+            $unwind: "$profileDetails", // Unwind the array to make it easier to query
+          },
+          {
+            $match: searchQuery,
+          },
+        ]);
+
+        const employeeIds = employees.map((employee) => employee._id);
+
+        const visaStatuses = await VisaStatus.find({
+          employee: { $in: employeeIds },
+          ...paginationQuery,
+        })
+          .populate([
+            "documents",
+            "employee",
+            { path: "employee", populate: "profile" },
+          ])
+          .sort(sort)
+          .limit(limit);
+
+        if (before) {
+          visaStatuses.reverse();
+        }
+
+        const edges = visaStatuses.map((visaStatus) => ({
+          cursor: visaStatus._id.toString(),
+          node: visaStatus,
+        }));
+
+        const totalCount = await VisaStatus.countDocuments({
+          employee: { $in: employeeIds },
+        });
+
+        const pageInfo = {
+          hasNextPage: visaStatuses.length === limit && !before,
+          hasPreviousPage: visaStatuses.length === limit && !after,
+          startCursor: edges.length > 0 ? edges[0].cursor : null,
+          endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+        };
+
+        return {
+          totalCount,
+          edges,
+          pageInfo,
+        };
       } catch (err) {
         throw new Error(err);
       }

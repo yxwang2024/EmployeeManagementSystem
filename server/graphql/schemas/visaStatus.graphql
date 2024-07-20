@@ -39,11 +39,37 @@ input VisaStatusInput {
   documents: [ID]
 }
 
+
+type VisaStatusEdge {
+  cursor: String
+  node: VisaStatusResponse
+}
+
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+type VisaStatusConnection {
+  totalCount: Int
+  edges: [VisaStatusEdge]
+  pageInfo: PageInfo
+}
+
 extend type Query {
   getVisaStatuses: [VisaStatusResponse]
   getVisaStatus(id: ID!): VisaStatusResponse
   getVisaStatusByEmployee(employeeId: ID!): VisaStatus
   getVisaStatusWithQuery(query: String!): [VisaStatusResponse]
+  getVisaStatusConnection(
+    first: Int
+    after: String
+    last: Int
+    before: String
+    query: String
+  ): VisaStatusConnection
 }
 
 extend type Mutation {
