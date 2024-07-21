@@ -7,9 +7,13 @@ interface CustomTextFieldProps {
   label2?: string;
   type?: string;
   disabled?: boolean;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
 }
 
-const CustomTextField: React.FC<CustomTextFieldProps> = ({ label, label2, type = 'text', disabled = false, ...props }) => {
+const CustomTextField: React.FC<CustomTextFieldProps> = ({
+  label, label2, type = 'text', disabled = false, onKeyDown, onPaste, ...props
+}) => {
   const [field, meta] = useField(props);
 
   return (
@@ -24,6 +28,8 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({ label, label2, type =
         }`}
         type={type}
         disabled={disabled}
+        onKeyDown={onKeyDown}
+        onPaste={onPaste}
         {...field}
         {...props}
       />

@@ -450,11 +450,11 @@ const onboardingApplicationResolvers = {
                 if (!document) {
                     throw new Error("Document not found");
                 }
-                // check if current status is "Rejected"
-                const oa = await OnboardingApplication.findById(id);
-                if (oa.status !== "Rejected") {
-                    throw new Error("You can only re-upload document if the onboarding application is rejected");
-                }
+                // // check if current status is "Rejected"
+                // const oa = await OnboardingApplication.findById(id);
+                // if (oa.status !== "Rejected") {
+                //     throw new Error("You can only re-upload document if the onboarding application is rejected");
+                // }
 
                 //remove from oa document list
                 const updatedOA = await OnboardingApplication.findByIdAndUpdate(id, {
@@ -469,6 +469,53 @@ const onboardingApplicationResolvers = {
                 throw new Error(err);
             }
         },
+        reUploadOADocument: async (parent, { input }, context, info) => {
+            try {
+              const { id, documentId, newDocumentId } = input;
+              const decodedUser = await checkAuth(context);
+          
+              const employee = await Employee.findOne({ onboardingApplication: id });
+              const user = await User.findOne({ instance: employee._id });
+              const userId = user._id.toString();
+              if (!checkUser(decodedUser, userId)) {
+                throw new Error('Query id and auth user do not match.');
+              }
+          
+              const document = await Document.findById(documentId);
+              if (!document) {
+                throw new Error("Document not found");
+              }
+          
+            //   // Check if current status is "Rejected"
+            //   const oa = await OnboardingApplication.findById(id);
+            //   if (oa.status !== "Rejected") {
+            //     throw new Error("You can only re-upload document if the onboarding application is rejected");
+            //   }
+          
+              // Remove from oa document list
+              const updatedOA = await OnboardingApplication.findByIdAndUpdate(id, {
+                $pull: { "documents": documentId },
+              }, { new: true }).populate("documents");
+          
+              // Delete from document db
+              await Document.findByIdAndDelete(documentId);
+          
+              // Add new document to oa document list
+              const newDocument = await Document.findById(newDocumentId);
+              if (!newDocument) {
+                throw new Error("New document not found");
+              }
+          
+              const finalUpdatedOA = await OnboardingApplication.findByIdAndUpdate(id, {
+                $push: { "documents": newDocumentId },
+                // $set: { status: "Reviewing" },
+              }, { new: true }).populate("documents");
+          
+              return finalUpdatedOA;
+            } catch (err) {
+              throw new Error(err);
+            }
+          },          
     },
 };
 

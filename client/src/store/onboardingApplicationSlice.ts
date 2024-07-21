@@ -44,6 +44,15 @@ interface EmergencyContactType {
   email?: string;
 }
 
+export interface DocumentType {
+  _id: string;
+  title: string;
+  timestamp: string;
+  filename: string;
+  url: string;
+  key: string;
+}
+
 interface OnboardingApplicationStateType {
   personalInfo: PersonalInfoType;
   address: AddressType;
@@ -55,6 +64,13 @@ interface OnboardingApplicationStateType {
   status: string | null;
   employeeId: string | null;
   loading: boolean;
+  documents: DocumentType[];
+}
+
+export interface ReUploadDocumentResponseType {
+  data: {
+    reUploadDocument: OnboardingApplicationStateType;
+  };
 }
 
 const initialState: OnboardingApplicationStateType = {
@@ -232,7 +248,6 @@ export const updateOAIdentity = createAsyncThunk(
 export const updateOAProfilePic: any = createAsyncThunk(
   "onboardingApplication/updateOAProfilePic",
   async (profilePictureUrl: string, { rejectWithValue, getState }) => {
-    console.log("!url!: ", profilePictureUrl);
     const state = getState() as RootState;
     const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
 
@@ -274,14 +289,11 @@ export const getProfilePicUrl =
     }
   `;
   try {
-    // console.log("title: ", title);
-    // console.log("!!!!!!!!!!!", file);
     const response: FileUploadResponseType = await fileUploadRequest(
       query,
       title,
       file
     ).then(response => {console.log("!!!!!!!!!!!!!!!!", response); return response}) 
-    // console.log("!!!!!!!!!!!", response);
     dispatch(
       updateOAProfilePic( response.data.createDocument.url )
     );
@@ -290,6 +302,83 @@ export const getProfilePicUrl =
   }
 };
 
+// 删除Document
+// const deleteDocument = (documentId: string) => async () => {
+//   const query = `
+//     mutation Mutation($deleteDocumentId: ID!) {
+//       deleteDocument(id: $deleteDocumentId)
+//     }
+//   `;
+//   try {
+//     const response: FileUploadResponseType = await axios.post('', {
+//       query,
+//       variables: { deleteDocumentId: documentId },
+//     });
+//     console.log('Document deleted:', response);
+//   } catch (error) {
+//     console.error('Delete document failed:', error);
+//   }
+// };
+
+// 重新上传Document并更新Profile图片
+// export const reUploadDocument = (title: string, file: File) => async (dispatch: AppDispatch, getState: () => RootState) => {
+//   const query = `
+//     mutation ReUploadOADocument($input: uploadDocumentInput!) {
+//       reUploadOADocument(input: $input) {
+//         _id
+//         documents {
+//           _id
+//           filename
+//           key
+//           timestamp
+//           title
+//           url
+//         }
+//       }
+//     }
+//   `;
+//   const uploadQuery = `
+//     mutation CreateDocument($input: DocumentInput!) {
+//       createDocument(input: $input) {
+//         _id
+//         title
+//         timestamp
+//         filename
+//         url
+//         key
+//       }
+//     }
+//   `;
+//   try {
+//     // 删除现有Document
+//     const state = getState();
+//     const documentId = state.onboardingApplication.documents.find((doc) => doc.title === title)?._id;
+//     if (documentId) {
+//       await dispatch(deleteDocument(documentId));
+//     }
+
+//     // 上传新Document
+//     const uploadResponse: FileUploadResponseType = await fileUploadRequest(uploadQuery, title, file);
+//     const newDocumentId = uploadResponse.data.createDocument._id;
+//     console.log('New document uploaded:', uploadResponse.data.createDocument);
+
+//     // 更新Profile图片
+//     const response: ReUploadDocumentResponseType = await axios.post('', {
+//       query,
+//       variables: {
+//         id: state.auth.user?.instance?.onboardingApplication?.id;
+//         reUploadDocumentId: state.onboardingApplication.documents.,
+//         documentId: newDocumentId,
+//       },
+//     });
+
+//     // 更新OA Profile图片
+//     const profilePictureUrl = uploadResponse.data.createDocument.url;
+//     dispatch(updateOAProfilePic(profilePictureUrl));
+//   } catch (error) {
+//     console.error('Re-upload document failed:', error);
+//   }
+// };
 
 // 更新 Onboarding Application Address
 export const updateOACurrentAddress = createAsyncThunk(
