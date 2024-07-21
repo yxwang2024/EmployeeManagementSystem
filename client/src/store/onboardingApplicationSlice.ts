@@ -20,13 +20,10 @@ interface ContactInfoType {
   workPhone?: string;
 }
 
-interface DocumentType {
+interface EmploymentType {
   visaTitle: string;
   startDate: string;
   endDate: string;
-  optReceipt?: string;
-  otherVisa?: string;
-  driverLicense?: string;
 }
 
 interface ReferenceType {
@@ -51,7 +48,7 @@ interface OnboardingApplicationStateType {
   personalInfo: PersonalInfoType;
   address: AddressType;
   contactInfo: ContactInfoType;
-  document: DocumentType;
+  employment: EmploymentType;
   reference?: ReferenceType;
   emergencyContacts: EmergencyContactType[];
   currentStep: number;
@@ -83,13 +80,10 @@ const initialState: OnboardingApplicationStateType = {
     cellPhone: "",
     workPhone: "",
   },
-  document: {
+  employment: {
     visaTitle: "",
     startDate: "",
     endDate: "",
-    optReceipt: "",
-    otherVisa: "",
-    driverLicense: "",
   },
   emergencyContacts: [],
   currentStep: 1,
@@ -234,6 +228,7 @@ export const updateOAIdentity = createAsyncThunk(
   }
 );
 
+//以getProfilePicUrl的值更新
 export const updateOAProfilePic: any = createAsyncThunk(
   "onboardingApplication/updateOAProfilePic",
   async (profilePictureUrl: string, { rejectWithValue, getState }) => {
@@ -262,6 +257,7 @@ export const updateOAProfilePic: any = createAsyncThunk(
   }
 );
 
+//图片传到 AWS S3返回一个string
 export const getProfilePicUrl = 
   (title: string, file: File) =>
   async (dispatch: AppDispatch) => {
@@ -364,6 +360,38 @@ export const updateOAContactInfo = createAsyncThunk(
   }
 );
 
+// 更新 Onboarding Application Employment
+export const updateOAEmployment = createAsyncThunk(
+  "onboardingApplication/updateOAEmployment",
+  async (employment: Partial<EmploymentType>, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
+    const query = `
+      mutation UpdateOAEmployment($input: EmploymentInput!) {
+        updateOAEmployment(input: $input) {
+          id
+          email
+          employment {
+            visaTitle
+            startDate
+            endDate
+          }
+        }
+      }
+    `;
+    try {
+      const response = await axiosInstance.post("", {
+        query,
+        variables: { input: { ...employment, id: onboardingApplicationId } },
+      });
+      return response.data.data.updateOAEmployment;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const onboardingApplicationSlice = createSlice({
   name: "onboardingApplication",
   initialState,
@@ -380,8 +408,8 @@ const onboardingApplicationSlice = createSlice({
     updateContactInfo: (state, action: PayloadAction<{ contactInfo: ContactInfoType }>) => {
       state.contactInfo = action.payload.contactInfo;
     },
-    updateDocument: (state, action: PayloadAction<{ document: DocumentType }>) => {
-      state.document = action.payload.document;
+    updateEmployment: (state, action: PayloadAction<{ employment: EmploymentType }>) => {
+      state.employment =  action.payload.employment ;
     },
     updateReference: (state, action: PayloadAction<{ reference: ReferenceType }>) => {
       state.reference = action.payload.reference;
@@ -400,6 +428,7 @@ const onboardingApplicationSlice = createSlice({
     },
     setCurrentStep: (state, action: PayloadAction<number>) => {
       state.currentStep = action.payload;
+      localStorage.setItem('currentStep', action.payload.toString());
     },
     updateOnboardingApplication: (
       state,
@@ -436,7 +465,7 @@ const onboardingApplicationSlice = createSlice({
         };
         state.address = { ...state.address, ...action.payload.currentAddress };
         state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
-        state.document = { ...state.document, ...action.payload.employment };
+        state.employment = { ...state.employment, ...action.payload.employment };
         state.status = action.payload.status;
       })
       .addCase(fetchOnboardingApplication.rejected, (state, action) => {
@@ -457,6 +486,9 @@ const onboardingApplicationSlice = createSlice({
       })
       .addCase(updateOAProfilePic.fulfilled, (state, action) => {
         state.personalInfo = action.payload.profilePicture ;
+      })
+      .addCase(updateOAEmployment.fulfilled, (state, action) => {
+        state.employment = { ...state.employment, ...action.payload.employment };
       });
   },
 });
@@ -464,8 +496,8 @@ const onboardingApplicationSlice = createSlice({
 export const {
   updatePersonalInfo,
   updateAddress,
+  updateEmployment,
   updateContactInfo,
-  updateDocument,
   updateReference,
   addEmergencyContact,
   updateEmergencyContact,

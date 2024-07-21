@@ -36,7 +36,7 @@ const approveMessages: Record<string, Record<string, string>> = {
   },
 };
 
-const DetailedView = () => {
+const VisaStatusDetailedView = () => {
   // const navigate = useNavigate();
   // const [file, setFile] = useState<File | null>(null);
   // const [fileName, setFileName] = useState<string | null>(null);
@@ -129,6 +129,12 @@ const DetailedView = () => {
                 <b>Work Authorization:</b>
               </Typography>
               <div className="flex flex-col justify-start ml-4">
+              <div className="flex justify-between items-center w-full md:w-1/2">
+                  <Typography variant="body1">Title:</Typography>
+                  <Typography variant="body1">
+                    {visaStatus?.workAuthorization.title}
+                  </Typography>
+                </div>
                 <div className="flex justify-between items-center w-full md:w-1/2">
                   <Typography variant="body1">Start date:</Typography>
                   <Typography variant="body1">
@@ -253,4 +259,4 @@ const DetailedView = () => {
   );
 };
 
-export default DetailedView;
+export default VisaStatusDetailedView;

@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-import {calculateRemainingDays,getDateString} from "../services/dateServices";
-import { VisaStatusListItemType,VisaStatusPopulatedType } from "../utils/type";
+import {
+  calculateRemainingDays,
+  getDateString,
+} from "../services/dateServices";
+import {
+  VisaStatusListItemType,
+  VisaStatusPopulatedType,
+  AllVisaStatusesResponseType,
+} from "../utils/type";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { useGlobal } from "../store/hooks";
 import { delayFunctionCall } from "../utils/utilities";
-import {fetchAllVisaStatusList} from '../store/slices/hr'
 import { useNavigate } from "react-router-dom";
+import { GET_ALL_STATUS_LIST } from "../services/queries";
+import { request } from "../utils/fetch";
 
 import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
@@ -26,7 +34,6 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-
 
 interface TablePaginationActionsProps {
   count: number;
@@ -108,7 +115,6 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
   );
 }
 
-
 interface Column {
   id:
     | "name"
@@ -159,53 +165,100 @@ const columns: Column[] = [
   },
 ];
 
-
-const HrVisaStatusTable: React.FC = ({option,search}) => {
-  // const navigate = useNavigate(); 
-  const dispatch = useAppDispatch();
+const HrVisaStatusTable: React.FC = ({ option, search }) => {
+  // const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
 
   const user = useAppSelector((state) => state.auth.user);
-  const allVisaStatuses: [VisaStatusPopulatedType] = useAppSelector((state) => state.hr.allVisaStatuses);
+  // const allVisaStatuses: [VisaStatusPopulatedType] = useAppSelector((state) => state.hr.allVisaStatuses);
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [visaStatuses, setVisaStatuses] = useState<VisaStatusListItemType[]>([]);
-  console.log("option",option);
+
+  const nextStep: Record<string, Record<string, string>> = {
+    "OPT Receipt": {
+      "Reviewing": "OPT Receipt - Wait for HR approval",
+      "Approved": "Employee Submit OPT EAD",
+    },
+    "OPT EAD": {
+      "Reviewing": "OPT EAD - Wait for HR approval",
+      "Approved": "Employee Submit the I-983",
+    },
+    "I-983": {
+      "Reviewing": "I-983 - Wait for HR approval",
+      "Approved": "Employee Submit the I20",
+    },
+    "I20": {
+      "Reviewing": "I20 - Wait for HR approval",
+      "Approved": "Finished",
+    },
+  };
+
+  const getVisaStatuses = useCallback(async () => {
+    try {
+      const response: AllVisaStatusesResponseType = await request(
+        GET_ALL_STATUS_LIST
+      );
+      const allVisaStatuses = response.data.getVisaStatuses;
+      console.log("!!!!!!!!!allVisaStatuses:", allVisaStatuses);
+      const statusList: VisaStatusListItemType[] = [];
+      if (option == "InProgress") {
+        allVisaStatuses.map((status) => {
+          if (status.step != "I20" || status.status != "Approved") {
+            const name: string = `${status.employee.profile.name.firstName} ${
+              status.employee.profile.name.middleName
+                ? status.employee.profile.name.middleName + " "
+                : ""
+            }${status.employee.profile.name.lastName}`;
+            statusList.push({
+              legalName: name,
+              title: status.workAuthorization.title,
+              startDate: status.workAuthorization.startDate,
+              endDate: status.workAuthorization.endDate,
+              status: status.status,
+              step: status.step,
+            });
+          }
+        });
+      } else if (option == "All") {
+        allVisaStatuses.map((status) => {
+          const name: string = `${status.employee.profile.name.firstName} ${
+            status.employee.profile.name.middleName
+              ? status.employee.profile.name.middleName + " "
+              : ""
+          }${status.employee.profile.name.lastName}`;
+          statusList.push({
+            legalName: name,
+            title: status.workAuthorization.title,
+            startDate: status.workAuthorization.startDate,
+            endDate: status.workAuthorization.endDate,
+            status: status.status,
+            step: status.step,
+          });
+        });
+      }
+      setVisaStatuses(statusList);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  }, [option, user]);
 
   useEffect(() => {
     showLoading(true);
-    dispatch(fetchAllVisaStatusList()).then(() => {
-      delayFunctionCall(showLoading, 300, false);
-    }).catch((error) => {
-      console.error(error);
-      showMessage(`failed to fetch visa status`, "failed", 2000);
-      showLoading(false);
-      // navigate('/login');
-    });
-    const statusList:VisaStatusListItemType[] = [];
-    if(option == "InProgress"){
-      allVisaStatuses.map((status)=>{
-        if(status.step!="I20"&&status.status!="Approved"){
-          const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
-          statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
-        }
+    getVisaStatuses()
+      .then(() => {
+        delayFunctionCall(showLoading, 300, false);
       })
-    }
-    else if(option == "All"){
-      allVisaStatuses.map((status)=>{
-        const name:string = status.employee.profile.name.firstName+' '+status.employee.profile.name.middleName+' '+status.employee.profile.name.lastName;
-        statusList.push({legalName:name,title:status.workAuthorization.title,startDate:status.workAuthorization.startDate,endDate:status.workAuthorization.endDate,status:status.status,step:status.step});
-      })
-    }
-    
-    setVisaStatuses(statusList);
-
-    console.log("allVisaStatuses",allVisaStatuses);
-
-  }, [option,user]);
-
+      .catch((error) => {
+        console.error(error);
+        showMessage(`failed to fetch visa status`, "failed", 2000);
+        showLoading(false);
+        // navigate('/login');
+      });
+  }, [getVisaStatuses]);
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
@@ -225,13 +278,12 @@ const HrVisaStatusTable: React.FC = ({option,search}) => {
     setPage(0);
   };
 
-
   return (
     <Paper>
       <TableContainer component={Paper}>
         <Table
           stickyHeader
-          sx={{ minWidth: 500, maxWidth:800}}
+          sx={{ minWidth: 500, maxWidth: 800 }}
           aria-label="custom pagination table"
         >
           <TableHead>
@@ -249,12 +301,15 @@ const HrVisaStatusTable: React.FC = ({option,search}) => {
           </TableHead>
           <TableBody>
             {(rowsPerPage > 0
-              ? visaStatuses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              ? visaStatuses.slice(
+                  page * rowsPerPage,
+                  page * rowsPerPage + rowsPerPage
+                )
               : visaStatuses
             ).map((statusListItem) => (
               <TableRow hover key={statusListItem.legalName}>
                 <TableCell style={{ width: 200 }} component="th" scope="row">
-                  {statusListItem.legalName }
+                  {statusListItem.legalName}
                 </TableCell>
                 <TableCell style={{ width: 100 }} align="center">
                   {statusListItem.title}
@@ -266,15 +321,21 @@ const HrVisaStatusTable: React.FC = ({option,search}) => {
                   {getDateString(statusListItem.endDate)}
                 </TableCell>
                 <TableCell style={{ width: 100 }} align="center">
-                  {calculateRemainingDays(statusListItem.endDate)+' days'}
+                  {calculateRemainingDays(statusListItem.endDate) + " days"}
                 </TableCell>
                 <TableCell style={{ width: 300 }} align="center">
-                  {statusListItem.step+'-'+statusListItem.status}
+                {nextStep[statusListItem?.step][statusListItem?.status]}
                 </TableCell>
                 <TableCell align="right">
-                  <Button size="small" variant="contained">
-                    Details
-                  </Button>
+                  {statusListItem.status === "Pending" ? (
+                    <Button size="small" variant="contained"  style={{ width: '150px' }}>
+                      Send Email
+                    </Button>
+                  ) : (
+                    <Button size="small" variant="contained"  style={{ width: '150px' }}>
+                      Review
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -284,9 +345,7 @@ const HrVisaStatusTable: React.FC = ({option,search}) => {
               </TableRow>
             )}
           </TableBody>
-          <TableFooter>
-            
-          </TableFooter>
+          <TableFooter></TableFooter>
         </Table>
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
@@ -309,6 +368,6 @@ const HrVisaStatusTable: React.FC = ({option,search}) => {
       </TableContainer>
     </Paper>
   );
-}
+};
 
 export default HrVisaStatusTable;
