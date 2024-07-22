@@ -16,23 +16,22 @@ import { delayFunctionCall } from "../utils/utilities";
 import { useNavigate } from "react-router-dom";
 import { EmployeeInstanceType } from "../utils/type";
 
-const approveMessages: Record<string, Record<string, string>> = {
+const nextStep: Record<string, Record<string, string>> = {
   "OPT Receipt": {
-    Reviewing: "Waiting for HR to approve your OPT Receipt",
-    Approved: "Please upload a copy of your OPT EAD",
+    Reviewing: "OPT Receipt - Wait for HR approval",
+    Approved: "Employee Submit OPT EAD",
   },
   "OPT EAD": {
-    Reviewing: "Waiting for HR to approve your OPT EAD",
-    Approved: "Please download and fill out the I-983 form",
+    Reviewing: "OPT EAD - Wait for HR approval",
+    Approved: "Employee Submit the I-983",
   },
   "I-983": {
-    Reviewing: "Waiting for HR to approve your I-983 form",
-    Approved:
-      "Please send the I-983 along with all necessary documents to your school and upload the new I-20",
+    Reviewing: "I-983 - Wait for HR approval",
+    Approved: "Employee Submit the I20",
   },
-  I20: {
-    Reviewing: "Waiting for HR to approve your I-20",
-    Approved: "All documents have been approved!",
+  "I20": {
+    Reviewing: "I20 - Wait for HR approval",
+    Approved: "Finished",
   },
 };
 
@@ -88,25 +87,88 @@ const VisaStatusDetailedView = () => {
     ],
   };
 
-  //useEffect(() => {
-  // if (!user) {
-  //   // || user.role !== "HR") {
-  //   navigate("/login");
-  //   return;
-  // }
-  // const EmployeeId = user.instance.id;
-  // showLoading(true);
-  // dispatch(fetchVisaStatus(EmployeeId))
-  //   .then(() => {
-  //     delayFunctionCall(showLoading, 300, false);
-  //   })
-  //   .catch((error) => {
-  //     console.error(error);
-  //     showMessage(`failed to fetch visa status`, "failed", 2000);
-  //     showLoading(false);
-  //     navigate("/login");
-  //   });
-  //}, [user]);
+  const getVisaStatusConnection = useCallback(async () => {
+    try {
+      const response: VisaStatusConnectionResponseType = await request(
+        GET_VISA_STATUS_CONNECTION,
+        {
+          first: first,
+          after: after,
+          last: last,
+          before: before,
+          query: "",
+        }
+      );
+      const visaStatusConnection: VisaStatusConnectionType =
+        response.data.getVisaStatusConnection;
+      // console.log("!!!!!!!!!visaStatusConnection:", visaStatusConnection);
+      const edges = visaStatusConnection.edges;
+      setTotalCount(visaStatusConnection.totalCount);
+      setHasNextPage(visaStatusConnection.pageInfo.hasNextPage);
+      setHasPreviousPage(visaStatusConnection.pageInfo.hasPreviousPage);
+      setStartCursor(visaStatusConnection.pageInfo.startCursor);
+      setEndCursor(visaStatusConnection.pageInfo.endCursor);
+      const statusList: VisaStatusListItemType[] = [];
+      if (option == "InProgress") {
+        edges.map((edge) => {
+          if (edge.node.step != "I20" || edge.node.status != "Approved") {
+            const name: string = `${
+              edge.node.employee.profile.name.firstName
+            } ${
+              edge.node.employee.profile.name.middleName
+                ? edge.node.employee.profile.name.middleName + " "
+                : ""
+            }${edge.node.employee.profile.name.lastName}`;
+            statusList.push({
+              legalName: name,
+              title: edge.node.workAuthorization.title,
+              startDate: edge.node.workAuthorization.startDate,
+              endDate: edge.node.workAuthorization.endDate,
+              status: edge.node.status,
+              step: edge.node.step,
+            });
+          }
+        });
+      } else if (option == "All") {
+        edges.map((edge) => {
+          console.log("!!!!!!!edge:", edge);
+          const name: string = `${edge.node.employee.profile.name.firstName} ${
+            edge.node.employee.profile.name.middleName
+              ? edge.node.employee.profile.name.middleName + " "
+              : ""
+          }${edge.node.employee.profile.name.lastName}`;
+          statusList.push({
+            legalName: name,
+            title: edge.node.workAuthorization.title,
+            startDate: edge.node.workAuthorization.startDate,
+            endDate: edge.node.workAuthorization.endDate,
+            status: edge.node.status,
+            step: edge.node.step,
+          });
+        });
+      }
+      setVisaStatuses(statusList);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  }, [user,id]);
+
+  useEffect(() => {
+    showLoading(true);
+    getVisaStatusConnection()
+      .then(() => {
+        delayFunctionCall(showLoading, 300, false);
+      })
+      .catch((error) => {
+        console.error(error);
+        showMessage(`failed to fetch visa status`, "failed", 2000);
+        showLoading(false);
+        // navigate('/login');
+      });
+  }, [getVisaStatusConnection]);
+
+
 
   return (
     <div className="w-full flex flex-col h-svh items-center bg-gray-100 space-y-4 py-20 md:pt-24 overflow-y-auto">

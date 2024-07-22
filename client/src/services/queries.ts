@@ -59,3 +59,42 @@ query GetVisaStatusConnection($first: Int, $after: String, $last: Int, $before: 
   }
 }
 `;
+
+
+export const GET_VISA_STATUS = `
+  query GetVisaStatus($getVisaStatusId: ID!) {
+  getVisaStatus(id: $getVisaStatusId) {
+    _id
+    employee {
+      email
+      profile {
+        name {
+          firstName
+          middleName
+          lastName
+        }
+      }
+    }
+    step
+    status
+    hrFeedback
+    workAuthorization {
+      title
+      startDate
+      endDate
+    }
+    documents {
+      _id
+      title
+      timestamp
+      filename
+      url
+      key
+    }
+  }
+}
+`;
+
+
+
+
