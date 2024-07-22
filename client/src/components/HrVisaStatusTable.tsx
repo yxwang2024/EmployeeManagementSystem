@@ -20,6 +20,7 @@ import { GET_VISA_STATUS_CONNECTION } from "../services/queries";
 import { request } from "../utils/fetch";
 
 import { useTheme } from "@mui/material/styles";
+import Collapse from "@mui/material/Collapse";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
@@ -30,6 +31,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableFooter from "@mui/material/TableFooter";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
+import { Typography } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
@@ -46,6 +48,24 @@ interface TablePaginationActionsProps {
     newPage: number
   ) => void;
 }
+const nextStep: Record<string, Record<string, string>> = {
+  "OPT Receipt": {
+    Reviewing: "OPT Receipt - Wait for HR approval",
+    Approved: "Employee Submit OPT EAD",
+  },
+  "OPT EAD": {
+    Reviewing: "OPT EAD - Wait for HR approval",
+    Approved: "Employee Submit the I-983",
+  },
+  "I-983": {
+    Reviewing: "I-983 - Wait for HR approval",
+    Approved: "Employee Submit the I20",
+  },
+  "I20": {
+    Reviewing: "I20 - Wait for HR approval",
+    Approved: "Finished",
+  },
+};
 
 function TablePaginationActions(props: TablePaginationActionsProps) {
   const theme = useTheme();
@@ -72,7 +92,7 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
   const handleLastPageButtonClick = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
-    // onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+    onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
     console.log("Not implemented.")
   };
 
@@ -117,6 +137,11 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
     </Box>
   );
 }
+
+function sendNotification(status: VisaStatusListItemType){
+  console.log(`SEND EMAIL TO ${status.legalName}`);
+}
+
 
 interface Column {
   id:
@@ -168,11 +193,13 @@ const columns: Column[] = [
   },
 ];
 
-const HrVisaStatusTable: React.FC = ({ option, search }) => {
+const HrVisaStatusTable: React.FC = ({option}) => {
   // const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
 
   const user = useAppSelector((state) => state.auth.user);
+  const search = useAppSelector((state) => state.search.value);
+  const searchTriggered = useAppSelector((state) => state.search.trigger);
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(1);
@@ -191,25 +218,6 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
     []
   );
 
-  const nextStep: Record<string, Record<string, string>> = {
-    "OPT Receipt": {
-      Reviewing: "OPT Receipt - Wait for HR approval",
-      Approved: "Employee Submit OPT EAD",
-    },
-    "OPT EAD": {
-      Reviewing: "OPT EAD - Wait for HR approval",
-      Approved: "Employee Submit the I-983",
-    },
-    "I-983": {
-      Reviewing: "I-983 - Wait for HR approval",
-      Approved: "Employee Submit the I20",
-    },
-    "I20": {
-      Reviewing: "I20 - Wait for HR approval",
-      Approved: "Finished",
-    },
-  };
-
   const getVisaStatusConnection = useCallback(async () => {
     try {
       const response: VisaStatusConnectionResponseType = await request(
@@ -219,7 +227,7 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
           after: after,
           last: last,
           before: before,
-          query: "",
+          query: search,
         }
       );
       const visaStatusConnection: VisaStatusConnectionType =
@@ -275,13 +283,13 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
       console.log(e);
       showMessage(String(e));
     }
-  }, [option, user,before,after,last,first]);
+  }, [option, user,before,after,last,first,searchTriggered]);
 
   useEffect(() => {
     setPage(0);
     setAfter("");
     setBefore("");
-  }, [option]);
+  }, [option,searchTriggered]);
 
   useEffect(() => {
     showLoading(true);
@@ -328,7 +336,12 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
     } else if (newPage === page - 1) {
       setAfter("");
       setBefore(startCursor);
-    } 
+    } else if(newPage === Math.max(0, Math.ceil(totalCount / rowsPerPage) - 1)){
+      setLast(rowsPerPage);
+      setAfter("");
+      setBefore("");
+      setFirst(0);
+    }
 
     setPage(newPage);
   };
@@ -366,6 +379,7 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
           </TableHead>
           <TableBody>
             {visaStatuses.map((statusListItem) => (
+               <React.Fragment>
               <TableRow hover key={statusListItem.legalName}>
                 <TableCell style={{ width: 200 }} component="th" scope="row">
                   {statusListItem.legalName}
@@ -386,7 +400,7 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
                   {nextStep[statusListItem?.step][statusListItem?.status]}
                 </TableCell>
                 <TableCell align="right">
-                  {statusListItem.status === "Pending" ? (
+                  {statusListItem.status === "Approved"&&statusListItem.step!="I20" ? (
                     <Button
                       size="small"
                       variant="contained"
@@ -405,6 +419,8 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
                   )}
                 </TableCell>
               </TableRow>
+              
+              </React.Fragment>
             ))}
             {emptyRows > 0 && (
               <TableRow style={{ height: 53 * emptyRows }}>

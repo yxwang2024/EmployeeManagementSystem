@@ -87,86 +87,86 @@ const VisaStatusDetailedView = () => {
     ],
   };
 
-  const getVisaStatusConnection = useCallback(async () => {
-    try {
-      const response: VisaStatusConnectionResponseType = await request(
-        GET_VISA_STATUS_CONNECTION,
-        {
-          first: first,
-          after: after,
-          last: last,
-          before: before,
-          query: "",
-        }
-      );
-      const visaStatusConnection: VisaStatusConnectionType =
-        response.data.getVisaStatusConnection;
-      // console.log("!!!!!!!!!visaStatusConnection:", visaStatusConnection);
-      const edges = visaStatusConnection.edges;
-      setTotalCount(visaStatusConnection.totalCount);
-      setHasNextPage(visaStatusConnection.pageInfo.hasNextPage);
-      setHasPreviousPage(visaStatusConnection.pageInfo.hasPreviousPage);
-      setStartCursor(visaStatusConnection.pageInfo.startCursor);
-      setEndCursor(visaStatusConnection.pageInfo.endCursor);
-      const statusList: VisaStatusListItemType[] = [];
-      if (option == "InProgress") {
-        edges.map((edge) => {
-          if (edge.node.step != "I20" || edge.node.status != "Approved") {
-            const name: string = `${
-              edge.node.employee.profile.name.firstName
-            } ${
-              edge.node.employee.profile.name.middleName
-                ? edge.node.employee.profile.name.middleName + " "
-                : ""
-            }${edge.node.employee.profile.name.lastName}`;
-            statusList.push({
-              legalName: name,
-              title: edge.node.workAuthorization.title,
-              startDate: edge.node.workAuthorization.startDate,
-              endDate: edge.node.workAuthorization.endDate,
-              status: edge.node.status,
-              step: edge.node.step,
-            });
-          }
-        });
-      } else if (option == "All") {
-        edges.map((edge) => {
-          console.log("!!!!!!!edge:", edge);
-          const name: string = `${edge.node.employee.profile.name.firstName} ${
-            edge.node.employee.profile.name.middleName
-              ? edge.node.employee.profile.name.middleName + " "
-              : ""
-          }${edge.node.employee.profile.name.lastName}`;
-          statusList.push({
-            legalName: name,
-            title: edge.node.workAuthorization.title,
-            startDate: edge.node.workAuthorization.startDate,
-            endDate: edge.node.workAuthorization.endDate,
-            status: edge.node.status,
-            step: edge.node.step,
-          });
-        });
-      }
-      setVisaStatuses(statusList);
-    } catch (e) {
-      console.log(e);
-      showMessage(String(e));
-    }
-  }, [user,id]);
+  // const getVisaStatusConnection = useCallback(async () => {
+  //   try {
+  //     const response: VisaStatusConnectionResponseType = await request(
+  //       GET_VISA_STATUS_CONNECTION,
+  //       {
+  //         first: first,
+  //         after: after,
+  //         last: last,
+  //         before: before,
+  //         query: "",
+  //       }
+  //     );
+  //     const visaStatusConnection: VisaStatusConnectionType =
+  //       response.data.getVisaStatusConnection;
+  //     // console.log("!!!!!!!!!visaStatusConnection:", visaStatusConnection);
+  //     const edges = visaStatusConnection.edges;
+  //     setTotalCount(visaStatusConnection.totalCount);
+  //     setHasNextPage(visaStatusConnection.pageInfo.hasNextPage);
+  //     setHasPreviousPage(visaStatusConnection.pageInfo.hasPreviousPage);
+  //     setStartCursor(visaStatusConnection.pageInfo.startCursor);
+  //     setEndCursor(visaStatusConnection.pageInfo.endCursor);
+  //     const statusList: VisaStatusListItemType[] = [];
+  //     if (option == "InProgress") {
+  //       edges.map((edge) => {
+  //         if (edge.node.step != "I20" || edge.node.status != "Approved") {
+  //           const name: string = `${
+  //             edge.node.employee.profile.name.firstName
+  //           } ${
+  //             edge.node.employee.profile.name.middleName
+  //               ? edge.node.employee.profile.name.middleName + " "
+  //               : ""
+  //           }${edge.node.employee.profile.name.lastName}`;
+  //           statusList.push({
+  //             legalName: name,
+  //             title: edge.node.workAuthorization.title,
+  //             startDate: edge.node.workAuthorization.startDate,
+  //             endDate: edge.node.workAuthorization.endDate,
+  //             status: edge.node.status,
+  //             step: edge.node.step,
+  //           });
+  //         }
+  //       });
+  //     } else if (option == "All") {
+  //       edges.map((edge) => {
+  //         console.log("!!!!!!!edge:", edge);
+  //         const name: string = `${edge.node.employee.profile.name.firstName} ${
+  //           edge.node.employee.profile.name.middleName
+  //             ? edge.node.employee.profile.name.middleName + " "
+  //             : ""
+  //         }${edge.node.employee.profile.name.lastName}`;
+  //         statusList.push({
+  //           legalName: name,
+  //           title: edge.node.workAuthorization.title,
+  //           startDate: edge.node.workAuthorization.startDate,
+  //           endDate: edge.node.workAuthorization.endDate,
+  //           status: edge.node.status,
+  //           step: edge.node.step,
+  //         });
+  //       });
+  //     }
+  //     setVisaStatuses(statusList);
+  //   } catch (e) {
+  //     console.log(e);
+  //     showMessage(String(e));
+  //   }
+  // }, [user,id]);
 
-  useEffect(() => {
-    showLoading(true);
-    getVisaStatusConnection()
-      .then(() => {
-        delayFunctionCall(showLoading, 300, false);
-      })
-      .catch((error) => {
-        console.error(error);
-        showMessage(`failed to fetch visa status`, "failed", 2000);
-        showLoading(false);
-        // navigate('/login');
-      });
-  }, [getVisaStatusConnection]);
+  // useEffect(() => {
+  //   showLoading(true);
+  //   getVisaStatusConnection()
+  //     .then(() => {
+  //       delayFunctionCall(showLoading, 300, false);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //       showMessage(`failed to fetch visa status`, "failed", 2000);
+  //       showLoading(false);
+  //       // navigate('/login');
+  //     });
+  // }, [getVisaStatusConnection]);
 
 
 
