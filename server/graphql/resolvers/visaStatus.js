@@ -137,6 +137,9 @@ const visaStatusResolvers = {
       { query, first, after, last, before }
     ) => {
       try {
+        if ((first && last) || (after && before)) {
+          throw new Error("You must provide only one pair of pagination arguments: (first, after) or (last, before).");
+        }
         // if query is empty, return all visa statuses
         const searchQuery = query
           ? {
@@ -170,16 +173,16 @@ const visaStatusResolvers = {
           : {};
 
         let paginationQuery = {};
-        let sort = { _id: -1 };
+        let sort = { _id: 1 };
         let limit = first || last || 10;
 
         if (after) {
-          paginationQuery._id = { $gt: ObjectId(after) };
+          paginationQuery._id = { $gt: ObjectId.createFromHexString(after) };
         }
 
         if (before) {
-          paginationQuery._id = { $lt: ObjectId(before) };
-          sort = { _id: 1 };
+          paginationQuery._id = { $lt: ObjectId.createFromHexString(before) };
+          sort = { _id: -1 };
         }
 
         const employees = await Employee.aggregate([
