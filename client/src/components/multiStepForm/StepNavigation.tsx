@@ -161,7 +161,7 @@ const StepNavigation: React.FC = () => {
 
   const displaySteps = newStep.map((step, index) => {
     return (
-      <div key={index} className={`mb-24 ${index !== newStep.length - 1 ? "flex items-center w-full" : "flex items-center"}`}>
+      <div key={index} className={`mb-12 sm:mb-24 ${index !== newStep.length - 1 ? "flex items-center w-full" : "flex items-center"}`}>
         <div className="relative flex flex-col items-center">
           <div className={`rounded-full h-3 w-3 sm:h-5 sm:w-5 flex items-center justify-center border ${
             step.selected ? "bg-blue-600" :  "border-gray-300"

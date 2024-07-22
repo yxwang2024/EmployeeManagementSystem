@@ -329,11 +329,33 @@ const Document: React.FC = () => {
                   options={visaOptions}
                 />
                 {values.visaTitle === 'F1(CPT/OPT)' && 
-                  <CustomFile
-                    name="optReceipt"
-                    label="OPT Receipt"
-                    type="file"
-                  />
+                  <CustomFile 
+                    name="optReceipt" 
+                    label="OPT Receipt" 
+                    type="file" 
+                    onChange={(event) => {
+                      if (event.currentTarget.files) {
+                        const file = event.currentTarget.files[0];
+                        const FILE_SIZE = 10 * 1024 * 1024; 
+                        const SUPPORTED_FORMATS = ["application/pdf"];
+    
+                        if (!SUPPORTED_FORMATS.includes(file.type)) {
+                          event.target.value = "";
+                          setFieldValue("optReceipt", "", false);
+                          return alert('Please upload as PDF.');
+                        } else if (file.size > FILE_SIZE) {
+                          event.target.value = "";
+                          setFieldValue("optReceipt", "", false);
+                          return alert('Max size 10 MB');
+                        } else {
+                          const reader = new FileReader();
+                          reader.readAsDataURL(file);
+                          reader.onload = () => setFieldValue("optReceipt", reader.result);
+                          reader.onerror = (error) => console.error('Error reading file:', error);
+                        }
+                      }
+                  }} 
+                />
                 }
                 {values.visaTitle === 'Other' && <CustomTextField name="otherVisa" label="Specify Visa Title" />}
                 <CustomTextField 
@@ -353,10 +375,32 @@ const Document: React.FC = () => {
               </>
             )}
             <div className='col-span-1 sm:col-span-2'>
-              <CustomFile
-                name="driverLicense"
-                label="Driver License"
-                type="file"
+              <CustomFile 
+                name="driverLicense" 
+                label="Driver License" 
+                type="file" 
+                onChange={(event) => {
+                  if (event.currentTarget.files) {
+                    const file = event.currentTarget.files[0];
+                    const FILE_SIZE = 5 * 1024 * 1024; 
+                    const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
+
+                    if (!SUPPORTED_FORMATS.includes(file.type)) {
+                      event.target.value = "";
+                      setFieldValue("driverLicense", "", false);
+                      return alert('Please upload as PDF, PNG, JPG or JPEG.');
+                    } else if (file.size > FILE_SIZE) {
+                      event.target.value = "";
+                      setFieldValue("driverLicense", "", false);
+                      return alert('Max size 5 MB');
+                    } else {
+                      const reader = new FileReader();
+                      reader.readAsDataURL(file);
+                      reader.onload = () => setFieldValue("driverLicense", reader.result);
+                      reader.onerror = (error) => console.error('Error reading file:', error);
+                    }
+                  }
+                }} 
               />
             </div>
           </div>

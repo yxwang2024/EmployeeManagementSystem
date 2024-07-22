@@ -84,15 +84,32 @@ const EmergencyContact: React.FC = () => {
   const dispatch = useDispatch();
   const emergencyContacts = useSelector((state: RootState) => state.oaInfo.emergencyContacts);
 
-  const handleNextStep = async (values: any, setErrors: Function, validateForm: Function) => {
+  const handleNextStep = async (values: any, setFieldError: Function, validateForm: Function) => {
     const errors = await validateForm();
-    if (Object.keys(errors).length === 0) {
+    const seen = new Map();
+    const duplicates: number[] = [];
+
+    values.emergencyContacts.forEach((contact: any, index: number) => {
+      const combination = `${contact.firstName}${contact.lastName}${contact.relationship}`;
+      if (seen.has(combination)) {
+        duplicates.push(index);
+        duplicates.push(seen.get(combination));
+      } else {
+        seen.set(combination, index);
+      }
+    });
+
+    duplicates.forEach(index => {
+      setFieldError(`emergencyContacts.${index}.firstName`, 'Duplicate contact found');
+      setFieldError(`emergencyContacts.${index}.lastName`, 'Duplicate contact found');
+      setFieldError(`emergencyContacts.${index}.relationship`, 'Duplicate contact found');
+    });
+
+    if (Object.keys(errors).length === 0 && duplicates.length === 0) {
       dispatch(updateEmergencyContact(values.emergencyContacts));
       const savedData = JSON.parse(localStorage.getItem('oaInfo') || '{}');
       localStorage.setItem('oaInfo', JSON.stringify({ ...savedData, emergencyContacts: values.emergencyContacts }));
       dispatch(setCurrentStep(7));
-    } else {
-      setErrors(errors);
     }
   };
 
@@ -100,9 +117,9 @@ const EmergencyContact: React.FC = () => {
     <Formik
       initialValues={{ emergencyContacts: emergencyContacts.length ? emergencyContacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }] }}
       validationSchema={EmergencyContactSchema}
-      onSubmit={(values, { setErrors, validateForm }) => handleNextStep(values, setErrors, validateForm)}
+      onSubmit={(values, { setFieldError, validateForm }) => handleNextStep(values, setFieldError, validateForm)}
     >
-      {({ handleSubmit, values, setErrors, validateForm }) => (
+      {({ handleSubmit, values, setFieldError, validateForm }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Emergency Contact</h2>
           <FieldArray name="emergencyContacts">
@@ -120,11 +137,12 @@ const EmergencyContact: React.FC = () => {
                       <CustomTextField name={`emergencyContacts.${index}.relationship`} label="Relationship" />
                       <CustomTextField name={`emergencyContacts.${index}.phone`} label="Phone" />
                       <CustomTextField name={`emergencyContacts.${index}.email`} label="Email" />
+                    
                       {index > 0 && (
                         <>
                           <button
                             type="button"
-                            className='mt-4 mb-8 col-span-1 sm:col-span-2 w-full text-red-600 font-semibold border border-stone-300 rounded py-2'
+                            className='mt-4 mb-8 col-span-1 sm:col-span-2 w-full text-red-600 font-semibold border border-red-600 bg-red-50 rounded py-2 '
                             onClick={() => remove(index)}
                           >
                             Remove
@@ -132,7 +150,6 @@ const EmergencyContact: React.FC = () => {
                           <hr className=" border-stone-500 border-1 w-full col-span-1 sm:col-span-2"></hr>
                         </>
                       )}
-  
                     </div>
                   </div>
                 ))}
@@ -148,8 +165,8 @@ const EmergencyContact: React.FC = () => {
                 <StepController 
                   currentStep={6} 
                   totalSteps={7} 
-                  onNext={() => handleSubmit()}
-                  onSubmit={handleSubmit}
+                  onNext={() => handleNextStep(values, setFieldError, validateForm)} 
+                  onSubmit={handleSubmit} 
                 />
               </>
             )}

@@ -166,10 +166,17 @@ const PersonalInfoSchema = Yup.object().shape({
     const birthDate = new Date(value);
     const age = today.getFullYear() - birthDate.getFullYear();
     const monthDifference = today.getMonth() - birthDate.getMonth();
-    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-      return age > 18;
+    const dayDifference = today.getDate() - birthDate.getDate();
+    if (age > 18) {
+      return true;
+    } else if (age === 18) {
+      if (monthDifference > 0) {
+        return true;
+      } else if (monthDifference === 0 && dayDifference >= 0) {
+        return true;
+      }
     }
-    return age >= 18;
+    return false;
   })
   .test('within-100-years', 'Please select a date that is at least 100 years before now', function (value) {
     if (!value) return true;
@@ -237,7 +244,7 @@ const PersonalInfo: React.FC = () => {
                     if (!SUPPORTED_FORMATS.includes(file.type)) {
                       event.target.value = "";
                       setFieldValue("profilePicture", "", false);
-                      return alert('Please upload as PNG or JPG');
+                      return alert('Please upload as PNG, JPG or JPEG.');
                     } else if (file.size > FILE_SIZE) {
                       event.target.value = "";
                       setFieldValue("profilePicture", "", false);
