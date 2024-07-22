@@ -206,7 +206,25 @@ const visaStatusResolvers = {
 
         let statusFilter = {};
         if (status) {
-          statusFilter.status = status;
+          switch (status) {
+            case "Approved":
+              statusFilter = { 
+                status: "Approved",
+                step: "I20"
+              };
+              break;
+            case "In Progress":
+              statusFilter = {
+                $or: [
+                  { step: { $ne: "I20" } },
+                  { status: { $ne: "Approved" } }
+                ]
+              };
+              break;
+            default:
+              statusFilter = { status };
+              break;
+          }
         }
         console.log("statusFilter", status);
 
