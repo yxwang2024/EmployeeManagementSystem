@@ -10,7 +10,7 @@ import {
   VisaStatusPopulatedType,
   AllVisaStatusesResponseType,
   VisaStatusConnectionResponseType,
-  VisaStatusConnectionType
+  VisaStatusConnectionType,
 } from "../utils/type";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { useGlobal } from "../store/hooks";
@@ -20,6 +20,7 @@ import { GET_VISA_STATUS_CONNECTION } from "../services/queries";
 import { request } from "../utils/fetch";
 
 import { useTheme } from "@mui/material/styles";
+import Collapse from "@mui/material/Collapse";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
@@ -30,6 +31,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableFooter from "@mui/material/TableFooter";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
+import { Typography } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
@@ -46,6 +48,24 @@ interface TablePaginationActionsProps {
     newPage: number
   ) => void;
 }
+const nextStep: Record<string, Record<string, string>> = {
+  "OPT Receipt": {
+    Reviewing: "OPT Receipt - Wait for HR approval",
+    Approved: "Employee Submit OPT EAD",
+  },
+  "OPT EAD": {
+    Reviewing: "OPT EAD - Wait for HR approval",
+    Approved: "Employee Submit the I-983",
+  },
+  "I-983": {
+    Reviewing: "I-983 - Wait for HR approval",
+    Approved: "Employee Submit the I20",
+  },
+  "I20": {
+    Reviewing: "I20 - Wait for HR approval",
+    Approved: "Finished",
+  },
+};
 
 function TablePaginationActions(props: TablePaginationActionsProps) {
   const theme = useTheme();
@@ -73,6 +93,7 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+    console.log("Not implemented.")
   };
 
   return (
@@ -116,6 +137,11 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
     </Box>
   );
 }
+
+function sendNotification(status: VisaStatusListItemType){
+  console.log(`SEND EMAIL TO ${status.legalName}`);
+}
+
 
 interface Column {
   id:
@@ -167,104 +193,59 @@ const columns: Column[] = [
   },
 ];
 
-const HrVisaStatusTable: React.FC = ({ option, search }) => {
+const HrVisaStatusTable: React.FC = ({option}) => {
   // const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
 
   const user = useAppSelector((state) => state.auth.user);
-  
+  const search = useAppSelector((state) => state.search.value);
+  const searchTriggered = useAppSelector((state) => state.search.trigger);
+
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(1);
 
-  const [visaStatuses, setVisaStatuses] = useState<VisaStatusListItemType[]>([]);
+  const [first, setFirst] = React.useState(1);
+  const [last, setLast] = React.useState(0);
+  const [before, setBefore] = React.useState("");
+  const [after, setAfter] = React.useState("");
+  const [totalCount, setTotalCount] = React.useState(0);
+  const [startCursor, setStartCursor] = React.useState("");
+  const [endCursor, setEndCursor] = React.useState("");
+  const [hasNextPage, setHasNextPage] = React.useState(false);
+  const [hasPreviousPage, setHasPreviousPage] = React.useState(false);
 
-  const nextStep: Record<string, Record<string, string>> = {
-    "OPT Receipt": {
-      "Reviewing": "OPT Receipt - Wait for HR approval",
-      "Approved": "Employee Submit OPT EAD",
-    },
-    "OPT EAD": {
-      "Reviewing": "OPT EAD - Wait for HR approval",
-      "Approved": "Employee Submit the I-983",
-    },
-    "I-983": {
-      "Reviewing": "I-983 - Wait for HR approval",
-      "Approved": "Employee Submit the I20",
-    },
-    "I20": {
-      "Reviewing": "I20 - Wait for HR approval",
-      "Approved": "Finished",
-    },
-  };
-
-  // const getVisaStatuses = useCallback(async () => {
-  //   try {
-  //     const response: AllVisaStatusesResponseType = await request(
-  //       GET_ALL_STATUS_LIST
-  //     );
-  //     const allVisaStatuses = response.data.getVisaStatuses;
-  //     const statusList: VisaStatusListItemType[] = [];
-  //     if (option == "InProgress") {
-  //       allVisaStatuses.map((status) => {
-  //         if (status.step != "I20" || status.status != "Approved") {
-  //           const name: string = `${status.employee.profile.name.firstName} ${
-  //             status.employee.profile.name.middleName
-  //               ? status.employee.profile.name.middleName + " "
-  //               : ""
-  //           }${status.employee.profile.name.lastName}`;
-  //           statusList.push({
-  //             legalName: name,
-  //             title: status.workAuthorization.title,
-  //             startDate: status.workAuthorization.startDate,
-  //             endDate: status.workAuthorization.endDate,
-  //             status: status.status,
-  //             step: status.step,
-  //           });
-  //         }
-  //       });
-  //     } else if (option == "All") {
-  //       allVisaStatuses.map((status) => {
-  //         const name: string = `${status.employee.profile.name.firstName} ${
-  //           status.employee.profile.name.middleName
-  //             ? status.employee.profile.name.middleName + " "
-  //             : ""
-  //         }${status.employee.profile.name.lastName}`;
-  //         statusList.push({
-  //           legalName: name,
-  //           title: status.workAuthorization.title,
-  //           startDate: status.workAuthorization.startDate,
-  //           endDate: status.workAuthorization.endDate,
-  //           status: status.status,
-  //           step: status.step,
-  //         });
-  //       });
-  //     }
-  //     setVisaStatuses(statusList);
-  //   } catch (e) {
-  //     console.log(e);
-  //     showMessage(String(e));
-  //   }
-  // }, [option, user]);
+  const [visaStatuses, setVisaStatuses] = useState<VisaStatusListItemType[]>(
+    []
+  );
 
   const getVisaStatusConnection = useCallback(async () => {
     try {
-      const response: VisaStatusConnectionResponseType = await request(GET_VISA_STATUS_CONNECTION, {
-        first: 10,
-        after: null,
-        last:null,
-        before:null,
-        query:""
-      });
-      const visaStatusConnection : VisaStatusConnectionType = response.data.getVisaStatusConnection;
+      const response: VisaStatusConnectionResponseType = await request(
+        GET_VISA_STATUS_CONNECTION,
+        {
+          first: first,
+          after: after,
+          last: last,
+          before: before,
+          query: search,
+        }
+      );
+      const visaStatusConnection: VisaStatusConnectionType =
+        response.data.getVisaStatusConnection;
       // console.log("!!!!!!!!!visaStatusConnection:", visaStatusConnection);
       const edges = visaStatusConnection.edges;
-      const totalCount = visaStatusConnection.totalCount;
-      const pageInfo = visaStatusConnection.pageInfo;
-      const statusList: [VisaStatusListItemType] = [];
+      setTotalCount(visaStatusConnection.totalCount);
+      setHasNextPage(visaStatusConnection.pageInfo.hasNextPage);
+      setHasPreviousPage(visaStatusConnection.pageInfo.hasPreviousPage);
+      setStartCursor(visaStatusConnection.pageInfo.startCursor);
+      setEndCursor(visaStatusConnection.pageInfo.endCursor);
+      const statusList: VisaStatusListItemType[] = [];
       if (option == "InProgress") {
         edges.map((edge) => {
           if (edge.node.step != "I20" || edge.node.status != "Approved") {
-            const name: string = `${edge.node.employee.profile.name.firstName} ${
+            const name: string = `${
+              edge.node.employee.profile.name.firstName
+            } ${
               edge.node.employee.profile.name.middleName
                 ? edge.node.employee.profile.name.middleName + " "
                 : ""
@@ -281,7 +262,7 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
         });
       } else if (option == "All") {
         edges.map((edge) => {
-          console.log("!!!!!!!edge:",edge);
+          console.log("!!!!!!!edge:", edge);
           const name: string = `${edge.node.employee.profile.name.firstName} ${
             edge.node.employee.profile.name.middleName
               ? edge.node.employee.profile.name.middleName + " "
@@ -302,7 +283,13 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
       console.log(e);
       showMessage(String(e));
     }
-  }, [option, user]);
+  }, [option, user,before,after,last,first,searchTriggered]);
+
+  useEffect(() => {
+    setPage(0);
+    setAfter("");
+    setBefore("");
+  }, [option,searchTriggered]);
 
   useEffect(() => {
     showLoading(true);
@@ -334,12 +321,28 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - visaStatuses.length) : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - totalCount) : 0;
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => {
+    if (newPage === 0) {
+      setAfter("");
+      setBefore("");
+    } else if (newPage === page + 1) {
+      setAfter(endCursor);
+      setBefore("");
+    } else if (newPage === page - 1) {
+      setAfter("");
+      setBefore(startCursor);
+    } else if(newPage === Math.max(0, Math.ceil(totalCount / rowsPerPage) - 1)){
+      setLast(rowsPerPage);
+      setAfter("");
+      setBefore("");
+      setFirst(0);
+    }
+
     setPage(newPage);
   };
 
@@ -347,7 +350,10 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setFirst(parseInt(event.target.value, 10));
     setPage(0);
+    setAfter("");
+    setBefore("");
   };
 
   return (
@@ -372,13 +378,8 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(rowsPerPage > 0
-              ? visaStatuses.slice(
-                  page * rowsPerPage,
-                  page * rowsPerPage + rowsPerPage
-                )
-              : visaStatuses
-            ).map((statusListItem) => (
+            {visaStatuses.map((statusListItem) => (
+               <React.Fragment>
               <TableRow hover key={statusListItem.legalName}>
                 <TableCell style={{ width: 200 }} component="th" scope="row">
                   {statusListItem.legalName}
@@ -396,20 +397,30 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
                   {calculateRemainingDays(statusListItem.endDate) + " days"}
                 </TableCell>
                 <TableCell style={{ width: 300 }} align="center">
-                {nextStep[statusListItem?.step][statusListItem?.status]}
+                  {nextStep[statusListItem?.step][statusListItem?.status]}
                 </TableCell>
                 <TableCell align="right">
-                  {statusListItem.status === "Pending" ? (
-                    <Button size="small" variant="contained"  style={{ width: '150px' }}>
+                  {statusListItem.status === "Approved"&&statusListItem.step!="I20" ? (
+                    <Button
+                      size="small"
+                      variant="contained"
+                      style={{ width: "150px" }}
+                    >
                       Send Email
                     </Button>
                   ) : (
-                    <Button size="small" variant="contained"  style={{ width: '150px' }}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      style={{ width: "150px" }}
+                    >
                       Review
                     </Button>
                   )}
                 </TableCell>
               </TableRow>
+              
+              </React.Fragment>
             ))}
             {emptyRows > 0 && (
               <TableRow style={{ height: 53 * emptyRows }}>
@@ -420,9 +431,9 @@ const HrVisaStatusTable: React.FC = ({ option, search }) => {
           <TableFooter></TableFooter>
         </Table>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
+          rowsPerPageOptions={[1,2, 5, 10, 25, { label: "All", value: -1 }]}
           colSpan={3}
-          count={visaStatuses.length}
+          count={totalCount}
           rowsPerPage={rowsPerPage}
           page={page}
           slotProps={{
