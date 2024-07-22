@@ -134,7 +134,7 @@ const visaStatusResolvers = {
     },
     getVisaStatusConnection: async (
       _,
-      { query, first, after, last, before }
+      { query,status, first, after, last, before }
     ) => {
       try {
         if ((first && last) || (after && before)) {
@@ -173,7 +173,7 @@ const visaStatusResolvers = {
           : {};
 
         let paginationQuery = {};
-        let sort = { _id: 1 };
+        let sort = { _id: first ? 1 : -1 };
         let limit = first || last || 10;
 
         if (after) {
@@ -204,9 +204,16 @@ const visaStatusResolvers = {
 
         const employeeIds = employees.map((employee) => employee._id);
 
+        let statusFilter = {};
+        if (status) {
+          statusFilter.status = status;
+        }
+        console.log("statusFilter", status);
+
         const visaStatuses = await VisaStatus.find({
           employee: { $in: employeeIds },
           ...paginationQuery,
+          ...statusFilter,
         })
           .populate([
             "documents",

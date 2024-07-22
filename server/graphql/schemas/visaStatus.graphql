@@ -69,6 +69,7 @@ extend type Query {
     last: Int
     before: String
     query: String
+    status: String
   ): VisaStatusConnection
 }
 
