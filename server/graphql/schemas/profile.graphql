@@ -1,6 +1,24 @@
 type Query {
   getAllProfiles: [Profile]
   getProfile(id: ID!): Profile
+  getProfileConnection(
+    first: Int
+    after: String
+    last: Int
+    before: String
+    query: String
+  ): ProfileConnection
+}
+
+type ProfileConnection {
+  totalCount: Int
+  edges: [ProfileEdge]
+  pageInfo: PageInfo
+}
+
+type ProfileEdge {
+  cursor: String
+  node: Profile
 }
 
 extend type Mutation {
