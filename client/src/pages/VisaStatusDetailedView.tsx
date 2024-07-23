@@ -1,6 +1,6 @@
 import { Box, Button, IconButton, Typography, TextField } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback } from "react";
 import DocViewerComponent from "../components/DocViewer";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
@@ -14,165 +14,55 @@ import { VisaStatusType } from "../utils/type";
 import { useGlobal } from "../store/hooks";
 import { delayFunctionCall } from "../utils/utilities";
 import { useNavigate } from "react-router-dom";
-import { EmployeeInstanceType } from "../utils/type";
-
-const nextStep: Record<string, Record<string, string>> = {
-  "OPT Receipt": {
-    Reviewing: "OPT Receipt - Wait for HR approval",
-    Approved: "Employee Submit OPT EAD",
-  },
-  "OPT EAD": {
-    Reviewing: "OPT EAD - Wait for HR approval",
-    Approved: "Employee Submit the I-983",
-  },
-  "I-983": {
-    Reviewing: "I-983 - Wait for HR approval",
-    Approved: "Employee Submit the I20",
-  },
-  "I20": {
-    Reviewing: "I20 - Wait for HR approval",
-    Approved: "Finished",
-  },
-};
+import { SingleVisaStatusesResponseType, VisaStatusPopulatedType } from "../utils/type";
+import { GET_VISA_STATUS } from "../services/queries";
+import { request } from "../utils/fetch";
+import { calculateRemainingDays, getDateString, getLegalName, nextStep } from "../services/dateServices";
 
 const VisaStatusDetailedView = () => {
+  const user = useAppSelector((state) => state.auth.user);
   // const navigate = useNavigate();
-  // const [file, setFile] = useState<File | null>(null);
-  // const [fileName, setFileName] = useState<string | null>(null);
-  // const { showLoading, showMessage } = useGlobal();
+  const { showLoading, showMessage } = useGlobal();
   const [expandFeedback, setExpandFeedback] = useState(false);
+  const [visaStatus,setVisaStatus] = useState<VisaStatusPopulatedType|null>(null);
 
-  // const dispatch = useAppDispatch();
-  // const user = useAppSelector((state) => state.auth.user);
-  // const visaStatus: VisaStatusType = useAppSelector(
-  //   (state) => state.employee.visaStatus
-  // );
-  const visaStatus = {
-    employee: {
-      profile: {
-        email: "employee@gmail.com",
-        name: {
-          firstName: "John",
-          middleName: "Cake",
-          lastName: "Doe",
-          preferredName: "JD",
-        },
-      },
-    },
-    step: "I20",
-    status: "Reviewing",
-    hrFeedback: "Invalid Receipt.",
-    workAuthorization: {
-      title: "F1(CPT/OPT)",
-      startDate: "2024-04-15",
-      endDate: "2025-04-14",
-    },
-    documents: [
-      {
-        _id: "66988b44c349816da48ecd10",
-        title: "OPT Receipt",
-        timestamp: "2024-07-18",
-        filename: "LeaseHCV.pdf",
-        url: "https://chuwaems.s3.us-east-2.amazonaws.com/7a9195b3-194e-4a8e-863b-4f0d56bae862-LeaseHCV.pdf",
-        key: "7a9195b3-194e-4a8e-863b-4f0d56bae862-LeaseHCV.pdf",
-      },
-      {
-        _id: "66988b44c349816da48ecd10",
-        title: "OPT Receipt",
-        timestamp: "2024-07-18",
-        filename: "LeaseHCV.pdf",
-        url: "https://chuwaems.s3.us-east-2.amazonaws.com/7a9195b3-194e-4a8e-863b-4f0d56bae862-LeaseHCV.pdf",
-        key: "7a9195b3-194e-4a8e-863b-4f0d56bae862-LeaseHCV.pdf",
-      },
-    ],
+  const getVisaStatus = useCallback(async (getVisaStatusId:string) => {
+    try {
+      const response: SingleVisaStatusesResponseType = await request(GET_VISA_STATUS, {
+        getVisaStatusId: getVisaStatusId,
+      });
+      setVisaStatus(response.data.getVisaStatus);    
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    showLoading(true);
+    getVisaStatus("669850c2e937c1a16005d19b")
+      .then(() => {
+        delayFunctionCall(showLoading, 300, false);
+      })
+      .catch((error) => {
+        console.error(error);
+        showMessage(`failed to fetch visa status`, "failed", 2000);
+        showLoading(false);
+        // navigate('/login');
+      });
+  }, [getVisaStatus]);
+
+  const handleApprove = () => {
+
   };
 
-  // const getVisaStatusConnection = useCallback(async () => {
-  //   try {
-  //     const response: VisaStatusConnectionResponseType = await request(
-  //       GET_VISA_STATUS_CONNECTION,
-  //       {
-  //         first: first,
-  //         after: after,
-  //         last: last,
-  //         before: before,
-  //         query: "",
-  //       }
-  //     );
-  //     const visaStatusConnection: VisaStatusConnectionType =
-  //       response.data.getVisaStatusConnection;
-  //     // console.log("!!!!!!!!!visaStatusConnection:", visaStatusConnection);
-  //     const edges = visaStatusConnection.edges;
-  //     setTotalCount(visaStatusConnection.totalCount);
-  //     setHasNextPage(visaStatusConnection.pageInfo.hasNextPage);
-  //     setHasPreviousPage(visaStatusConnection.pageInfo.hasPreviousPage);
-  //     setStartCursor(visaStatusConnection.pageInfo.startCursor);
-  //     setEndCursor(visaStatusConnection.pageInfo.endCursor);
-  //     const statusList: VisaStatusListItemType[] = [];
-  //     if (option == "InProgress") {
-  //       edges.map((edge) => {
-  //         if (edge.node.step != "I20" || edge.node.status != "Approved") {
-  //           const name: string = `${
-  //             edge.node.employee.profile.name.firstName
-  //           } ${
-  //             edge.node.employee.profile.name.middleName
-  //               ? edge.node.employee.profile.name.middleName + " "
-  //               : ""
-  //           }${edge.node.employee.profile.name.lastName}`;
-  //           statusList.push({
-  //             legalName: name,
-  //             title: edge.node.workAuthorization.title,
-  //             startDate: edge.node.workAuthorization.startDate,
-  //             endDate: edge.node.workAuthorization.endDate,
-  //             status: edge.node.status,
-  //             step: edge.node.step,
-  //           });
-  //         }
-  //       });
-  //     } else if (option == "All") {
-  //       edges.map((edge) => {
-  //         console.log("!!!!!!!edge:", edge);
-  //         const name: string = `${edge.node.employee.profile.name.firstName} ${
-  //           edge.node.employee.profile.name.middleName
-  //             ? edge.node.employee.profile.name.middleName + " "
-  //             : ""
-  //         }${edge.node.employee.profile.name.lastName}`;
-  //         statusList.push({
-  //           legalName: name,
-  //           title: edge.node.workAuthorization.title,
-  //           startDate: edge.node.workAuthorization.startDate,
-  //           endDate: edge.node.workAuthorization.endDate,
-  //           status: edge.node.status,
-  //           step: edge.node.step,
-  //         });
-  //       });
-  //     }
-  //     setVisaStatuses(statusList);
-  //   } catch (e) {
-  //     console.log(e);
-  //     showMessage(String(e));
-  //   }
-  // }, [user,id]);
+  const handleReject = () => {
 
-  // useEffect(() => {
-  //   showLoading(true);
-  //   getVisaStatusConnection()
-  //     .then(() => {
-  //       delayFunctionCall(showLoading, 300, false);
-  //     })
-  //     .catch((error) => {
-  //       console.error(error);
-  //       showMessage(`failed to fetch visa status`, "failed", 2000);
-  //       showLoading(false);
-  //       // navigate('/login');
-  //     });
-  // }, [getVisaStatusConnection]);
-
-
+  };
 
   return (
     <div className="w-full flex flex-col h-svh items-center bg-gray-100 space-y-4 py-20 md:pt-24 overflow-y-auto">
-      {visaStatus.workAuthorization.title === "F1(CPT/OPT)" ? (
+      {visaStatus?.workAuthorization.title === "F1(CPT/OPT)" ? (
         <>
           <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg">
             <h1 className="text-left text-3xl font-bold mb-10 text-gray-700">
@@ -183,7 +73,7 @@ const VisaStatusDetailedView = () => {
                 <b>Name:</b>
               </Typography>
               <Typography variant="body1">
-                {visaStatus?.employee.profile.name.firstName}
+                {getLegalName(visaStatus?.employee.profile.name.firstName,visaStatus?.employee.profile.name.middleName, visaStatus?.employee.profile.name.lastName)}
               </Typography>
             </div>
             <div className="mb-4">
@@ -200,33 +90,29 @@ const VisaStatusDetailedView = () => {
                 <div className="flex justify-between items-center w-full md:w-1/2">
                   <Typography variant="body1">Start date:</Typography>
                   <Typography variant="body1">
-                    {visaStatus?.workAuthorization.startDate}
+                    {getDateString(visaStatus?.workAuthorization.startDate)}
                   </Typography>
                 </div>
                 <div className="flex justify-between items-center w-full md:w-1/2">
                   <Typography variant="body1">End date:</Typography>
                   <Typography variant="body1">
-                    {visaStatus?.workAuthorization.endDate}
+                    {getDateString(visaStatus?.workAuthorization.endDate)}
                   </Typography>
                 </div>
                 <div className="flex justify-between items-center w-full md:w-1/2">
                   <Typography variant="body1">
                     Num of Days Remaining:
                   </Typography>
-                  <Typography variant="body1">300 days</Typography>
+                  <Typography variant="body1">
+                    {calculateRemainingDays(visaStatus?.workAuthorization.endDate)} days
+                  </Typography>
                 </div>
               </div>
             </div>
             <div className="flex flex-col justify-start">
               <div className="flex justify-between items-center w-full md:w-1/2">
                 <Typography variant="body1">
-                  <b>Current Step:</b>
-                </Typography>
-                <Typography variant="body1">{visaStatus?.step}</Typography>
-              </div>
-              <div className="flex justify-between items-center w-full md:w-1/2">
-                <Typography variant="body1">
-                  <b>Status:</b>
+                  <b>Next Step:</b>
                 </Typography>
                 <Typography
                   variant="body1"
@@ -241,7 +127,7 @@ const VisaStatusDetailedView = () => {
                       : "warning.light"
                   }
                 >
-                  {visaStatus?.status}
+                  {nextStep[visaStatus?.step][visaStatus?.status]}
                 </Typography>
               </div>
             </div>
@@ -294,7 +180,7 @@ const VisaStatusDetailedView = () => {
       <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
         {visaStatus?.status === "Reviewing" && !expandFeedback && (
           <Box display="flex" flexDirection="row" justifyContent="center" alignItems="center" gap={2}>
-            <Button variant="contained" color="success">Approve</Button>
+            <Button variant="contained" color="success" onClick={handleApprove}>Approve</Button>
             <Button variant="contained" color="error" onClick={() => setExpandFeedback(true)}>reject</Button>
           </Box>
         )}
@@ -310,7 +196,7 @@ const VisaStatusDetailedView = () => {
             />
       <div className="ml-4">
             <Box display="flex" flexDirection="column" gap={2}>
-              <Button size="small" variant="contained" color="error">Submit Rejection</Button>
+              <Button size="small" variant="contained" color="error" onClick={handleReject}>Submit Rejection</Button>
               <Button size="small" variant="contained" onClick={() => setExpandFeedback(false)}>Cancel</Button>
             </Box>
             </div>
