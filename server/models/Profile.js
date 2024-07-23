@@ -18,12 +18,10 @@ const emergencyContactSchema = new Schema({
     phone: {
         type: String,
             default:'',
-        required: true
     },
     email: {
         type: String,
             default:'',
-        required: true
     },
     relationship: {
         type: String,

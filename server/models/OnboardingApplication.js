@@ -14,17 +14,14 @@ const emergencyContactSchema = new Schema({
     },
     middleName: {
         type: String,
-        required: true,
         default:''
     },
     phone: {
         type: String,
-        required: true,
         default:''
     },
     email: {
         type: String,
-        required: true,
         default:''
     },
     relationship: {

@@ -307,3 +307,9 @@ export interface VisaStatusConnectionResponseType {
   };
 
 }
+
+export interface SingleVisaStatusesResponseType {
+  data: {
+    getVisaStatus: VisaStatusPopulatedType;
+  };
+}
