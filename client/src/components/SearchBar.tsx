@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 import {useAppDispatch, useAppSelector} from "../store/hooks.ts";
-import {updateValue, triggerSearch} from "../store/slices/search.ts";
+import {updateSearchValue, triggerSearch} from "../store/slices/search.ts";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -69,7 +69,7 @@ export default function SearchBar({option}) {
             placeholder="Search…"
             inputProps={{ "aria-label": "search" }}
             value={search}
-            onChange={(e) => {dispatch(updateValue(e.target.value))}}
+            onChange={(e) => {dispatch(updateSearchValue(e.target.value))}}
             onKeyDown={handleKeyDown}
           />
         </Search>

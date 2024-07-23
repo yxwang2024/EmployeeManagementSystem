@@ -7,7 +7,7 @@ export const searchSlice = createSlice({
     trigger: false
   },
   reducers: {
-    updateValue: (state, action: PayloadAction<string>) => {
+    updateSearchValue: (state, action: PayloadAction<string>) => {
       state.value = action.payload;
     },
     triggerSearch: (state) => {
@@ -16,6 +16,6 @@ export const searchSlice = createSlice({
   },
 });
 
-export const { updateValue, triggerSearch } = searchSlice.actions;
+export const { updateSearchValue, triggerSearch } = searchSlice.actions;
 
 export default searchSlice.reducer;

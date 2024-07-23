@@ -252,7 +252,9 @@ const visaStatusResolvers = {
 
         const totalCount = await VisaStatus.countDocuments({
           employee: { $in: employeeIds },
+          ...statusFilter,
         });
+        
 
         const pageInfo = {
           hasNextPage: visaStatuses.length === limit && !before,
