@@ -20,3 +20,11 @@ export const getLegalName = (
   }${lastName}`;
   return legalName;
 };
+
+export const formatSSN = (ssn: string) => {
+  return `${ssn.slice(0, 3)}-${ssn.slice(3, 5)}-${ssn.slice(5)}`;
+};
+
+export const formatPhoneNumber = (phoneNumber: string) => {
+  return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3,6)}-${phoneNumber.slice(6)}`;
+};

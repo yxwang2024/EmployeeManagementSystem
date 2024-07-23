@@ -117,10 +117,6 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
   );
 }
 
-function sendNotification(status: VisaStatusListItemType) {
-  console.log(`SEND EMAIL TO ${status.legalName}`);
-}
-
 interface Column {
   id:
     | "name"
@@ -137,24 +133,24 @@ interface Column {
 }
 
 const columns: Column[] = [
-  { id: "name", label: "Name", minWidth: 200 },
+  { id: "name", label: "Name", minWidth: 200, align: "center" },
   { id: "title", label: "Title", minWidth: 100, align: "center" },
   {
     id: "startDate",
     label: "Start\u00a0Date",
-    minWidth: 170,
+    minWidth: 120,
     align: "center",
   },
   {
     id: "endDate",
     label: "End\u00a0Date",
-    minWidth: 170,
+    minWidth: 120,
     align: "center",
   },
   {
     id: "remainingDays",
     label: "Remaining\u00a0Days",
-    minWidth: 100,
+    minWidth: 150,
     align: "center",
   },
   {
@@ -180,9 +176,9 @@ const HrVisaStatusTable: React.FC = ({ option }) => {
   const searchTriggered = useAppSelector((state) => state.search.trigger);
 
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(2);
 
-  const [first, setFirst] = React.useState(1);
+  const [first, setFirst] = React.useState(2);
   const [last, setLast] = React.useState(0);
   const [before, setBefore] = React.useState("");
   const [after, setAfter] = React.useState("");
@@ -346,6 +342,11 @@ const HrVisaStatusTable: React.FC = ({ option }) => {
       navigate(`/visa-status-management/detailed/${id}`);
     }
   }
+
+  const sendNotification= (status: VisaStatusListItemType)=> {
+    console.log(`SEND EMAIL TO ${status.legalName}`);
+  }
+
   return (
     <Paper>
       <TableContainer component={Paper}>
@@ -371,22 +372,22 @@ const HrVisaStatusTable: React.FC = ({ option }) => {
             {visaStatuses.map((statusListItem) => (
               <React.Fragment>
                 <TableRow hover key={statusListItem.legalName}>
-                  <TableCell style={{ width: 200 }} component="th" scope="row">
+                  <TableCell style={{ width: 200 }} component="th" scope="row" align="center">
                     {statusListItem.legalName}
                   </TableCell>
                   <TableCell style={{ width: 100 }} align="center">
                     {statusListItem.title}
                   </TableCell>
-                  <TableCell style={{ width: 170 }} align="center">
+                  <TableCell style={{ width: 120 }} align="center">
                     {getDateString(statusListItem.startDate)}
                   </TableCell>
-                  <TableCell style={{ width: 170 }} align="center">
+                  <TableCell style={{ width: 120 }} align="center">
                     {getDateString(statusListItem.endDate)}
                   </TableCell>
-                  <TableCell style={{ width: 100 }} align="center">
+                  <TableCell style={{ width: 120 }} align="center">
                     {calculateRemainingDays(statusListItem.endDate) + " days"}
                   </TableCell>
-                  <TableCell style={{ width: 300 }} align="center">
+                  <TableCell style={{ width: 300}} align="center">
                     {nextStep[statusListItem?.step][statusListItem?.status]}
                   </TableCell>
                   <TableCell align="right">

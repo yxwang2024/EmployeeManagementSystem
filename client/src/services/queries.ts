@@ -118,6 +118,37 @@ export const REJECT_VISA_STATUS = `
   }
 `;
 
+export const GET_ALL_PROFILE_LIST = `
+  query GetProfileConnection($first: Int, $after: String, $last: Int, $before: String, $query: String) {
+    getProfileConnection(first: $first, after: $after, last: $last, before: $before, query: $query) {
+      totalCount
+      edges {
+        cursor
+        node {
+          id
+          email
+          name {
+            firstName
+            middleName
+            lastName
+            preferredName
+          }
+          profilePicture
+          identity {
+            ssn
+          }
+          employment {
+            visaTitle
+          }
+          contactInfo {
+            cellPhone
+          }
+        }
+      }
+    }
+  }
+`;
+
 
 
 
