@@ -20,22 +20,3 @@ export const getLegalName = (
   }${lastName}`;
   return legalName;
 };
-
-export const nextStep: Record<string, Record<string, string>> = {
-    "OPT Receipt": {
-      Reviewing: "OPT Receipt - Wait for HR approval",
-      Approved: "Employee Submit OPT EAD",
-    },
-    "OPT EAD": {
-      Reviewing: "OPT EAD - Wait for HR approval",
-      Approved: "Employee Submit the I-983",
-    },
-    "I-983": {
-      Reviewing: "I-983 - Wait for HR approval",
-      Approved: "Employee Submit the I20",
-    },
-    "I20": {
-      Reviewing: "I20 - Wait for HR approval",
-      Approved: "Finished",
-    },
-  };

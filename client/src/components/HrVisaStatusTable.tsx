@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 
-import {
-  calculateRemainingDays,
-  getDateString,
-  nextStep,
-  getLegalName
-} from "../services/dateServices";
+import { calculateRemainingDays, getDateString, getLegalName } from "../services/dateServices";
+import { nextStep } from "../services/records";
 import {
   VisaStatusListItemType,
   VisaStatusPopulatedType,
@@ -177,7 +172,7 @@ const columns: Column[] = [
 ];
 
 const HrVisaStatusTable: React.FC = ({ option }) => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
 
   const user = useAppSelector((state) => state.auth.user);
@@ -230,6 +225,7 @@ const HrVisaStatusTable: React.FC = ({ option }) => {
           if (edge.node.step != "I20" || edge.node.status != "Approved") {
             const name: string = getLegalName(edge.node.employee.profile.name.firstName,edge.node.employee.profile.name.middleName,edge.node.employee.profile.name.lastName);
             statusList.push({
+              _id:edge.node._id,
               legalName: name,
               title: edge.node.workAuthorization.title,
               startDate: edge.node.workAuthorization.startDate,
@@ -244,6 +240,7 @@ const HrVisaStatusTable: React.FC = ({ option }) => {
           console.log("!!!!!!!edge:", edge);
           const name: string = getLegalName(edge.node.employee.profile.name.firstName,edge.node.employee.profile.name.middleName,edge.node.employee.profile.name.lastName);
           statusList.push({
+            _id:edge.node._id,
             legalName: name,
             title: edge.node.workAuthorization.title,
             startDate: edge.node.workAuthorization.startDate,
@@ -344,6 +341,11 @@ const HrVisaStatusTable: React.FC = ({ option }) => {
     setBefore("");
   };
 
+  const toDetailedView = (id:string)=>{
+    if(id){
+      navigate(`/visa-status-management/detailed/${id}`);
+    }
+  }
   return (
     <Paper>
       <TableContainer component={Paper}>
@@ -402,6 +404,7 @@ const HrVisaStatusTable: React.FC = ({ option }) => {
                         size="small"
                         variant="contained"
                         style={{ width: "150px" }}
+                        onClick={()=>toDetailedView(statusListItem._id)}
                       >
                         Review
                       </Button>

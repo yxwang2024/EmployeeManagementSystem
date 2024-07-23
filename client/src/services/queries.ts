@@ -95,6 +95,29 @@ export const GET_VISA_STATUS = `
 }
 `;
 
+export const APPROVE_VISA_STATUS = `
+  mutation ApproveVisaStatus($approveVisaStatusId: ID!) {
+    approveVisaStatus(id: $approveVisaStatusId) {
+      status
+      step
+      _id
+      employee
+    }
+  }
+`;
+
+export const REJECT_VISA_STATUS = `
+  mutation RejectVisaStatus($rejectVisaStatusId: ID!, $hrFeedback: String!) {
+    rejectVisaStatus(id: $rejectVisaStatusId, hrFeedback: $hrFeedback) {
+      step
+      status
+      hrFeedback
+      _id
+      employee
+    }
+  }
+`;
+
 
 
 
