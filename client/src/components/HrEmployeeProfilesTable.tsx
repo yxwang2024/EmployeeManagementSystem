@@ -226,7 +226,7 @@ const HrEmployeeProfilesTable: React.FC = () => {
   ];
 
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - totalCount) : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - profileList.length) : 0;
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -268,7 +268,7 @@ const HrEmployeeProfilesTable: React.FC = () => {
                 <TableRow hover key={profile.legalName}>
                   <TableCell style={{ width: 150 }} align="center"component="th" scope="row">
                     
-                    <Link component="button" onClick={() => { console.info("I'm a button.");}}>
+                    <Link component="button" onClick={() => {navigate(`/employee-profiles/detailed/${profile._id}`);}}>
                         {profile.legalName}
                     </Link>
                   </TableCell>
