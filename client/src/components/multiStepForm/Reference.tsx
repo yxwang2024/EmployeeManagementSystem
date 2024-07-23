@@ -75,7 +75,11 @@ const ReferenceSchema = Yup.lazy(values => {
       lastName: Yup.string().required('Last name is required'),
       relationship: Yup.string().required('Relationship is required'),
       middleName: Yup.string(),
-      phone: Yup.string(),
+      phone: Yup.string()
+      .matches(/^[1-9][0-9]*$/, "Must be only digits and first digit cannot be 0")
+      .min(10, 'Less than 10, must be exactly 10 digits')
+      .max(10, 'More than 10, must be exactly 10 digits')
+      .optional(),
       email: Yup.string().email('Invalid email'),
     });
   } else {

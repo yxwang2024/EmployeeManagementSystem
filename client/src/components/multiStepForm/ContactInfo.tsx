@@ -89,7 +89,7 @@ const ContactInfoSchema = Yup.object().shape({
   cellPhone: Yup.string()
     .matches(/^[1-9][0-9]*$/, "Must be only digits and first digit cannot be 0")
     .min(10, 'Less than 10, must be exactly 10 digits')
-    .max(10, 'Must be exactly 10 digits')
+    .max(10, 'More than 10, must be exactly 10 digits')
     .required('Primary contact cell phone is required')
     .test(
       'cellPhone-not-equal-workPhone',
@@ -102,7 +102,7 @@ const ContactInfoSchema = Yup.object().shape({
   workPhone: Yup.string()
     .matches(/^[1-9][0-9]*$/, "Must be only digits and first digit cannot be 0")
     .min(10, 'Less than 10, must be exactly 10 digits')
-    .max(10, 'Must be exactly 10 digits')
+    .max(10, 'More than 10, must be exactly 10 digits')
     .optional()
     .test(
       'workPhone-not-equal-cellPhone',

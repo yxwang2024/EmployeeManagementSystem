@@ -179,6 +179,28 @@ export interface OaNameType {
   middleName: string;
   lastName: string;
   preferredName: string;
+}
+
+export interface IdentityType {
+  ssn: string;
+  dob: string;
+  gender: string;
+}
+
+export interface EmploymentType{
+  visaTitle: string | undefined,
+  startDate: string,
+  endDate: string,
+}
+
+export interface ReferenceType {
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  relationship?: string;
+  phone?: string;
+  email?: string;
+}
 
 export interface Address {
   street: string;
