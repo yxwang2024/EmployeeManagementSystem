@@ -173,7 +173,7 @@ const visaStatusResolvers = {
           : {};
 
         let paginationQuery = {};
-        let sort = { _id: first ? 1 : -1 };
+        let sort = { _id: last ? -1 : 1 };
         let limit = first || last || 10;
 
         if (after) {
@@ -241,7 +241,7 @@ const visaStatusResolvers = {
           .sort(sort)
           .limit(limit);
 
-        if (before) {
+        if (before || last) {
           visaStatuses.reverse();
         }
 

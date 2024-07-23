@@ -1,6 +1,24 @@
 type Query {
   getAllOnboardingApplications: [OnboardingApplication]
   getOnboardingApplication(oaId: ID!): OnboardingApplication
+  getOnboardingApplicationConnection(
+    first: Int
+    after: String
+    last: Int
+    before: String
+    query: String
+  ): OnboardingApplicationConnection
+}
+
+type OnboardingApplicationConnection {
+  totalCount: Int
+  edges: [OnboardingApplicationEdge]
+  pageInfo: PageInfo
+}
+
+type OnboardingApplicationEdge {
+  cursor: String
+  node: OnboardingApplication
 }
 
 extend type Mutation {
