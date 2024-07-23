@@ -1,15 +1,15 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from "axios";
-import { AppDispatch, RootState } from "./store";
-import { fileUploadRequest } from "../utils/fetch";
-import { FileUploadResponseType } from "../utils/type";
+import axios from 'axios';
+import { AppDispatch, RootState } from './store';
+import { fileUploadRequest } from '../utils/fetch';
+import { FileUploadResponseType } from '../utils/type';
 
 interface PersonalInfo {
   firstName: string;
   middleName: string;
   lastName: string;
   preferredName: string;
-  profilePicture: string; // Will store base64 string
+  profilePicture: string;
   email: string;
   ssn: string;
   dob: string;
@@ -67,6 +67,7 @@ export interface DocumentData {
 }
 
 export interface OaInfoState {
+  userId: string;
   personalInfo: PersonalInfo;
   address: Address;
   contactInfo: ContactInfo;
@@ -80,6 +81,7 @@ export interface OaInfoState {
 }
 
 const initialState: OaInfoState = {
+  userId: '',
   personalInfo: {
     firstName: '',
     middleName: '',
@@ -113,7 +115,7 @@ const initialState: OaInfoState = {
   reference: null,
   emergencyContacts: [],
   currentStep: 1,
-  status: "NotSubmitted",
+  status: JSON.parse(localStorage.getItem('user') || '{}')?.instance?.onboardingApplication?.status || null,
   documents: [],
   isInitialized: false,
 };
@@ -130,17 +132,119 @@ const axiosInstance = axios.create({
 
 export const initializeFromLocalStorage = createAsyncThunk(
   'oaInfo/initializeFromLocalStorage',
-  async (_, { dispatch }) => {
-    const savedData = localStorage.getItem('oaInfo');
-    if (savedData) {
-      const data = JSON.parse(savedData);
-      dispatch(setOaInfoData(data));
-    }
-    const savedStep = localStorage.getItem('currentStep');
-    if (savedStep) {
-      dispatch(setCurrentStep(parseInt(savedStep, 10)));
+  async (_, { dispatch, getState }) => {
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const currentUserId = currentUser?.id;
+    const state = getState() as RootState;
+    const status = state.oaInfo.status;
+
+    if (status === 'NotSubmitted' || status === 'Rejected') {
+      await dispatch(fetchOnboardingData(currentUserId));
+    } else {
+      const savedData = localStorage.getItem('oaInfo');
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        if (data.userId === currentUserId) {
+          dispatch(setOaInfoData(data));
+        } else {
+          localStorage.removeItem('oaInfo');
+          dispatch(resetOaInfo(currentUserId));
+        }
+      } else {
+        dispatch(resetOaInfo(currentUserId));
+      }
+
+      const savedStep = localStorage.getItem('currentStep');
+      if (savedStep) {
+        dispatch(setCurrentStep(parseInt(savedStep, 10)));
+      }
     }
     dispatch(setInitialized(true));
+  }
+);
+
+export const fetchOnboardingData = createAsyncThunk(
+  'oaInfo/fetchOnboardingData',
+  async (userId: string, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
+    const query = `
+      query GetOnboardingApplication($oaId: ID!) {
+        getOnboardingApplication(oaId: $oaId) {
+          status
+          reference {
+            relationship
+            phone
+            middleName
+            lastName
+            firstName
+            email
+          }
+          profilePicture
+          name {
+            preferredName
+            middleName
+            lastName
+            firstName
+          }
+          identity {
+            ssn
+            gender
+            dob
+          }
+          id
+          hrFeedback
+          employment {
+            visaTitle
+            startDate
+            endDate
+          }
+          emergencyContacts {
+            relationship
+            phone
+            middleName
+            lastName
+            id
+            firstName
+            email
+          }
+          email
+          documents {
+            url
+            title
+            timestamp
+            key
+            filename
+            _id
+          }
+          currentAddress {
+            zip
+            street
+            state
+            city
+            building
+          }
+          contactInfo {
+            workPhone
+            cellPhone
+          }
+        }
+      }
+    `;
+    try {
+      const response = await axiosInstance.post('', {
+        query,
+        variables: { oaId: onboardingApplicationId },
+      });
+      if (response.data.errors) {
+        return rejectWithValue(response.data.errors);
+      }
+      return response.data.data.getOnboardingApplication;
+    } catch (error) {
+      console.error('Fetch Onboarding Data failed:', error);
+      return rejectWithValue(error.message);
+    }
   }
 );
 
@@ -279,38 +383,6 @@ export const addOADocument: any = createAsyncThunk(
   }
 );
 
-//图片传到 AWS S3返回一个string
-// export const getUrl = (title: string, file: File) =>
-//   async () => {
-//     const query = `
-//     mutation CreateDocument($input: DocumentInput!) {
-//       createDocument(input: $input) {
-//         _id
-//         title
-//         timestamp
-//         filename
-//         url
-//         key
-//       }
-//     }
-//   `;
-//   try {
-//     const response: FileUploadResponseType = await fileUploadRequest(
-//       query,
-//       title,
-//       file
-//     );
-//     // const state = getState();
-//     // const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
-//     // const documentId = response.data.createDocument._id;
-//     // const profilePictureUrl = response.data.createDocument.url;
-//     // await dispatch(updateOAProfilePic(profilePictureUrl));
-//     // await dispatch(addOADocument({ id: onboardingApplicationId, documentId }));
-//     return response.data.createDocument;
-//   } catch (error) {
-//     console.error(error); 
-//   }
-// };
 export const getUrl = (title: string, file: File) =>
   async (dispatch: AppDispatch): Promise<DocumentData | undefined> => {
     const query = `
@@ -496,7 +568,6 @@ export const updateOAEmergencyContact: any = createAsyncThunk(
         }
       }
     `;
-    const variables = { input: { id: onboardingApplicationId, emergencyContacts } };
     try {
       // console.log('Sending mutation updateOAEmergencyContact with variables:', JSON.stringify(variables, null, 2));
       const response = await axiosInstance.post('', {
@@ -512,11 +583,47 @@ export const updateOAEmergencyContact: any = createAsyncThunk(
   }
 );
 
+
+//更新整个onboarding application 状态
+export const updateOAStatus: any = createAsyncThunk(
+  'oaInfo/updateOAStatus',
+  async (status: 'Pending' | 'Approved' | 'Rejected', { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
+
+    const query = `
+      mutation Mutation($input: OAStatusInput) {
+        updateOAStatus(input: $input) {
+          id
+          status
+        }
+      }
+    `;
+    try {
+      const response = await axiosInstance.post('', {
+        query,
+        variables: { input: { id: onboardingApplicationId, status } },
+      });
+      return response.data.data.updateOAStatus;
+    } catch (error) {
+      console.error('Update OA Status failed:', error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+const formatDate = (timestamp: string | number | undefined): string => {
+  if (!timestamp) return '';
+  const date = new Date(parseInt(timestamp.toString(), 10));
+  return date.toISOString().split('T')[0]; 
+};
+
 const oaInfoSlice = createSlice({
   name: 'oaInfo',
   initialState,
   reducers: {
     setOaInfoData: (state, action: PayloadAction<OaInfoState>) => {
+      state.userId = action.payload.userId;
       state.personalInfo = action.payload.personalInfo;
       state.address = action.payload.address;
       state.contactInfo = action.payload.contactInfo;
@@ -524,9 +631,27 @@ const oaInfoSlice = createSlice({
       state.reference = action.payload.reference;
       state.emergencyContacts = action.payload.emergencyContacts;
       state.currentStep = action.payload.currentStep;
-      state.status = action.payload.status;
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const status = user?.instance?.onboardingApplication?.status || '';
+      state.status = status;
       state.documents = action.payload.documents;
       state.isInitialized = true;
+    },
+    resetOaInfo: (state, action: PayloadAction<string>) => {
+      state.userId = action.payload;
+      state.personalInfo = initialState.personalInfo;
+      state.address = initialState.address;
+      state.contactInfo = initialState.contactInfo;
+      state.document = initialState.document;
+      state.reference = initialState.reference;
+      state.emergencyContacts = initialState.emergencyContacts;
+      state.currentStep = initialState.currentStep;
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const status = user?.instance?.onboardingApplication?.status || '';
+      state.status = status;
+      state.documents = initialState.documents;
+      state.isInitialized = initialState.isInitialized;
+      localStorage.setItem('oaInfo', JSON.stringify(state));
     },
     updatePersonalInfo: (state, action: PayloadAction<Partial<PersonalInfo>>) => {
       state.personalInfo = { ...state.personalInfo, ...action.payload };
@@ -542,11 +667,11 @@ const oaInfoSlice = createSlice({
     },
     updateDocument: (state, action: PayloadAction<Document>) => {
       state.document = { ...state.document, ...action.payload };
-      localStorage.setItem('oaInfo', JSON.stringify(state)); 
+      localStorage.setItem('oaInfo', JSON.stringify(state));
     },
     addDocuments: (state, action: PayloadAction<DocumentData>) => {
       state.documents.push(action.payload);
-      localStorage.setItem('oaInfo', JSON.stringify(state)); 
+      localStorage.setItem('oaInfo', JSON.stringify(state));
     },
     updateReference: (state, action: PayloadAction<Reference>) => {
       state.reference = action.payload;
@@ -572,37 +697,54 @@ const oaInfoSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(initializeFromLocalStorage.fulfilled, (state) => {
-      state.isInitialized = true;
+        state.isInitialized = true;
       })
-      .addCase(updateOAName.fulfilled, (state, action) => {
-      state.personalInfo = { ...state.personalInfo, ...action.payload.name };
+      .addCase(fetchOnboardingData.fulfilled, (state, action) => {
+        const data = action.payload;
+        if (data) {
+          // console.log('Fetched onboarding data:', data);
+          state.personalInfo.firstName = data.name.firstName || initialState.personalInfo.firstName;
+          state.personalInfo.lastName = data.name.lastName || initialState.personalInfo.lastName;
+          state.personalInfo.middleName = data.name.middleName || initialState.personalInfo.middleName;
+          state.personalInfo.preferredName = data.name.preferredName || initialState.personalInfo.preferredName;
+          if(data.profilePicture !== "placeholder"){
+            state.personalInfo.profilePicture = data.profilePicture;
+          } else{
+            state.personalInfo.profilePicture = initialState.personalInfo.profilePicture;
+          }
+          state.personalInfo.ssn = data.identity.ssn || initialState.personalInfo.ssn;
+          state.personalInfo.dob = formatDate(data.identity.dob) || initialState.personalInfo.dob;
+          state.personalInfo.gender = data.identity.gender || initialState.personalInfo.gender;
+          state.address = data.currentAddress || initialState.address;
+          state.contactInfo = data.contactInfo || initialState.contactInfo;
+          if (data.employment.visaTitle === 'isCitizen') {
+            state.document.isCitizen = true;
+          } else if (['H1-B', 'L2', 'F1(CPT/OPT)', 'H4'].includes(data.employment.visaTitle)) {
+            state.document.visaTitle = data.employment.visaTitle;
+            state.document.isCitizen = false;
+          } else {
+            state.document.visaTitle = 'Other';
+            state.document.otherVisa = data.employment.visaTitle;
+            state.document.isCitizen = false;
+          }
+          state.document.startDate = formatDate(data.employment.startDate) || initialState.document.startDate;
+          state.document.endDate = formatDate(data.employment.endDate) || initialState.document.endDate;
+
+          state.reference = data.reference || initialState.reference;
+          state.emergencyContacts = data.emergencyContacts || initialState.emergencyContacts;
+          state.documents = data.documents || initialState.documents;
+          state.isInitialized = true;
+        }
       })
-      .addCase(updateOAIdentity.fulfilled, (state, action) => {
-        state.personalInfo = { ...state.personalInfo, ...action.payload.identity };
-      })
-      .addCase(updateOACurrentAddress.fulfilled, (state, action) => {
-        state.address = { ...state.address, ...action.payload.currentAddress };
-      })
-      .addCase(updateOAContactInfo.fulfilled, (state, action) => {
-        state.contactInfo = { ...state.contactInfo, ...action.payload.contactInfo };
-      })
-      .addCase(updateOAEmployment.fulfilled, (state, action) => {
-        state.document = { ...state.document, ...action.payload.employment };
-      })
-      .addCase(updateOAReference.fulfilled, (state, action) => {
-        state.reference = { ...state.reference, ...action.payload.reference };
-      })
-      .addCase(updateOAEmergencyContact.fulfilled, (state, action) => {
-        state.emergencyContacts = action.payload.emergencyContacts;
-      })
-      .addCase(addOADocument.fulfilled, (state, action) => {
-        state.documents.push(action.payload.documents);
+      .addCase(fetchOnboardingData.rejected, (state, action) => {
+        console.error('fetchOnboardingData rejected:', action.payload);
       });
   },
 });
 
 export const {
   setOaInfoData,
+  resetOaInfo,
   updatePersonalInfo,
   updateAddress,
   updateContactInfo,

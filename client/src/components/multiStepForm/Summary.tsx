@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { setCurrentStep, updateOAName, updateOAIdentity, updateOACurrentAddress, updateOAContactInfo, updateOAEmployment, updateOAReference, updateOAEmergencyContact, getUrl, addOADocument, updateOAProfilePic } from '../../store/oaInfo';
+import { updateOAName, updateOAIdentity, updateOACurrentAddress, updateOAContactInfo, updateOAEmployment, updateOAReference, updateOAEmergencyContact, getUrl, addOADocument, updateOAProfilePic, updateOAStatus } from '../../store/oaInfo';
 import { OaNameType, IdentityType, EmploymentType, ReferenceType } from '../../utils/type';
+import StepController from './StepController';
+import { useNavigate } from 'react-router-dom';
 
 function base64ToFile(base64: string, filename: string): File {
   const arr = base64.split(',');
@@ -21,6 +23,9 @@ const Summary: React.FC = () => {
   const [personalInfo, setPersonalInfo] = useState<any>(null);
   const [documentInfo, setDocumentInfo] = useState<any>(null);
   const oaInfo = useSelector((state: RootState) => state.oaInfo);
+  const startDate = new Date('2000-01-01T00:00:00.000+00:00').toISOString();
+  const endDate = new Date('2000-01-01T00:00:00.000+00:00').toISOString();
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const storedData = localStorage.getItem('oaInfo');
@@ -65,8 +70,8 @@ const Summary: React.FC = () => {
     if (oaInfo.document.isCitizen) {
       oaEmployment = {
         visaTitle: 'isCitizen',
-        startDate: '',
-        endDate: '',
+        startDate: startDate,
+        endDate: endDate,
       };
     } else {
       const tempTitle = oaInfo.document.visaTitle === 'Other' ? oaInfo.document.otherVisa : oaInfo.document.visaTitle;
@@ -124,6 +129,12 @@ const Summary: React.FC = () => {
       await dispatch(updateOAEmployment(oaEmployment));
       await dispatch(updateOAReference(oaReference));
       await dispatch(updateOAEmergencyContact(oaInfo.emergencyContacts));
+      await dispatch(updateOAStatus('Pending'));
+      user.instance.onboardingApplication.status = 'Pending';
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.removeItem('oaInfo');
+      localStorage.removeItem('currentStep');
+      navigate('/');
     } catch (error) {
       console.error('Submission failed:', error);
     }
@@ -133,7 +144,7 @@ const Summary: React.FC = () => {
     <div>
       <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Documents Summary</h2>
       
-      {!personalInfo?.profilePicture && !documentInfo.optReceipt && !documentInfo.driverLicense && 
+      {!personalInfo?.profilePicture && !documentInfo?.optReceipt && !documentInfo?.driverLicense && 
         <div className='text-gray-700 text-md md:text-lg font-normal'>
           <h1 className='mb-4'>
             You don't upload any documents like Profile Picture, OPT Receipt or Driver's License. 
@@ -198,22 +209,11 @@ const Summary: React.FC = () => {
         )}
       </div>
 
-      <div className='flex mt-8 mb-32'>
-        <button
-          type="button"
-          className='bg-blue-600 text-white border rounded text-center w-1/2 sm:w-fit e-auto px-4 py-2 text-md md:text-lg font-semibold'
-          onClick={() => dispatch(setCurrentStep(6))}
-        >
-          Previous
-        </button>
-        <button
-          type="button"
-          className='bg-blue-600 text-white border rounded text-center w-1/2 sm:w-fit ms-auto px-4 py-2 text-md md:text-lg font-semibold'
-          onClick={handleSubmit}
-        >
-          Submit
-        </button>
-      </div>
+      <StepController 
+        currentStep={oaInfo.currentStep}
+        totalSteps={7}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 };
