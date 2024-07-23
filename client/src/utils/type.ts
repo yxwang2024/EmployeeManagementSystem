@@ -336,3 +336,12 @@ export interface SingleVisaStatusesResponseType {
     getVisaStatus: VisaStatusPopulatedType;
   };
 }
+
+export interface ProfileListItemType {
+  _id:string;
+  legalName: string;
+  SSN:string;
+  title: string;
+  phone:string;
+  email:string;
+}
