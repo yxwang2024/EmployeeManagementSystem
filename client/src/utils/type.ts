@@ -143,6 +143,7 @@ export interface PersonalInfoType {
 }
 
 export interface VisaStatusListItemType {
+  _id:string,
   legalName: string;
   title: string;
   startDate: string;

@@ -1,6 +1,7 @@
 import { Box, Button, IconButton, Typography, TextField } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import React, { useState, useEffect,useCallback } from "react";
+import { useParams } from "react-router-dom";
 import DocViewerComponent from "../components/DocViewer";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
@@ -15,16 +16,19 @@ import { useGlobal } from "../store/hooks";
 import { delayFunctionCall } from "../utils/utilities";
 import { useNavigate } from "react-router-dom";
 import { SingleVisaStatusesResponseType, VisaStatusPopulatedType } from "../utils/type";
-import { GET_VISA_STATUS } from "../services/queries";
+import { GET_VISA_STATUS, APPROVE_VISA_STATUS, REJECT_VISA_STATUS } from "../services/queries";
 import { request } from "../utils/fetch";
-import { calculateRemainingDays, getDateString, getLegalName, nextStep } from "../services/dateServices";
+import { calculateRemainingDays, getDateString, getLegalName } from "../services/dateServices";
+import { nextStep } from "../services/records";
 
 const VisaStatusDetailedView = () => {
   const user = useAppSelector((state) => state.auth.user);
-  // const navigate = useNavigate();
+  const id = useParams().id || '';
+  const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
   const [expandFeedback, setExpandFeedback] = useState(false);
   const [visaStatus,setVisaStatus] = useState<VisaStatusPopulatedType|null>(null);
+  const [feedback,setFeedback]= useState("");
 
   const getVisaStatus = useCallback(async (getVisaStatusId:string) => {
     try {
@@ -38,9 +42,29 @@ const VisaStatusDetailedView = () => {
     }
   }, [user]);
 
+  const approveVisaStatus = async()=>{
+    try {
+      const response = await request(APPROVE_VISA_STATUS, {approveVisaStatusId: id,});
+      console.log("Approve Response:",response);    
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  }
+
+  const rejectVisaStatus = async()=>{
+    try {
+      const response = await request(REJECT_VISA_STATUS, {rejectVisaStatusId: id,hrFeedback:feedback});
+      console.log("Reject Response:",response)     
+  } catch (e) {
+    console.log(e);
+    showMessage(String(e));
+  }
+  }
+
   useEffect(() => {
     showLoading(true);
-    getVisaStatus("669850c2e937c1a16005d19b")
+    getVisaStatus(id)
       .then(() => {
         delayFunctionCall(showLoading, 300, false);
       })
@@ -53,12 +77,21 @@ const VisaStatusDetailedView = () => {
   }, [getVisaStatus]);
 
   const handleApprove = () => {
+    approveVisaStatus();
+    navigate(`/visa-status-management`);
+  };
 
+  const handleFeedBackInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const feedback = e.target.value;
+    setFeedback(feedback);
   };
 
   const handleReject = () => {
-
+    rejectVisaStatus();
+    navigate(`/visa-status-management`);
   };
+
+
 
   return (
     <div className="w-full flex flex-col h-svh items-center bg-gray-100 space-y-4 py-20 md:pt-24 overflow-y-auto">
@@ -193,6 +226,8 @@ const VisaStatusDetailedView = () => {
               label="HR Feedback"
               multiline
               rows={4}
+              value={feedback}
+              onChange={handleFeedBackInput}
             />
       <div className="ml-4">
             <Box display="flex" flexDirection="column" gap={2}>
