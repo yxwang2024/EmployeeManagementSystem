@@ -1,42 +1,35 @@
 import React from 'react';
-import { useField } from 'formik';
+import { useField, FieldHookConfig } from 'formik';
 
-interface CustomPNGorJPGProps {
-  name: string;
+interface CustomFileProps extends FieldHookConfig<string> {
   label: string;
   label2?: string;
   type?: string;
   disabled?: boolean;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const CustomPNGorJPG: React.FC<CustomPNGorJPGProps> = ({ label, label2, type = 'text', disabled = false, onChange, ...props }) => {
+const CustomFile: React.FC<CustomFileProps> = ({ label, label2, type = 'text', disabled = false, ...props }) => {
   const [field, meta, helpers] = useField(props);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (type === 'file' && event.currentTarget.files) {
       const file = event.currentTarget.files[0];
-      const FILE_SIZE = 3 * 1024 * 1024; // 3 MB
-      const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png"];
-
-      if (file) {
-        if (!SUPPORTED_FORMATS.includes(file.type)) {
-          helpers.setError('Please upload as PNG or JPG');
-        } else if (file.size > FILE_SIZE) {
-          helpers.setError('Max size 3 MB');
-        } else {
-          helpers.setValue(file);
-          helpers.setError(undefined); // Clear any existing error
-        }
-      }
+      const base64 = await convertToBase64(file);
+      helpers.setValue(base64);
+      helpers.setError(undefined);
     } else {
       field.onChange(event);
       helpers.setValue(event.currentTarget.value);
     }
+  };
 
-    if (onChange) {
-      onChange(event);
-    }
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
   return (
@@ -61,4 +54,4 @@ const CustomPNGorJPG: React.FC<CustomPNGorJPGProps> = ({ label, label2, type = '
   );
 };
 
-export default CustomPNGorJPG;
+export default CustomFile;

@@ -254,6 +254,7 @@ const visaStatusResolvers = {
           employee: { $in: employeeIds },
           ...statusFilter,
         });
+        
 
         const pageInfo = {
           hasNextPage: visaStatuses.length === limit && !before,

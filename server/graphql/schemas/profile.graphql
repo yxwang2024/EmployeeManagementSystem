@@ -77,8 +77,8 @@ type EmergencyContact {
   firstName: String!
   lastName: String!
   middleName: String
-  phone: String!
-  email: String!
+  phone: String
+  email: String
   relationship: String!
 }
 
@@ -152,8 +152,8 @@ input EmergencyContactInput {
   firstName: String!
   lastName: String!
   middleName: String
-  phone: String!
-  email: String!
+  phone: String
+  email: String
   relationship: String!
 }
 

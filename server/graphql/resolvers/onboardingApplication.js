@@ -413,10 +413,14 @@ const onboardingApplicationResolvers = {
             try {
                 const { id, status } = input;
 
-                //auth:HR
-                const user = await checkAuth(context);
-                if (!isHR(user)) {
-                    throw new Error('Authorization failed.');
+                //auth: employee self or HR
+                const decodedUser = await checkAuth(context);
+        
+                const employee = await Employee.findOne({ onboardingApplication: id });
+                const user = await User.findOne({ instance: employee._id });
+                const userId = user._id.toString();
+                if (!checkUser(decodedUser, userId) && !isHR(decodedUser)) {
+                    throw new Error('Query id and auth user do not match.');
                 }
 
                 const updatedOA = await OnboardingApplication.findByIdAndUpdate(
@@ -525,7 +529,7 @@ const onboardingApplicationResolvers = {
             } catch (err) {
                 throw new Error(err);
             }
-        },
+        },          
     },
 };
 
