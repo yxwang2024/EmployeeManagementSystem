@@ -172,7 +172,7 @@ function Header() {
             {isHR !== null && (isHR ? HRpages.map((page) => (
               <Button
                 key={page}
-                onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}
+                onClick={() => { navigate(page.toLowerCase().replace(/ /g, '-')) }}
                 sx={{ fontSize: '18px', my: 2, color: 'white', display: 'block', textTransform: 'none' }}
               >
                 {page}

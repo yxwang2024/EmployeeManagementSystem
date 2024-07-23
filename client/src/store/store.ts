@@ -5,6 +5,7 @@ import oaInfoReducer from './oaInfo';
 import globalReducer from './global';
 import employeeReducer from './slices/employee';
 import hrReducer from './slices/hr'
+import searchReducer from './slices/search';
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     global: globalReducer,
     employee: employeeReducer,
     hr:hrReducer,
+    search:searchReducer,
   },
 });
 

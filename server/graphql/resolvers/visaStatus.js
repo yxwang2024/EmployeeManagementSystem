@@ -134,9 +134,12 @@ const visaStatusResolvers = {
     },
     getVisaStatusConnection: async (
       _,
-      { query, first, after, last, before }
+      { query,status, first, after, last, before }
     ) => {
       try {
+        if ((first && last) || (after && before)) {
+          throw new Error("You must provide only one pair of pagination arguments: (first, after) or (last, before).");
+        }
         // if query is empty, return all visa statuses
         const searchQuery = query
           ? {
@@ -170,16 +173,16 @@ const visaStatusResolvers = {
           : {};
 
         let paginationQuery = {};
-        let sort = { _id: -1 };
+        let sort = { _id: last ? -1 : 1 };
         let limit = first || last || 10;
 
         if (after) {
-          paginationQuery._id = { $gt: ObjectId(after) };
+          paginationQuery._id = { $gt: ObjectId.createFromHexString(after) };
         }
 
         if (before) {
-          paginationQuery._id = { $lt: ObjectId(before) };
-          sort = { _id: 1 };
+          paginationQuery._id = { $lt: ObjectId.createFromHexString(before) };
+          sort = { _id: -1 };
         }
 
         const employees = await Employee.aggregate([
@@ -201,9 +204,34 @@ const visaStatusResolvers = {
 
         const employeeIds = employees.map((employee) => employee._id);
 
+        let statusFilter = {};
+        if (status) {
+          switch (status) {
+            case "Approved":
+              statusFilter = { 
+                status: "Approved",
+                step: "I20"
+              };
+              break;
+            case "In Progress":
+              statusFilter = {
+                $or: [
+                  { step: { $ne: "I20" } },
+                  { status: { $ne: "Approved" } }
+                ]
+              };
+              break;
+            default:
+              statusFilter = { status };
+              break;
+          }
+        }
+        console.log("statusFilter", status);
+
         const visaStatuses = await VisaStatus.find({
           employee: { $in: employeeIds },
           ...paginationQuery,
+          ...statusFilter,
         })
           .populate([
             "documents",
@@ -213,7 +241,7 @@ const visaStatusResolvers = {
           .sort(sort)
           .limit(limit);
 
-        if (before) {
+        if (before || last) {
           visaStatuses.reverse();
         }
 
@@ -224,7 +252,9 @@ const visaStatusResolvers = {
 
         const totalCount = await VisaStatus.countDocuments({
           employee: { $in: employeeIds },
+          ...statusFilter,
         });
+        
 
         const pageInfo = {
           hasNextPage: visaStatuses.length === limit && !before,

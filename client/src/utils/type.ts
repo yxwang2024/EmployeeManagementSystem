@@ -143,6 +143,7 @@ export interface PersonalInfoType {
 }
 
 export interface VisaStatusListItemType {
+  _id:string,
   legalName: string;
   title: string;
   startDate: string;
@@ -295,9 +296,43 @@ export interface AllVisaStatusesResponseType {
   };
 }
 
-export interface AllVisaStatusesWithQueryResponseType {
+export interface VisaStatusResponse{
+  _id: string;
+  employee: Employee;
+  step: string;
+  status: string;
+  hrFeedback: string;
+  workAuthorization: WorkAuthorization
+  documents: [Document]
+}
+
+export interface VisaStatusEdge{
+  cursor: string;
+  node: VisaStatusResponse
+}
+
+export interface PageInfo {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string;
+  endCursor: string;
+}
+
+export interface VisaStatusConnectionType{
+  totalCount: number;
+  edges: [VisaStatusEdge]
+  pageInfo: PageInfo
+}
+
+export interface VisaStatusConnectionResponseType {
   data: {
-    getVisaStatusWithQuery: [VisaStatusPopulatedType];
+    getVisaStatusConnection: VisaStatusConnectionType;
   };
 
+}
+
+export interface SingleVisaStatusesResponseType {
+  data: {
+    getVisaStatus: VisaStatusPopulatedType;
+  };
 }

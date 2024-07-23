@@ -1,6 +1,24 @@
 type Query {
   getAllProfiles: [Profile]
   getProfile(id: ID!): Profile
+  getProfileConnection(
+    first: Int
+    after: String
+    last: Int
+    before: String
+    query: String
+  ): ProfileConnection
+}
+
+type ProfileConnection {
+  totalCount: Int
+  edges: [ProfileEdge]
+  pageInfo: PageInfo
+}
+
+type ProfileEdge {
+  cursor: String
+  node: Profile
 }
 
 extend type Mutation {
@@ -59,8 +77,8 @@ type EmergencyContact {
   firstName: String!
   lastName: String!
   middleName: String
-  phone: String!
-  email: String!
+  phone: String
+  email: String
   relationship: String!
 }
 
@@ -134,8 +152,8 @@ input EmergencyContactInput {
   firstName: String!
   lastName: String!
   middleName: String
-  phone: String!
-  email: String!
+  phone: String
+  email: String
   relationship: String!
 }
 

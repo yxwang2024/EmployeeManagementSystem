@@ -3,51 +3,19 @@ import React, { useState, useEffect } from "react";
 import { Box, Paper,Button,Stack } from "@mui/material";
 import HrVisaStatusTable from "../components/HrVisaStatusTable";
 import SearchBar from "../components/SearchBar";
-const getAllVisaStatus = async () => {
-  //graphql query to get visa status
-  const query = `
-    query GetVisaStatuses {
-      getVisaStatuses {
-        _id
-        employee {
-          profile {
-            name {
-              firstName
-              middleName
-              lastName
-            }
-          }
-        }
-        workAuthorization {
-          title
-          startDate
-          endDate
-        }
-        status
-      }
-    }
-  `;
-  try {
-    const response = await axios.post("http://localhost:3000/graphql", {
-      query,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+import {updateSearchValue, triggerSearch} from "../store/slices/search.ts";
+import {useAppDispatch, useAppSelector} from "../store/hooks.ts";
 
-    if (response.data.errors) {
-      console.log("Response data errors:", response.data.errors);
-      throw new Error(response.data.errors[0].message);
-    }
-
-    return response.data.data.getVisaStatuses;
-  } catch (error) {
-    console.error(error);
-  }
-};
 
 const HrVisaStatusManagement: React.FC = () => {
+  const dispatch = useAppDispatch();
   const [option, setOption] = useState("InProgress");
+
+  useEffect(() => {
+    dispatch(updateSearchValue(""));
+    dispatch(triggerSearch());
+  }, [option]);
+
   return (
     <div className="visa-status-management md:pt-24">
       
