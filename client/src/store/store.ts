@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
-import onboardingApplicationReducer from './onboardingApplicationSlice';
+// import onboardingApplicationReducer from './onboardingApplicationSlice';
+import oaInfoReducer from './oaInfo';
 import globalReducer from './global';
 import employeeReducer from './slices/employee';
 import hrReducer from './slices/hr'
@@ -9,7 +10,8 @@ import searchReducer from './slices/search';
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    onboardingApplication: onboardingApplicationReducer,
+    // onboardingApplication: onboardingApplicationReducer,
+    oaInfo: oaInfoReducer,
     global: globalReducer,
     employee: employeeReducer,
     hr:hrReducer,
