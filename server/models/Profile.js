@@ -128,7 +128,8 @@ const profileSchema = new Schema({
             default:'',
         },
         middleName: {
-            type: String
+            type: String,
+            default:'',
         },
         phone: {
             type: String,

@@ -5,7 +5,8 @@ import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { login } from '../store/authSlice';
 import CustomTextField from '../components/CustomTextField';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { EmployeeInstanceType } from '../utils/type';
 
 const validationSchema = Yup.object({
   firstName: Yup.string().required('First Name is required'),
@@ -18,11 +19,23 @@ const SIGNUP_MUTATION = `
   mutation EmployeeRegister($input: EmployeeRegisterInput!) {
     EmployeeRegister(input: $input) {
       token
-      user {
-        username
-        email
-      }
       message
+      user {
+        id
+        email
+        username
+        password
+        role
+        instance {
+          ... on EmployeeInstance {
+            id
+            onboardingApplication {
+              id
+              status
+            }
+          }
+        }
+      }
     }
   }
 `;
@@ -30,6 +43,7 @@ const SIGNUP_MUTATION = `
 const SignUp: React.FC = () => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const getQueryParam = (param: string) => {
     return new URLSearchParams(location.search).get(param);
@@ -71,6 +85,12 @@ const SignUp: React.FC = () => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       dispatch(login({ token, user }));
+
+      if (user && (user?.instance as EmployeeInstanceType)?.onboardingApplication?.status === 'Approved') {
+        navigate('/');
+      } else {
+        navigate('/onboardingapplication');
+      }
     } catch (error) {
       const errorMessage = (error as Error).message;
       console.error('Registration failed:', errorMessage);
