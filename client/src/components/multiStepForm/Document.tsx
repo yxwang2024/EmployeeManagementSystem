@@ -118,7 +118,9 @@ const Document: React.FC = () => {
     >
       {({ handleSubmit, values, setFieldValue, resetForm }) => (
         <Form onSubmit={handleSubmit}>
-          <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Documents</h2>
+          <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>
+            {isOnboarding ? 'Document' : 'Employment Information'}
+          </h2>
           <div className='grid grid-col1 sm:grid-cols-2 sm:gap-x-8'>
             <div className='mb-4 col-span-1 sm:col-span-2'>
               <CustomCheckbox

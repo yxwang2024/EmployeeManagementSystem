@@ -277,6 +277,67 @@ export const GET_ONBOARDING = `
     }
   }
 `;
+export const GET_PROFILE_BY_ID = `
+query GetProfileByUserId($userId: ID!) {
+  getProfileByUserId(userId: $userId) {
+    id
+    email
+    name {
+      firstName
+      middleName
+      lastName
+      preferredName
+    }
+    profilePicture
+    identity {
+      ssn
+      dob
+      gender
+    }
+    currentAddress {
+      street
+      building
+      city
+      state
+      zip
+    }
+    contactInfo {
+      cellPhone
+      workPhone
+    }
+    employment {
+      visaTitle
+      startDate
+      endDate
+    }
+    reference {
+      firstName
+      lastName
+      middleName
+      phone
+      email
+      relationship
+    }
+    emergencyContacts {
+      id
+      firstName
+      lastName
+      middleName
+      phone
+      email
+      relationship
+    }
+    documents {
+      _id
+      title
+      timestamp
+      filename
+      url
+      key
+    }
+  }
+}
+`;
 
 export const GET_PROFILE = `
   query GetProfile($getProfileId: ID!) {

@@ -49,7 +49,7 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />
       },
       {
-        path: '/profile',
+        path: '/personal-information',
 
         element: <ProtectedRouteEmployee><Profile /></ProtectedRouteEmployee>,
 
