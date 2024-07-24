@@ -128,7 +128,8 @@ const Profile: React.FC = () => {
         </button>
 
         <div
-          className={`transition-opacity duration-200 ${
+          className={`absolute z-10 mt-2 w-60 top-10 -right-14
+            transition-opacity duration-200 ${
             open ? "opacity-100" : "opacity-0"
           } ${open ? "block" : "hidden"} min-w-60 bg-white shadow-md rounded-lg p-1 space-y-0.5 mt-2 dark:bg-neutral-800 dark:border dark:border-neutral-700 dark:divide-neutral-700`}
           role="menu"
