@@ -165,7 +165,7 @@ const HiringManagement: React.FC = () => {
     console.log('user:', user);
     if (user && user.role !== 'HR') {
       navigate('/login');
-    } else if (user) {
+    } else if (user && user.role === 'HR') {
       const HRId = user.instance.id;
       showLoading(true);
       dispatch(fetchHR(HRId)).then(() => {
