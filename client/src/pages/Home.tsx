@@ -6,7 +6,6 @@ import { EmployeeInstanceType } from '../utils/type';
 
 const Home: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user); 
-  
   return (
     <div className="w-full flex items-center justify-center h-screen bg-gray-100">
       <div>
@@ -19,9 +18,9 @@ const Home: React.FC = () => {
               </Link>
             </div>
           }
-        <div className="flex justify-center">
-          {(user && (user?.instance as EmployeeInstanceType)?.onboardingApplication?.status !== 'Approved') &&   
-            <Link to="/onboardingapplication" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-fit">
+        <div className="flex mx-auto">
+          {(user && user.role==="Employee" && (user?.instance as EmployeeInstanceType)?.onboardingApplication?.status !== 'Approved') &&   
+            <Link to="/onboardingapplication" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Start your application
             </Link>
           }

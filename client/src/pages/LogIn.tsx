@@ -108,7 +108,7 @@ const LogIn: React.FC = () => {
           navigate("/onboardingapplication");
         }
       } else if (user.role === "HR") {
-        navigate("/hiring-management");
+        navigate("/");
       } else {
         throw new Error("Invalid role");
       }

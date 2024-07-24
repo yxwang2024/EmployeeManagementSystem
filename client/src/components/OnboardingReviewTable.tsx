@@ -172,20 +172,48 @@ const OnboardingReviewTable: React.FC<{ option: string }> = ({ option }) => {
   };
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [query, setQuery] = useState({
-    first: rowsPerPage? rowsPerPage: 5,
-    last: 0,
-    before: "",
-    after: "",
-  });
+  // const [pageInfo, setPageInfo] = useState({
+  //   totalCount: 0,
+  //   startCursor: "",
+  //   endCursor: "",
+  //   hasNextPage: false,
+  //   hasPreviousPage: false,
+  // });
 
-  const [pageInfo, setPageInfo] = useState({
-    totalCount: 0,
-    startCursor: "",
-    endCursor: "",
-    hasNextPage: false,
-    hasPreviousPage: false,
-  });
+  // get pageInfo from localStorage if it exists
+  const pageInfoFromStorage = localStorage.getItem("OnboardingPageInfo");
+  const [pageInfo, setPageInfo] = useState(
+    pageInfoFromStorage ? JSON.parse(pageInfoFromStorage) : {
+      totalCount: 0,
+      startCursor: "",
+      endCursor: "",
+      hasNextPage: false,
+      hasPreviousPage: false,
+    }
+  );
+
+  const [query, setQuery] = useState(
+    page === 0
+      ? {
+          first: rowsPerPage,
+          last: 0,
+          before: "",
+          after: "",
+        }
+      : {
+          first: 0,
+          last: rowsPerPage,
+          before: pageInfo.startCursor,
+          after: "",
+        }
+  );
+
+  // const [query, setQuery] = useState({
+  //   first: rowsPerPage? rowsPerPage: 5,
+  //   last: 0,
+  //   before: "",
+  //   after: "",
+  // });
 
   const [Onboardings, setOnboardings] = useState<OnboardingListItemType[]>([]);
 
@@ -212,6 +240,14 @@ const OnboardingReviewTable: React.FC<{ option: string }> = ({ option }) => {
         hasNextPage: OnboardingConnection.pageInfo.hasNextPage,
         hasPreviousPage: OnboardingConnection.pageInfo.hasPreviousPage,
       });
+      const pageInfoToStore = {
+        totalCount: OnboardingConnection.totalCount,
+        startCursor: OnboardingConnection.pageInfo.startCursor,
+        endCursor: OnboardingConnection.pageInfo.endCursor,
+        hasNextPage: OnboardingConnection.pageInfo.hasNextPage,
+        hasPreviousPage: OnboardingConnection.pageInfo.hasPreviousPage,
+      };
+      localStorage.setItem("OnboardingPageInfo", JSON.stringify(pageInfoToStore));
       const statusList: OnboardingListItemType[] = [];
       edges.map((edge) => {
         const name: string = getLegalName(
