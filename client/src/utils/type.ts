@@ -371,4 +371,12 @@ export interface SingleOnboardingResponseType {
   data: {
     getOnboardingApplication: OnboardingApplication;
   };
+
+export interface ProfileListItemType {
+  _id:string;
+  legalName: string;
+  SSN:string;
+  title: string;
+  phone:string;
+  email:string;
 }

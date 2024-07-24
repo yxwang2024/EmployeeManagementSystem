@@ -13,7 +13,8 @@ const emergencyContactSchema = new Schema({
         required: true
     },
     middleName: {
-        type: String
+        type: String,
+        default:'',
     },
     phone: {
         type: String,
@@ -41,20 +42,21 @@ const profileSchema = new Schema({
             default:'',
         },
         middleName: {
-            type: String
+            type: String,
+            default:'',
         },
         preferredName: {
-            type: String
+            type: String,
+            default:'',
         }
     },
     profilePicture: {
         type: String,
-
         default: 'placeholder'
     },
     email: {
         type: String,
-            default:'',
+        default:'',
         required: true,
         unique: true
     },
@@ -128,7 +130,8 @@ const profileSchema = new Schema({
             default:'',
         },
         middleName: {
-            type: String
+            type: String,
+            default:'',
         },
         phone: {
             type: String,
