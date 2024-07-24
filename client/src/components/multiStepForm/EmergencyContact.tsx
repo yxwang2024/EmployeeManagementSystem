@@ -7,10 +7,11 @@ import { setCurrentStep, updateEmergencyContact } from '../../store/oaInfo';
 import CustomTextField from '../../components/CustomTextField';
 import StepController from './StepController';
 import { useLocation } from "react-router-dom";
-import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { GET_PROFILE_BY_ID, UPDATE_PROFILE_EMERGENCY_CONTACTS } from "../../services/queries";
 import { request } from "../../utils/fetch";
 import { useGlobal } from "../../store/hooks";
 import { delayFunctionCall } from "../../utils/utilities";
+import type { EmergencyContact } from '../../utils/type';
 
 const EmergencyContactSchema = Yup.object().shape({
   emergencyContacts: Yup.array().of(
@@ -31,6 +32,7 @@ const EmergencyContact: React.FC = () => {
   const location = useLocation();
   const isOnboarding = location.pathname === "/onboardingapplication";
   const user = useSelector((state: RootState) => state.auth.user);
+  const [profileId,setProfileId] = useState("");
   const emergencyContacts = useSelector((state: RootState) => state.oaInfo.emergencyContacts);
   const [isEditing, setIsEditing] = useState(false);
   // const [initialValues, setInitialValues] = useState({
@@ -52,6 +54,7 @@ const EmergencyContact: React.FC = () => {
     const userId = user.id;
     const response: any = await request(GET_PROFILE_BY_ID, { userId });
     const profile = response.data.getProfileByUserId;
+    setProfileId(profile.id);
     const contacts = profile.emergencyContacts;
     setInitialValues({
       emergencyContacts: contacts.length ? contacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }],
@@ -78,6 +81,18 @@ const EmergencyContact: React.FC = () => {
   //     emergencyContacts: emergencyContacts.length ? emergencyContacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }],
   //   });
   // }, [emergencyContacts]);
+
+  const updateNewEmergencyContact= async (profileId:string,emergencyContacts:EmergencyContact) => {
+    try {
+      const response = await request(UPDATE_PROFILE_EMERGENCY_CONTACTS, {
+        input: { id: profileId,emergencyContacts },
+      });
+      console.log("Update Profile Address Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
 
   const handleValidationAndUpdate = async (values: any, setFieldError: (field: string, message: string) => void) => {
     try {
@@ -107,6 +122,13 @@ const EmergencyContact: React.FC = () => {
         } else {
           console.log("Updating emergency contacts");
           // update emergency contacts
+        if(!profileId){
+          throw new Error("Did not get profileId");
+        }
+
+        const newEmergencyContact = values.emergencyContacts.map(({ id, ...rest }) => rest);
+        updateNewEmergencyContact(profileId,newEmergencyContact);        
+
         }
         dispatch(updateEmergencyContact(values.emergencyContacts));
         // const savedData = JSON.parse(localStorage.getItem(`oaInfo-${userId}`) || '{}');

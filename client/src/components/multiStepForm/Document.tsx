@@ -10,10 +10,11 @@ import CustomCheckbox from '../../components/CustomCheckbox';
 import CustomFile from '../../components/CustomFile';
 import StepController from './StepController';
 import { useLocation } from "react-router-dom";
-import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { GET_PROFILE_BY_ID, UPDATE_PROFILE_EMPLOYMENT } from "../../services/queries";
 import { request } from "../../utils/fetch";
 import { useGlobal } from "../../store/hooks";
 import { delayFunctionCall } from "../../utils/utilities";
+import type { Employment } from '../../utils/type';
 
 const DocumentSchema = Yup.object().shape({
   isCitizen: Yup.boolean().required('This field is required'),
@@ -69,6 +70,7 @@ const Document: React.FC = () => {
   const location = useLocation();
   const isOnboarding = location.pathname === "/onboardingapplication";
   const user = useSelector((state: RootState) => state.auth.user);
+  const [profileId,setProfileId] = useState("");
   const document = useSelector((state: RootState) => state.oaInfo.document);
   const [isEditing, setIsEditing] = useState(false);
   const [initialValues, setInitialValues] = useState(
@@ -83,6 +85,7 @@ const Document: React.FC = () => {
     const userId = user.id;
     const response: any = await request(GET_PROFILE_BY_ID, { userId });
     const profile = response.data.getProfileByUserId;
+    setProfileId(profile.id);
     const visaTitle = profile.employment.visaTitle;
     setInitialValues({
       isCitizen: visaTitle === 'isCitizen',
@@ -115,10 +118,38 @@ const Document: React.FC = () => {
     { value: 'Other', label: 'Other' },
   ];
 
+  const updateEmployment= async (profileId:string,employment:Employment) => {
+    try {
+      const response = await request(UPDATE_PROFILE_EMPLOYMENT, {
+        input: { id: profileId, visaTitle:employment.visaTitle,startDate:employment.startDate,endDate:employment.endDate},
+      });
+      console.log("Update Profile Employee Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
+
   const handleValidationAndUpdate = (values: any) => {
     const isValid = DocumentSchema.isValidSync(values);
     if (isValid) {
-      dispatch(updateDocument(values));
+      if (isOnboarding) {
+        dispatch(updateDocument(values));
+      } else {
+        console.log("Updating Employment");
+
+        if(!profileId){
+          throw new Error("Did not get profileId");
+        }
+
+        const newEmployment:Employment = {
+          visaTitle:values.visaTitle||"",
+          startDate:values.startDate||"",
+          endDate:values.endDate||"",
+        }
+        updateEmployment(profileId,newEmployment);
+      }
+      
     }
   };
 
