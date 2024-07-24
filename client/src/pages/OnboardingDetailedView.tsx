@@ -1,8 +1,8 @@
-import { Box, Button, IconButton, Typography, TextField } from "@mui/material";
+import { Box, Button, Typography, TextField } from "@mui/material";
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import DocViewerComponent from "../components/DocViewer";
-import { useAppSelector, useAppDispatch } from "../store/hooks";
+import { useAppSelector } from "../store/hooks";
 import { useGlobal } from "../store/hooks";
 import { delayFunctionCall } from "../utils/utilities";
 import { useNavigate } from "react-router-dom";
@@ -18,11 +18,9 @@ import {
 } from "../services/queries";
 import { request } from "../utils/fetch";
 import {
-  calculateRemainingDays,
   getDateString,
   getLegalName,
 } from "../services/dateServices";
-import { nextStep } from "../services/records";
 import ErrorPage from "./Error";
 
 const OnboardingDetailedView = () => {
