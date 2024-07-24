@@ -233,7 +233,7 @@ const OnboardingReviewTable: React.FC<{ option: string }> = ({ option }) => {
       console.log(e);
       showMessage(String(e));
     }
-  }, [query, search, option]);
+  }, [query, option, searchTriggered]);
 
   useEffect(() => {
     setPage(0);

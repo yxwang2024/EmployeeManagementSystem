@@ -47,7 +47,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function SearchBar( {option}: {option: string}) {
+export default function SearchBar() {
   const search = useAppSelector((state) => state.search.value);
   const dispatch = useAppDispatch();
 

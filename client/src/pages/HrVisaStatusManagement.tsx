@@ -27,7 +27,7 @@ const HrVisaStatusManagement: React.FC = () => {
             All
           </Button>
           {option == "All" && (
-          <SearchBar option={option}></SearchBar>
+          <SearchBar></SearchBar>
           )}
         </Stack>
         <Box sx={{ my: 3 }}>
