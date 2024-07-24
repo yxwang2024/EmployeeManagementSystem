@@ -117,7 +117,7 @@ export const REJECT_VISA_STATUS = `
   }
 `;
 
-export const GET_ALL_PROFILE_LIST = `
+export const GET_PROFILE_CONNECTION = `
   query GetProfileConnection($first: Int, $after: String, $last: Int, $before: String, $query: String) {
     getProfileConnection(first: $first, after: $after, last: $last, before: $before, query: $query) {
       totalCount
@@ -132,17 +132,22 @@ export const GET_ALL_PROFILE_LIST = `
             lastName
             preferredName
           }
-          profilePicture
           identity {
             ssn
-          }
-          employment {
-            visaTitle
           }
           contactInfo {
             cellPhone
           }
+          employment {
+            visaTitle
+          }
         }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
       }
     }
   }
@@ -269,6 +274,68 @@ export const GET_ONBOARDING = `
       }
       status
       hrFeedback
+    }
+  }
+`;
+
+export const GET_PROFILE = `
+  query GetProfile($getProfileId: ID!) {
+    getProfile(id: $getProfileId) {
+      id
+      email
+      name {
+        firstName
+        middleName
+        lastName
+        preferredName
+      }
+      profilePicture
+      identity {
+        ssn
+        dob
+        gender
+      }
+      currentAddress {
+        street
+        building
+        city
+        state
+        zip
+      }
+      contactInfo {
+        cellPhone
+        workPhone
+      }
+      employment {
+        visaTitle
+        startDate
+        endDate
+      }
+      reference {
+        firstName
+        lastName
+        middleName
+        phone
+        email
+        relationship
+      }
+      emergencyContacts {
+        id
+        firstName
+        lastName
+        middleName
+        phone
+        email
+        relationship
+      }
+      documents {
+        _id
+        title
+        timestamp
+        filename
+        url
+        key
+      }
     }
   }
 `;
