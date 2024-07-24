@@ -345,3 +345,12 @@ export const SEND_NOTIFICATION = `
     sendNotification(notificationInput: $notificationInput)
   }
 `;
+
+export const UPDATE_PROFILE_BY_OAID = `
+  mutation UpdateProfileByOAId($oaId: String) {
+    updateProfileByOAId(oaId: $oaId) {
+      id
+      email
+    }
+  }
+`;

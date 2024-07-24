@@ -15,6 +15,7 @@ import {
   APPROVE_ONBOARDING,
   REJECT_ONBOARDING,
   UPDATE_ONBOARDING_HR_FEEDBACK,
+  UPDATE_PROFILE_BY_OAID
 } from "../services/queries";
 import { request } from "../utils/fetch";
 import {
@@ -60,6 +61,12 @@ const OnboardingDetailedView = () => {
         input: { id: id, status: "Approved" },
       });
       console.log("Approve Response:", response);
+
+      const updateProfileResponse = await request(UPDATE_PROFILE_BY_OAID, {
+        oaId:id
+      });
+      console.log("updateProfileResponse:", updateProfileResponse);
+
     } catch (e) {
       console.log(e);
       showMessage(String(e));

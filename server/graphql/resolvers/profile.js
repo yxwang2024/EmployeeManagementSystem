@@ -1,6 +1,7 @@
 import Employee from "../../models/Employee.js";
 import Profile from "../../models/Profile.js";
 import User from "../../models/User.js";
+import OnboardingApplication from "../../models/OnboardingApplication.js";
 
 import { checkAuth, isHR, checkUser, isEmployee } from "../../services/auth.js";
 import { ObjectId } from "mongodb";
@@ -48,6 +49,27 @@ const profileResolvers = {
         console.error(error);
       }
     },
+    getProfileByUserId: async (parent, { userId }, context, info) => {
+      try {
+        console.log("userId",userId);
+        //auth: employee self or HR
+        const decodedUser = await checkAuth(context);
+
+        const user = await User.findById(userId).populate('instance');
+        if (!checkUser(decodedUser, user._id.toString()) && !isHR(decodedUser)) {
+          throw new Error("Query id and auth user do not match.");
+        }
+
+        const profileId = user.instance.profile;
+        const profile = await Profile.findById(profileId).populate('documents');
+        if (!profile) {
+          throw new Error("Profile not found");
+        }
+        return profile;
+      } catch (error) {
+        console.error(error);
+      }
+    },
     getProfileConnection: async (_, { query, first, after, last, before }) => {
       try {
         if ((first && last) || (after && before)) {
@@ -58,41 +80,41 @@ const profileResolvers = {
         // if query is empty, return all visa statuses
         const searchQuery = query
           ? {
-              $or: [
-                {
-                  "name.firstName": {
-                    $regex: query,
-                    $options: "i",
-                  },
+            $or: [
+              {
+                "name.firstName": {
+                  $regex: query,
+                  $options: "i",
                 },
-                {
-                  "name.middleName": {
-                    $regex: query,
-                    $options: "i",
-                  },
+              },
+              {
+                "name.middleName": {
+                  $regex: query,
+                  $options: "i",
                 },
-                {
-                  "name.lastName": {
-                    $regex: query,
-                    $options: "i",
-                  },
+              },
+              {
+                "name.lastName": {
+                  $regex: query,
+                  $options: "i",
                 },
-                {
-                  "name.preferredName": {
-                    $regex: query,
-                    $options: "i",
-                  },
+              },
+              {
+                "name.preferredName": {
+                  $regex: query,
+                  $options: "i",
                 },
-              ],
-            }
+              },
+            ],
+          }
           : {};
 
-           // Exclude profiles with firstName as an empty string
-          searchQuery["name.firstName"] = { $ne: "" };
+        // Exclude profiles with firstName as an empty string
+        searchQuery["name.firstName"] = { $ne: "" };
 
         let paginationQuery = {};
         //let sort = { _id: last ? -1 : 1 };
-        let sort = { "name.lastName": 1 }; 
+        let sort = { "name.lastName": 1 };
         let limit = first || last || 10;
 
         if (after) {
@@ -322,6 +344,37 @@ const profileResolvers = {
       const updatedProfile = await Profile.findByIdAndUpdate(
         id,
         { documents: documents },
+        { new: true }
+      ).populate('documents');
+      return updatedProfile;
+    },
+    updateProfileByOAId: async (parent, { oaId }, context, info) => {
+      console.log("OAId:", oaId);
+      //auth:HR
+      const user = await checkAuth(context);
+      if (!isHR(user)) {
+        throw new Error("Authorization failed.");
+      }
+
+      const onboardingApplication = await OnboardingApplication.findById(oaId).populate('documents');
+      console.log("onboardingApplication:", onboardingApplication);
+
+      const employee = await Employee.findOne({ onboardingApplication: oaId });
+      console.log("employee:", employee);
+
+
+      const updatedProfile = await Profile.findByIdAndUpdate(
+        employee.profile,
+        {
+          name: onboardingApplication.name,
+          identity: onboardingApplication.identity,
+          currentAddress: onboardingApplication.currentAddress,
+          contactInfo: onboardingApplication.contactInfo,
+          employment: onboardingApplication.employment,
+          reference: onboardingApplication.reference,
+          emergencyContacts: onboardingApplication.emergencyContacts,
+          documents: onboardingApplication.documents
+        },
         { new: true }
       ).populate('documents');
       return updatedProfile;

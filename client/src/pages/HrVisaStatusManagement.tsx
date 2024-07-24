@@ -11,13 +11,11 @@ import { toAllOption, toInProgressOption } from "../store/slices/option.ts";
 const HrVisaStatusManagement: React.FC = () => {
   const dispatch = useAppDispatch();
   const option = useAppSelector((state) => state.option.value);
-  const location = useLocation();
 
   useEffect(() => {
-    console.log("Location changed:", location);
     dispatch(updateSearchValue(""));
     dispatch(triggerSearch());
-  }, [option,location, dispatch]);
+  }, [option]);
 
   return (
     <div className="visa-status-management md:pt-24">

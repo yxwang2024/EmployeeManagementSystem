@@ -273,6 +273,7 @@ const HrVisaStatusTable: React.FC = () => {
     setLast(0);
   }, [searchTriggered, option]);
 
+  
   useEffect(() => {
     showLoading(true);
     getVisaStatusConnection()

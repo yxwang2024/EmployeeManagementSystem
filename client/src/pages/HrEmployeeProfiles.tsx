@@ -10,12 +10,11 @@ import { useAppDispatch, useAppSelector } from "../store/hooks.ts";
 
 const HrEmployeeProfiles: React.FC = () => {
   const dispatch = useAppDispatch();
-  const location = useLocation();
 
   useEffect(() => {
     dispatch(updateSearchValue(""));
     dispatch(triggerSearch());
-  }, [location]);
+  }, []);
 
   return (
     <div className="employee-profiles md:pt-24">

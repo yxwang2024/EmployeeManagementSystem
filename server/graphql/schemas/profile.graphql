@@ -1,6 +1,7 @@
 type Query {
   getAllProfiles: [Profile]
   getProfile(id: ID!): Profile
+  getProfileByUserId(userId: ID!): Profile
   getProfileConnection(
     first: Int
     after: String
@@ -30,6 +31,7 @@ extend type Mutation {
   updateProfileReference(input: ReferenceInput): Profile
   updateProfileEmergencyContact(input: EmergencyContactUpdateInput): Profile
   updateProfileDocuments(input: DocumentsUpdateInput): Profile
+  updateProfileByOAId(oaId:String):Profile
 }
 
 type Name {
