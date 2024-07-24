@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Formik, Form, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,6 +7,11 @@ import { updateContactInfo, setCurrentStep } from '../../store/oaInfo';
 import CustomTextField from '../../components/CustomTextField';
 import StepController from './StepController';
 import { useLocation } from 'react-router-dom';
+import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { request } from "../../utils/fetch";
+import { useGlobal } from "../../store/hooks";
+import { delayFunctionCall } from "../../utils/utilities";
+import { Typography } from "@mui/material";
 
 const ContactInfoSchema = Yup.object().shape({
   cellPhone: Yup.string()
@@ -37,20 +42,49 @@ const ContactInfoSchema = Yup.object().shape({
 const ContactInfo: React.FC = () => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const isOnboarding = location.pathname === "/onboardingapplication";
+  const user = useSelector((state: RootState) => state.auth.user);
   const contactInfo = useSelector((state: RootState) => state.oaInfo.contactInfo);
   const [isEditing, setIsEditing] = useState(false);
-  const [initialValues, setInitialValues] = useState(contactInfo);
-  const userId = useSelector((state: RootState) => state.oaInfo.userId);
+  const [initialValues, setInitialValues] = useState(
+    isOnboarding
+      ? contactInfo
+      : { cellPhone: "", workPhone: "" }
+  );
+
+  const { showLoading, showMessage } = useGlobal();
+
+  const getProfile = useCallback(async () => {
+    if (!user) return;
+    const userId = user.id;
+    const response: any = await request(GET_PROFILE_BY_ID, { userId });
+    const profile = response.data.getProfileByUserId;
+    setInitialValues({
+      cellPhone: profile.contactInfo.cellPhone,
+      workPhone: profile.contactInfo.workPhone,
+    });
+  }, [user]);
 
   useEffect(() => {
-    setInitialValues(contactInfo);
-  }, [contactInfo]);
+    showLoading(true);
+    if (isOnboarding) {
+      setInitialValues(contactInfo);
+      delayFunctionCall(showLoading, 300, false);
+    } else {
+      getProfile()
+        .then(() => delayFunctionCall(showLoading, 300, false))
+        .catch(() => {
+          showMessage("Failed to fetch profile contact info", "failed", 2000);
+          showLoading(false);
+        });
+    }
+  }, []);
 
   const handleValidationAndUpdate = (values: any) => {
     const isValid = ContactInfoSchema.isValidSync(values);
     if (isValid) {
       dispatch(updateContactInfo(values));
-      localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...contactInfo, ...values }));
+      // localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...contactInfo, ...values }));
     }
   };
 
@@ -71,8 +105,6 @@ const ContactInfo: React.FC = () => {
     setIsEditing(false);
     actions.setSubmitting(false);
   };
-
-  const isOnboarding = location.pathname === '/onboardingapplication';
 
   return (
     <Formik

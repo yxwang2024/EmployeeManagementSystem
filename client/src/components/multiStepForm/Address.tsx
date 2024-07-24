@@ -11,7 +11,6 @@ import { GET_PROFILE_BY_ID } from "../../services/queries";
 import { request } from "../../utils/fetch";
 import { useGlobal } from "../../store/hooks";
 import { delayFunctionCall } from "../../utils/utilities";
-import { Typography } from "@mui/material";
 
 const AddressSchema = Yup.object().shape({
   street: Yup.string().required("Street is required"),
@@ -42,10 +41,8 @@ const Address: React.FC = () => {
   const getProfile = useCallback(async () => {
     if (!user) return;
     const userId = user.id;
-    console.log("userId", userId);
     const response: any = await request(GET_PROFILE_BY_ID, { userId });
     const profile = response.data.getProfileByUserId;
-    console.log("profile", profile);
     setInitialValues({
       street: profile.currentAddress.street,
       building: profile.currentAddress.building,

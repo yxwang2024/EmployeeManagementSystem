@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Formik, Form, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +9,11 @@ import CustomSelectField from '../../components/CustomSelectField';
 import CustomCheckbox from '../../components/CustomCheckbox';
 import CustomFile from '../../components/CustomFile';
 import StepController from './StepController';
+import { useLocation } from "react-router-dom";
+import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { request } from "../../utils/fetch";
+import { useGlobal } from "../../store/hooks";
+import { delayFunctionCall } from "../../utils/utilities";
 
 const DocumentSchema = Yup.object().shape({
   isCitizen: Yup.boolean().required('This field is required'),
@@ -61,13 +66,46 @@ const DocumentSchema = Yup.object().shape({
 
 const Document: React.FC = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const isOnboarding = location.pathname === "/onboardingapplication";
+  const user = useSelector((state: RootState) => state.auth.user);
   const document = useSelector((state: RootState) => state.oaInfo.document);
   const [isEditing, setIsEditing] = useState(false);
-  const [initialValues, setInitialValues] = useState(document);
+  const [initialValues, setInitialValues] = useState(
+    isOnboarding
+      ? document
+      : { visaTitle: '', startDate: '', endDate: '', isCitizen: false }
+  );
+  const { showLoading, showMessage } = useGlobal();
+
+  const getProfile = useCallback(async () => {
+    if (!user) return;
+    const userId = user.id;
+    const response: any = await request(GET_PROFILE_BY_ID, { userId });
+    const profile = response.data.getProfileByUserId;
+    const visaTitle = profile.employment.visaTitle;
+    setInitialValues({
+      isCitizen: visaTitle === 'isCitizen',
+      visaTitle: profile.employment.visaTitle,
+      startDate: profile.employment.startDate,
+      endDate: profile.employment.endDate,
+    });
+  }, [user]);
 
   useEffect(() => {
-    setInitialValues(document);
-  }, [document]);
+    showLoading(true);
+    if (isOnboarding) {
+      setInitialValues(document);
+      delayFunctionCall(showLoading, 300, false);
+    } else {
+      getProfile()
+        .then(() => delayFunctionCall(showLoading, 300, false))
+        .catch(() => {
+          showMessage("Failed to fetch profile employment information", "failed", 2000);
+          showLoading(false);
+        });
+    }
+  }, []);
 
   const visaOptions = [
     { value: 'H1-B', label: 'H1-B' },
@@ -102,8 +140,6 @@ const Document: React.FC = () => {
     actions.setSubmitting(false);
   };
 
-  const isOnboarding = window.location.pathname === '/onboardingapplication';
-
   return (
     <Formik
       enableReinitialize
@@ -122,6 +158,8 @@ const Document: React.FC = () => {
             {isOnboarding ? 'Document' : 'Employment Information'}
           </h2>
           <div className='grid grid-col1 sm:grid-cols-2 sm:gap-x-8'>
+            {
+              isOnboarding && (
             <div className='mb-4 col-span-1 sm:col-span-2'>
               <CustomCheckbox
                 name="isCitizen"
@@ -140,6 +178,7 @@ const Document: React.FC = () => {
                 disabled={!isOnboarding && !isEditing}
               />
             </div>
+          )}
             {!values.isCitizen && (
               <>
                 <CustomSelectField
@@ -148,7 +187,7 @@ const Document: React.FC = () => {
                   options={visaOptions}
                   disabled={!isOnboarding && !isEditing}
                 />
-                {values.visaTitle === 'F1(CPT/OPT)' && 
+                {values.visaTitle === 'F1(CPT/OPT)' && isOnboarding && 
                   <CustomFile 
                     name="optReceipt" 
                     label="OPT Receipt" 
@@ -178,7 +217,7 @@ const Document: React.FC = () => {
                     }} 
                   />
                 }
-                {values.visaTitle === 'Other' && <CustomTextField name="otherVisa" label="Specify Visa Title" disabled={!isOnboarding && !isEditing} />}
+                {values.visaTitle === 'Other' && isOnboarding && <CustomTextField name="otherVisa" label="Specify Visa Title" disabled={!isOnboarding && !isEditing} />}
                 <CustomTextField 
                   name="startDate" 
                   label="Start Date" 
@@ -197,6 +236,8 @@ const Document: React.FC = () => {
                 />
               </>
             )}
+            {
+              isOnboarding && (
             <div className='col-span-1 sm:col-span-2'>
               <CustomFile 
                 name="driverLicense" 
@@ -227,6 +268,7 @@ const Document: React.FC = () => {
                 }} 
               />
             </div>
+          )}
           </div>
           {isOnboarding ? (
             <StepController 

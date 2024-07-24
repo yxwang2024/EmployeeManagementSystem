@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Formik, Form, FieldArray, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,6 +6,11 @@ import { RootState } from '../../store/store';
 import { setCurrentStep, updateEmergencyContact } from '../../store/oaInfo';
 import CustomTextField from '../../components/CustomTextField';
 import StepController from './StepController';
+import { useLocation } from "react-router-dom";
+import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { request } from "../../utils/fetch";
+import { useGlobal } from "../../store/hooks";
+import { delayFunctionCall } from "../../utils/utilities";
 
 const EmergencyContactSchema = Yup.object().shape({
   emergencyContacts: Yup.array().of(
@@ -23,18 +28,56 @@ const EmergencyContactSchema = Yup.object().shape({
 
 const EmergencyContact: React.FC = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const isOnboarding = location.pathname === "/onboardingapplication";
+  const user = useSelector((state: RootState) => state.auth.user);
   const emergencyContacts = useSelector((state: RootState) => state.oaInfo.emergencyContacts);
-  const userId = useSelector((state: RootState) => state.oaInfo.userId);
   const [isEditing, setIsEditing] = useState(false);
-  const [initialValues, setInitialValues] = useState({
-    emergencyContacts: emergencyContacts.length ? emergencyContacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }],
-  });
+  // const [initialValues, setInitialValues] = useState({
+  //   emergencyContacts: emergencyContacts.length ? emergencyContacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }],
+  // });
+  const init = emergencyContacts.length ? emergencyContacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }];
+
+  const [initialValues, setInitialValues] = useState(
+    isOnboarding
+      ? { emergencyContacts: init }
+      : { emergencyContacts: [ { firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' } ] }
+
+  );
+
+  const { showLoading, showMessage } = useGlobal();
+
+  const getProfile = useCallback(async () => {
+    if (!user) return;
+    const userId = user.id;
+    const response: any = await request(GET_PROFILE_BY_ID, { userId });
+    const profile = response.data.getProfileByUserId;
+    const contacts = profile.emergencyContacts;
+    setInitialValues({
+      emergencyContacts: contacts.length ? contacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }],
+    });
+  }, [user]);
 
   useEffect(() => {
-    setInitialValues({
-      emergencyContacts: emergencyContacts.length ? emergencyContacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }],
-    });
-  }, [emergencyContacts]);
+    showLoading(true);
+    if (isOnboarding) {
+      setInitialValues({ emergencyContacts });
+      delayFunctionCall(showLoading, 300, false);
+    } else {
+      getProfile()
+        .then(() => delayFunctionCall(showLoading, 300, false))
+        .catch(() => {
+          showMessage('Failed to fetch emergency contacts', 'failed', 2000);
+          showLoading(false);
+        });
+    }
+  }, []);
+
+  // useEffect(() => {
+  //   setInitialValues({
+  //     emergencyContacts: emergencyContacts.length ? emergencyContacts : [{ firstName: '', middleName: '', lastName: '', relationship: '', phone: '', email: '' }],
+  //   });
+  // }, [emergencyContacts]);
 
   const handleValidationAndUpdate = async (values: any, setFieldError: (field: string, message: string) => void) => {
     try {
@@ -59,10 +102,15 @@ const EmergencyContact: React.FC = () => {
           setFieldError(`emergencyContacts.${index}.relationship`, 'Duplicate contact found');
         });
       } else {
+        if (isOnboarding) {
+          dispatch(updateEmergencyContact(values.emergencyContacts));
+        } else {
+          console.log("Updating emergency contacts");
+          // update emergency contacts
+        }
         dispatch(updateEmergencyContact(values.emergencyContacts));
-        const savedData = JSON.parse(localStorage.getItem(`oaInfo-${userId}`) || '{}');
-        localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...savedData, emergencyContacts: values.emergencyContacts }));
-        dispatch(setCurrentStep(7));
+        // const savedData = JSON.parse(localStorage.getItem(`oaInfo-${userId}`) || '{}');
+        // localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...savedData, emergencyContacts: values.emergencyContacts }));
       }
     } catch (err) {
       err.inner.forEach((error: any) => {
@@ -89,14 +137,18 @@ const EmergencyContact: React.FC = () => {
     setIsEditing(false);
   };
 
-  const isOnboarding = window.location.pathname === '/onboardingapplication';
-
   return (
     <Formik
       enableReinitialize
       initialValues={initialValues}
       validationSchema={EmergencyContactSchema}
-      onSubmit={handleSave}
+      onSubmit={(values, actions) => {
+        handleSave(values, actions);
+        if (isOnboarding) {
+          dispatch(setCurrentStep(7));
+        }
+      }
+      }
     >
       {({ handleSubmit, values, setFieldError, validateForm, resetForm }) => (
         <Form onSubmit={handleSubmit}>
