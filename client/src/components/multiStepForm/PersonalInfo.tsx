@@ -189,6 +189,16 @@ const PersonalInfo: React.FC = () => {
           <h2 className="text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10">
             Personal Information
           </h2>
+          {values.profilePicture &&
+              values.profilePicture === "placeholder" ? (
+                <Typography>No profile picture uploaded</Typography>
+              ) : (
+                <img
+                  src={values.profilePicture}
+                  alt="Profile"
+                  className="w-40 h-40 rounded-full mx-auto"
+                />
+          )}
           <div className="grid grid-col1 sm:grid-cols-2 sm:gap-x-8">
             <CustomTextField
               name="firstName"
@@ -211,16 +221,6 @@ const PersonalInfo: React.FC = () => {
               disabled={!isOnboarding && !isEditing}
             />
             <div className="col-span-1 sm:col-span-2">
-              {values.profilePicture &&
-              values.profilePicture === "placeholder" ? (
-                <Typography>No profile picture uploaded</Typography>
-              ) : (
-                <img
-                  src={values.profilePicture}
-                  alt="Profile"
-                  className="w-40 h-40 rounded-full mx-auto"
-                />
-              )}
               <CustomFile
                 name="profilePicture"
                 label="Profile Picture"
