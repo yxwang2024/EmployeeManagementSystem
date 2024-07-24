@@ -146,6 +146,10 @@ const PersonalInfo: React.FC = () => {
         dispatch(updatePersonalInfo(values));
       } else {
         console.log("update profile");
+        console.log("values", values);
+        // update name
+        // update identity
+        // update profile picture
       }
     }
   };
@@ -196,7 +200,7 @@ const PersonalInfo: React.FC = () => {
                 <img
                   src={values.profilePicture}
                   alt="Profile"
-                  className="w-40 h-40 rounded-full mx-auto"
+                  className="w-28 h-28 rounded-full mx-auto mb-2"
                 />
           )}
           <div className="grid grid-col1 sm:grid-cols-2 sm:gap-x-8">

@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PersonalInfoStep from '../components/multiStepForm/PersonalInfo';
 import AddressStep from '../components/multiStepForm/Address';
 import ContactInfoStep from '../components/multiStepForm/ContactInfo';
 import DocumentStep from '../components/multiStepForm/Document';
 import EmergencyContactStep from '../components/multiStepForm/EmergencyContact';
+import { RootState } from '../store/store';
+import { useAppSelector, useGlobal } from '../store/hooks';
+import { useNavigate } from 'react-router-dom';
 
 const Profile: React.FC = () => {
+  const navigate = useNavigate(); 
   const [activeSection, setActiveSection] = useState<string>('name');
+  const oaInfo = useAppSelector((state: RootState) => state.oaInfo);
+  const { showLoading, showMessage } = useGlobal();
+
+  useEffect(() => {
+    if (oaInfo.status !== "Approved") {
+      showMessage('You are not approved to view this page', 'error', 2000);
+      navigate('/onboardingapplication');
+    }
+  }, [oaInfo.status]);
 
   const renderSection = () => {
     switch (activeSection) {
