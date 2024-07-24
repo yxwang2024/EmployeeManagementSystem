@@ -78,7 +78,7 @@ const fileUploadRequest = async <T>(
     })
   );
   formData.append("0", file);
-  console.log("file", formData);
+  console.log("File!!!", formData);
   const response = await axios.post(`${prefix}/graphql`, formData, {
     headers: {
       Accept: "application/json",
