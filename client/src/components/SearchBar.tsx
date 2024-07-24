@@ -56,6 +56,10 @@ export default function SearchBar() {
       dispatch(triggerSearch());
     }
   };
+
+  React.useEffect(() => {
+    console.log("Search value in SearchBar:", search); 
+  }, [search]);
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Search sx={{ border: "1px solid grey" }}>

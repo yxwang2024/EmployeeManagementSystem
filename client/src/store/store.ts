@@ -6,6 +6,7 @@ import globalReducer from './global';
 import employeeReducer from './slices/employee';
 import hrReducer from './slices/hr'
 import searchReducer from './slices/search';
+import optionReducer from './slices/option'
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     employee: employeeReducer,
     hr:hrReducer,
     search:searchReducer,
+    option:optionReducer
   },
 });
 

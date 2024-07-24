@@ -4,6 +4,7 @@ import Document from "../../models/Document.js";
 import Joi from "joi";
 import Employee from "../../models/Employee.js";
 import { ObjectId } from "mongodb";
+import { sendEmail } from '../../services/emailServices.js';
 
 const visaStatusInputSchema = Joi.object({
   employee: Joi.string().required(),
@@ -469,18 +470,33 @@ const visaStatusResolvers = {
         throw new Error(err);
       }
     },
+    sendNotification: async (parent, { notificationInput }, context, info) => {
+      try {
+          console.log(notificationInput);
+          const { email, nextStep } = notificationInput;
+
+          //auth:HR
+          const user = await checkAuth(context);
+          if (!isHR(user)) {
+              throw new Error('Authorization failed.');
+          }
+
+          const subject = "Next Step Notification For Visa Status";
+          const html = `
+            <p>Hi,</p>
+            <p>Your next step for visa status is ${nextStep}.</p>
+            <p>Please go to visa status page and upload all the documents needed.</p>
+            <p>Thank you!</p>
+          `;
+          await sendEmail(email, subject, html);
+          console.log(subject, html);
+          return "success";
+      } catch (error) {
+          console.error(error);
+      }
   },
-  // Subscription: {
-  //   visaStatusAdded: {
-  //     subscribe: () => pubsub.asyncIterator('VISA_STATUS_ADDED'),
-  //   },
-  //   visaStatusUpdated: {
-  //     subscribe: () => pubsub.asyncIterator('VISA_STATUS_UPDATED'),
-  //   },
-  //   visaStatusDeleted: {
-  //     subscribe: () => pubsub.asyncIterator('VISA_STATUS_DELETED'),
-  //   },
-  // },
+  },
+  
 };
 
 export default visaStatusResolvers;

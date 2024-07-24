@@ -339,3 +339,9 @@ export const GET_PROFILE = `
     }
   }
 `;
+
+export const SEND_NOTIFICATION = `
+  mutation SendNotification($notificationInput: NotificationInput) {
+    sendNotification(notificationInput: $notificationInput)
+  }
+`;
