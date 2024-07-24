@@ -138,9 +138,9 @@ export const initializeFromLocalStorage = createAsyncThunk(
     const state = getState() as RootState;
     const status = state.oaInfo.status;
 
-    if (status === 'NotSubmitted' || status === 'Rejected') {
+    if (status === 'Rejected') {
       await dispatch(fetchOnboardingData(currentUserId));
-    } else {
+    } else if(status === "NotSubmitted") {
       const savedData = localStorage.getItem('oaInfo');
       if (savedData) {
         const data = JSON.parse(savedData);
@@ -237,6 +237,7 @@ export const fetchOnboardingData = createAsyncThunk(
         query,
         variables: { oaId: onboardingApplicationId },
       });
+      console.log("!!!response: ", response);
       if (response.data.errors) {
         return rejectWithValue(response.data.errors);
       }

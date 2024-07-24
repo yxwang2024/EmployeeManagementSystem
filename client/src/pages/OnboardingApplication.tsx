@@ -22,15 +22,27 @@ const OnboardingApplication: React.FC = () => {
 
   useEffect(() => {
     dispatch(initializeFromLocalStorage()).then(() => {
-      if (status === 'NotSubmitted' || status === 'Rejected') {
-        const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id;
+      const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id;
+      if (status === 'Rejected') {
         dispatch(fetchOnboardingData(userId)).then((response: any) => {
-          if (status === 'Rejected' && response.payload && response.payload.hrFeedback) {
+          if (response.payload && response.payload.hrFeedback) {
             setFeedback(response.payload.hrFeedback);
           }
         });
       }
     });
+  }, [dispatch, status]);
+
+  useEffect(() => {
+    if (status === 'NotSubmitted') {
+      const savedData = localStorage.getItem('oaInfo');
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        if (data) {
+          dispatch(setOaInfoData(data));
+        }
+      }
+    }
   }, [dispatch, status]);
 
   if (!isInitialized) {
