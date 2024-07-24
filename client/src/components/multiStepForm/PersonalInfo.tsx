@@ -326,7 +326,7 @@ const PersonalInfo: React.FC = () => {
                 }}
               />
             </div>
-            <CustomTextField name="email" label="Email" type="email" disabled />
+            <CustomTextField name="email" label="Email" type="email" disabled={!isOnboarding && !isEditing} />
             <CustomTextField
               name="ssn"
               label="SSN"
