@@ -5,8 +5,10 @@ import { updateOAName, updateOAIdentity, updateOACurrentAddress, updateOAContact
 import { OaNameType, IdentityType, EmploymentType, ReferenceType } from '../../utils/type';
 import StepController from './StepController';
 import { useNavigate } from 'react-router-dom';
+import DocViewerComponent from '../DocViewer';
+import { Typography } from "@mui/material";
 
-function base64ToFile(base64: string, filename: string): File {
+function base64ToFile(base64: string, filename: string): { file: File, mimeType: string } {
   const arr = base64.split(',');
   const mime = arr[0].match(/:(.*?);/)[1];
   const bstr = atob(arr[1]);
@@ -15,7 +17,7 @@ function base64ToFile(base64: string, filename: string): File {
   while (n--) {
     u8arr[n] = bstr.charCodeAt(n);
   }
-  return new File([u8arr], filename, { type: mime });
+  return { file: new File([u8arr], filename, { type: mime }), mimeType: mime };
 }
 
 const Summary: React.FC = () => {
@@ -28,6 +30,7 @@ const Summary: React.FC = () => {
   const endDate = new Date('2000-01-01T00:00:00.000+00:00').toISOString();
   const navigate = useNavigate(); 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [documents, setDocuments] = useState<any>(null);
 
   useEffect(() => {
     const storedData = localStorage.getItem(`oaInfo-${userId}`);
@@ -36,6 +39,7 @@ const Summary: React.FC = () => {
       const data = JSON.parse(storedData);
       setPersonalInfo(data.personalInfo);
       setDocumentInfo(data.document);
+      setDocuments(data.documents);
     }
   }, []);
 
@@ -111,21 +115,23 @@ const Summary: React.FC = () => {
       //   await dispatch(updateOAProfilePic(profilePicFile));
       // }
       if (oaInfo.personalInfo.profilePicture && typeof oaInfo.personalInfo.profilePicture === 'object') {
-        const profilePicFile = base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture');
+        const { file: profilePicFile, mimeType } = base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture');
         await dispatch(updateOAProfilePic(profilePicFile));
       }      
   
       if (oaInfo.document.optReceipt && typeof oaInfo.document.optReceipt === 'object') {
-        const optReceiptFile = base64ToFile(oaInfo.document.optReceipt, 'optReceipt');
-        const document = await dispatch(getUrl('optReceipt', optReceiptFile));
+        const { file: optReceiptFile, mimeType } = base64ToFile(oaInfo.document.optReceipt, 'optReceipt');
+        const optReceiptFilename = `optReceipt.${mimeType.split('/')[1]}`;
+        const document = await dispatch(getUrl(optReceiptFilename, optReceiptFile));
         if (document) {
           await dispatch(addOADocument({ id: onboardingApplicationId, documentId: document._id }));
         }
       }
   
       if (oaInfo.document.driverLicense && typeof oaInfo.document.driverLicense === 'object') {
-        const driverLicenseFile = base64ToFile(oaInfo.document.driverLicense, 'driverLicense');
-        const document = await dispatch(getUrl('driverLicense', driverLicenseFile));
+        const { file: driverLicenseFile, mimeType } = base64ToFile(oaInfo.document.driverLicense, 'driverLicense');
+        const driverLicenseFilename = `driverLicense.${mimeType.split('/')[1]}`;
+        const document = await dispatch(getUrl(driverLicenseFilename, driverLicenseFile));
         if (document) {
           await dispatch(addOADocument({ id: onboardingApplicationId, documentId: document._id }));
         }
@@ -169,6 +175,7 @@ const Summary: React.FC = () => {
       }
       {personalInfo?.profilePicture && (
         <div className="mb-4">
+          {/* {console.log(base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture'))}; */}
           <p className='text-gray-700 text-md md:text-lg font-normal'>Profile Picture:</p>
           <img src={personalInfo.profilePicture} alt="Profile" className="mb-2"/>
           <button
@@ -181,7 +188,7 @@ const Summary: React.FC = () => {
           >
             Download Profile Picture
           </button>
-          <hr className="mt-8 mb-4 border-stone-500 border-1 w-full"></hr>
+          {/* <hr className="mt-8 mb-4 border-stone-500 border-1 w-full"></hr> */}
         </div>
       )}
       <div className='grid grid-col1 sm:grid-cols-2 sm:gap-x-8'>
@@ -204,12 +211,12 @@ const Summary: React.FC = () => {
                 <p className='text-gray-700 text-md md:text-lg font-normal'>Driver License:</p>
                 <button
                   type="button"
-                  className='bg-stone-400 font-semibold text-white border rounded text-center px-4 py-2 text-md md:text-lg font-semibold'
+                  className='bg-stone-400 text-white border rounded text-center px-4 py-2 text-md md:text-lg font-semibold'
                   onClick={() => {
                     const mimeType = documentInfo.driverLicense.includes('application/pdf') ? 'application/pdf' :
-                                    documentInfo.driverLicense.includes('image/jpeg') ? 'image/jpeg' :
-                                    documentInfo.driverLicense.includes('image/png') ? 'image/png' :
-                                    'image/jpg';
+                    documentInfo.driverLicense.includes('image/jpeg') ? 'image/jpeg' :
+                    documentInfo.driverLicense.includes('image/png') ? 'image/png' :
+                    'image/jpg';
                     downloadFile(documentInfo.driverLicense, 'driver_license', mimeType);
                   }}
                 >
@@ -219,6 +226,23 @@ const Summary: React.FC = () => {
             )}
           </>
         )}
+      </div>
+      <div className='mt-12 text-gray-700 text-md md:text-lg font-normal'>
+        Your previouis documents:
+        <hr className="mt-8 mb-4 border-stone-500 border-1 w-full"></hr>
+        {Array.isArray(documents) && documents.map((doc: any, index: number) => (
+          <div key={index} className="flex items-center flex-row justify-between space-x-2 w-full border-b-2 pb-2">
+            <div className="md:min-w-36 md:max-w-56">
+              {doc.title}
+            </div>
+            <div>
+              <Typography variant="subtitle1" className="hidden md:block">
+                {doc.filename}
+              </Typography>                                 
+            </div>
+            <DocViewerComponent key={index} title={doc.title} url={doc.url} type={doc.filename.split('.').pop() || ''} />
+          </div>
+        ))}
       </div>
 
       <StepController 

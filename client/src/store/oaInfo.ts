@@ -396,7 +396,9 @@ export const updateOAProfilePic: any = createAsyncThunk(
     const onboardingApplicationId = state.auth.user?.instance?.onboardingApplication?.id;
 
     try {
-      const document = await dispatch(getUrl('profilePicture', file));
+      const mimeType = file.type;
+      const profilePictureFilename = `profilePicture.${mimeType.split('/')[1]}`;
+      const document = await dispatch(getUrl(profilePictureFilename, file));
       if (!document) {
         throw new Error("Failed to upload the profile picture");
       }

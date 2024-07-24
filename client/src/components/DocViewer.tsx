@@ -25,7 +25,6 @@ const DocViewerComponent: React.FC<{
   title: string;
 }> = ({ url, type, title }) => {
   const [openPreview, setOpenPreview] = useState(false);
-
   return (
     <div className="flex flex-row justify-between items-center">
       <Button
