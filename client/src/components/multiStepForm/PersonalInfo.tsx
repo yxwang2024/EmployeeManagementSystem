@@ -52,14 +52,14 @@ const PersonalInfoSchema = Yup.object().shape({
 
 const PersonalInfo: React.FC = () => {
   const dispatch = useDispatch();
-  const user = useSelector((state: RootState) => state.auth.user);
+  // const userId = useSelector((state: RootState) => state.oaInfo.userId);
+  // const user = useSelector((state: RootState) => state.auth.user);
   const personalInfo = useSelector((state: RootState) => state.oaInfo.personalInfo);
-
-  useEffect(() => {
-    if (user?.email && !personalInfo.email) {
-      dispatch(updatePersonalInfo({ email: user.email }));
-    }
-  }, [dispatch, user?.email, personalInfo.email]);
+  // useEffect(() => {
+  //   if (user?.email && !personalInfo.email) {
+  //     dispatch(updatePersonalInfo({ email: user.email }));
+  //   }
+  // }, [dispatch, user?.email, personalInfo.email]);
 
   const genderOptions = [
     { value: 'male', label: 'Male' },

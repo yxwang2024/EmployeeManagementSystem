@@ -20,15 +20,17 @@ function base64ToFile(base64: string, filename: string): File {
 
 const Summary: React.FC = () => {
   const dispatch = useDispatch();
+  const userId = useSelector((state: RootState) => state.oaInfo.userId);
   const [personalInfo, setPersonalInfo] = useState<any>(null);
   const [documentInfo, setDocumentInfo] = useState<any>(null);
   const oaInfo = useSelector((state: RootState) => state.oaInfo);
   const startDate = new Date('2000-01-01T00:00:00.000+00:00').toISOString();
   const endDate = new Date('2000-01-01T00:00:00.000+00:00').toISOString();
   const navigate = useNavigate(); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const storedData = localStorage.getItem('oaInfo');
+    const storedData = localStorage.getItem(`oaInfo-${userId}`);
     
     if (storedData) {
       const data = JSON.parse(storedData);
@@ -45,6 +47,7 @@ const Summary: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    setIsSubmitting(true);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const onboardingApplicationId = user.instance?.onboardingApplication?.id;
 
@@ -103,12 +106,16 @@ const Summary: React.FC = () => {
     try{
       await dispatch(updateOAName(oaName));
       await dispatch(updateOAIdentity(oaIdentity));
-      if (oaInfo.personalInfo.profilePicture) {
+      // if (oaInfo.personalInfo.profilePicture) {
+      //   const profilePicFile = base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture');
+      //   await dispatch(updateOAProfilePic(profilePicFile));
+      // }
+      if (oaInfo.personalInfo.profilePicture && typeof oaInfo.personalInfo.profilePicture === 'object') {
         const profilePicFile = base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture');
         await dispatch(updateOAProfilePic(profilePicFile));
-      }
+      }      
   
-      if (oaInfo.document.optReceipt) {
+      if (oaInfo.document.optReceipt && typeof oaInfo.document.optReceipt === 'object') {
         const optReceiptFile = base64ToFile(oaInfo.document.optReceipt, 'optReceipt');
         const document = await dispatch(getUrl('optReceipt', optReceiptFile));
         if (document) {
@@ -116,7 +123,7 @@ const Summary: React.FC = () => {
         }
       }
   
-      if (oaInfo.document.driverLicense) {
+      if (oaInfo.document.driverLicense && typeof oaInfo.document.driverLicense === 'object') {
         const driverLicenseFile = base64ToFile(oaInfo.document.driverLicense, 'driverLicense');
         const document = await dispatch(getUrl('driverLicense', driverLicenseFile));
         if (document) {
@@ -132,13 +139,18 @@ const Summary: React.FC = () => {
       await dispatch(updateOAStatus('Pending'));
       user.instance.onboardingApplication.status = 'Pending';
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.removeItem('oaInfo');
+      localStorage.removeItem(`oaInfo-${userId}`);
       localStorage.removeItem('currentStep');
       navigate('/');
     } catch (error) {
       console.error('Submission failed:', error);
     }
+    setIsSubmitting(false);
   };
+
+  if (isSubmitting) {
+    return <div className='pt-[200px] w-2/3 font-bold text-2xl text-center'>Submitting...</div>;
+  }
 
   return (
     <div>
