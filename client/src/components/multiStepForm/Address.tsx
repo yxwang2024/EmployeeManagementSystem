@@ -94,7 +94,7 @@ const Address: React.FC = () => {
           throw new Error("Did not get profileId");
         }
 
-        const newAddress = {
+        const newAddress:Address = {
           street:values.street,
           city:values.city,
           building:values.building||"",
