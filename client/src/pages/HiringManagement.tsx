@@ -309,7 +309,13 @@ const HiringManagement: React.FC = () => {
             Rejected
           </Button>
         </Stack>
-        <SearchBar option={option}></SearchBar>
+        {
+          option == "All" && (
+            <Box sx={{ my: 3, maxWidth: 500 }}>
+              <SearchBar ></SearchBar>
+            </Box>
+          )
+        }
         <Box sx={{ my: 3 }}>
           <OnboardingReviewTable option={option}></OnboardingReviewTable>
         </Box>

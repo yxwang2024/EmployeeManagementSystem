@@ -372,6 +372,7 @@ export interface SingleOnboardingResponseType {
     getOnboardingApplication: OnboardingApplication;
   };
 }
+
 export interface ProfileListItemType {
   _id:string;
   legalName: string;
