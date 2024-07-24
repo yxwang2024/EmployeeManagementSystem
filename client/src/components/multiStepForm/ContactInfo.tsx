@@ -102,12 +102,11 @@ const ContactInfo: React.FC = () => {
         dispatch(updateContactInfo(values));
       } else {
         console.log("Updating Contact Info");
-        // update address
         if(!profileId){
           throw new Error("Did not get profileId");
         }
 
-        const newContactInfo = {
+        const newContactInfo:ContactInfo = {
           cellPhone:values.cellPhone,
           workPhone:values.workPhone||""
         }
