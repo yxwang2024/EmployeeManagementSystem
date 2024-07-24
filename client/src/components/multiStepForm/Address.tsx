@@ -7,10 +7,11 @@ import { updateAddress, setCurrentStep } from "../../store/oaInfo";
 import CustomTextField from "../../components/CustomTextField";
 import StepController from "./StepController";
 import { useLocation } from "react-router-dom";
-import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { GET_PROFILE_BY_ID, UPDATE_PROFILE_ADDRESS } from "../../services/queries";
 import { request } from "../../utils/fetch";
 import { useGlobal } from "../../store/hooks";
 import { delayFunctionCall } from "../../utils/utilities";
+import type { Address } from "../../utils/type"; 
 
 const AddressSchema = Yup.object().shape({
   street: Yup.string().required("Street is required"),
@@ -30,6 +31,7 @@ const Address: React.FC = () => {
   const isOnboarding = location.pathname === "/onboardingapplication";
   const user = useSelector((state: RootState) => state.auth.user);
   const address = useSelector((state: RootState) => state.oaInfo.address);
+  const [profileId,setProfileId] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [initialValues, setInitialValues] = useState(
     isOnboarding
@@ -43,6 +45,7 @@ const Address: React.FC = () => {
     const userId = user.id;
     const response: any = await request(GET_PROFILE_BY_ID, { userId });
     const profile = response.data.getProfileByUserId;
+    setProfileId(profile.id);
     setInitialValues({
       street: profile.currentAddress.street,
       building: profile.currentAddress.building,
@@ -67,7 +70,19 @@ const Address: React.FC = () => {
     }
   }, []);
 
-  const handleValidationAndUpdate = (values: any) => {
+  const updateCurrentAddress= async (profileId:string,address:Address) => {
+    try {
+      const response = await request(UPDATE_PROFILE_ADDRESS, {
+        input: { id: profileId, street:address.street,building:address.building,city:address.city,state:address.state,zip:address.zip},
+      });
+      console.log("Update Profile Address Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
+
+  const handleValidationAndUpdate = (values: Address) => {
     const isValid = AddressSchema.isValidSync(values);
     if (isValid) {
       if (isOnboarding) {
@@ -75,6 +90,18 @@ const Address: React.FC = () => {
       } else {
         console.log("Updating address");
         // update address
+        if(!profileId){
+          throw new Error("Did not get profileId");
+        }
+
+        const newAddress = {
+          street:values.street,
+          city:values.city,
+          building:values.building||"",
+          state:values.state,
+          zip:values.zip,
+        }
+        updateCurrentAddress(profileId,newAddress);
       }
       // dispatch(updateAddress(values));
       // localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...address, ...values }));
