@@ -107,12 +107,7 @@ const PendingInfo: React.FC = () => {
                     <div className="md:min-w-36 md:max-w-56">
                       {doc.title}
                     </div>
-                    <div>
-                      <Typography variant="subtitle1" className="hidden md:block">
-                        {doc.filename}
-                      </Typography>                                 
-                    </div>
-                    <DocViewerComponent key={index} title={doc.title} url={doc.url} type={doc.filename.split('.').pop() || ''} />
+                    <DocViewerComponent key={index} title={doc.title} url={doc.url} type={doc.title.split('.').pop() || ''} />
                   </div>
                 ))}
               </td>

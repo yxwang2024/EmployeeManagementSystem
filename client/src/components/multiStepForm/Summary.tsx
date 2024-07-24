@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { updateOAName, updateOAIdentity, updateOACurrentAddress, updateOAContactInfo, updateOAEmployment, updateOAReference, updateOAEmergencyContact, getUrl, addOADocument, updateOAProfilePic, updateOAStatus } from '../../store/oaInfo';
+import { updateOAName, updateOAIdentity, updateOACurrentAddress, updateOAContactInfo, updateOAEmployment, updateOAReference, updateOAEmergencyContact, getUrl, addOADocument, updateOAProfilePic, updateOAStatus, deleteOADocument} from '../../store/oaInfo';
 import { OaNameType, IdentityType, EmploymentType, ReferenceType } from '../../utils/type';
 import StepController from './StepController';
 import { useNavigate } from 'react-router-dom';
@@ -48,6 +48,30 @@ const Summary: React.FC = () => {
     link.href = `data:${mimeType};base64,${base64Data.split(',')[1]}`;
     link.download = fileName;
     link.click();
+  };
+
+  const getFilenamePrefix = (filename: string): string => {
+    const lastDotIndex = filename.lastIndexOf('.');
+    if (lastDotIndex === -1) return filename; 
+    return filename.substring(0, lastDotIndex); 
+  };
+
+  const handleDeleteExistingDocument = async (filename: string) => {
+    const prefix = getFilenamePrefix(filename);
+    console.log("prefix :", prefix);
+    const existingDocument = documents.find((doc: any) =>String(doc.filename).startsWith(prefix));
+    console.log("existingDocument: ", existingDocument);
+    if (existingDocument) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const onboardingApplicationId = user.instance?.onboardingApplication?.id;
+      await dispatch(deleteOADocument({ id: onboardingApplicationId, documentId: existingDocument._id }));
+    }
+  };
+
+  const handleUpload = async (file: File, filename: string) => {
+    await handleDeleteExistingDocument(filename);
+    const document = await dispatch(getUrl(filename, file));
+    return document;
   };
 
   const handleSubmit = async () => {
@@ -110,28 +134,32 @@ const Summary: React.FC = () => {
     try{
       await dispatch(updateOAName(oaName));
       await dispatch(updateOAIdentity(oaIdentity));
-      // if (oaInfo.personalInfo.profilePicture) {
-      //   const profilePicFile = base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture');
-      //   await dispatch(updateOAProfilePic(profilePicFile));
-      // }
-      if (oaInfo.personalInfo.profilePicture && typeof oaInfo.personalInfo.profilePicture === 'object') {
+
+      // Profile Picture handling
+      if (oaInfo.personalInfo.profilePicture && oaInfo.personalInfo.profilePicture.startsWith('data:')) {
         const { file: profilePicFile, mimeType } = base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture');
+        await handleDeleteExistingDocument('profilePicture');
         await dispatch(updateOAProfilePic(profilePicFile));
-      }      
-  
-      if (oaInfo.document.optReceipt && typeof oaInfo.document.optReceipt === 'object') {
+      }
+
+      // OPT Receipt handling
+      if (oaInfo.document.optReceipt && oaInfo.document.optReceipt.startsWith('data:')) {
         const { file: optReceiptFile, mimeType } = base64ToFile(oaInfo.document.optReceipt, 'optReceipt');
         const optReceiptFilename = `optReceipt.${mimeType.split('/')[1]}`;
-        const document = await dispatch(getUrl(optReceiptFilename, optReceiptFile));
+        await handleDeleteExistingDocument('optReceipt');
+        console.log("optReceiptFilename: ", optReceiptFilename)
+        const document = await handleUpload(optReceiptFile, optReceiptFilename);
         if (document) {
           await dispatch(addOADocument({ id: onboardingApplicationId, documentId: document._id }));
         }
       }
-  
-      if (oaInfo.document.driverLicense && typeof oaInfo.document.driverLicense === 'object') {
+
+      // Driver License handling
+      if (oaInfo.document.driverLicense && oaInfo.document.driverLicense.startsWith('data:')) {
         const { file: driverLicenseFile, mimeType } = base64ToFile(oaInfo.document.driverLicense, 'driverLicense');
         const driverLicenseFilename = `driverLicense.${mimeType.split('/')[1]}`;
-        const document = await dispatch(getUrl(driverLicenseFilename, driverLicenseFile));
+        await handleDeleteExistingDocument('driverLicense');
+        const document = await handleUpload(driverLicenseFile, driverLicenseFilename);
         if (document) {
           await dispatch(addOADocument({ id: onboardingApplicationId, documentId: document._id }));
         }
@@ -142,11 +170,11 @@ const Summary: React.FC = () => {
       await dispatch(updateOAEmployment(oaEmployment));
       await dispatch(updateOAReference(oaReference));
       await dispatch(updateOAEmergencyContact(oaInfo.emergencyContacts));
-      await dispatch(updateOAStatus('Pending'));
-      user.instance.onboardingApplication.status = 'Pending';
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.removeItem(`oaInfo-${userId}`);
-      localStorage.removeItem('currentStep');
+      // await dispatch(updateOAStatus('Pending'));
+      // user.instance.onboardingApplication.status = 'Pending';
+      // localStorage.setItem('user', JSON.stringify(user));
+      // localStorage.removeItem(`oaInfo-${userId}`);
+      // localStorage.removeItem('currentStep');
       navigate('/');
     } catch (error) {
       console.error('Submission failed:', error);
@@ -175,7 +203,6 @@ const Summary: React.FC = () => {
       }
       {personalInfo?.profilePicture && (
         <div className="mb-4">
-          {/* {console.log(base64ToFile(oaInfo.personalInfo.profilePicture, 'profilePicture'))}; */}
           <p className='text-gray-700 text-md md:text-lg font-normal'>Profile Picture:</p>
           <img src={personalInfo.profilePicture} alt="Profile" className="mb-2"/>
           <button
@@ -194,7 +221,7 @@ const Summary: React.FC = () => {
       <div className='grid grid-col1 sm:grid-cols-2 sm:gap-x-8'>
         {documentInfo && (
           <>
-            {documentInfo.optReceipt && (
+            {documentInfo.optReceipt && documentInfo.optReceipt.startsWith('data:') &&  (
               <div className="mb-4">
                 <p className='text-gray-700 text-md md:text-lg font-normal'>OPT Receipt:</p>
                 <button
@@ -206,7 +233,7 @@ const Summary: React.FC = () => {
                 </button>
               </div>
             )}
-            {documentInfo.driverLicense && (
+            {documentInfo.driverLicense && documentInfo.driverLicense.startsWith('data:') && (
               <div className="mb-4">
                 <p className='text-gray-700 text-md md:text-lg font-normal'>Driver License:</p>
                 <button
@@ -235,12 +262,7 @@ const Summary: React.FC = () => {
             <div className="md:min-w-36 md:max-w-56">
               {doc.title}
             </div>
-            <div>
-              <Typography variant="subtitle1" className="hidden md:block">
-                {doc.filename}
-              </Typography>                                 
-            </div>
-            <DocViewerComponent key={index} title={doc.title} url={doc.url} type={doc.filename.split('.').pop() || ''} />
+            <DocViewerComponent key={index} title={doc.title} url={doc.url} type={doc.title.split('.').pop() || ''} />
           </div>
         ))}
       </div>
