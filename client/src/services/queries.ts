@@ -415,3 +415,42 @@ export const UPDATE_PROFILE_BY_OAID = `
     }
   }
 `;
+
+export const UPDATE_PROFILE_NAME = `
+  mutation UpdateProfileName($input: NameInput) {
+    updateProfileName(input: $input) {
+      id
+      email
+      name {
+        firstName
+        middleName
+        lastName
+        preferredName
+      }
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_IDENTITY= `
+  mutation UpdateProfileIdentity($input: IdentityInput) {
+    updateProfileIdentity(input: $input) {
+      id
+      email
+      identity {
+        ssn
+        dob
+        gender
+      }
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_PIC= `
+  mutation UpdateProfilePic($input: ProfilePictureInput) {
+    updateProfilePic(input: $input) {
+      id
+      email
+      profilePicture
+    }
+  }
+`;
