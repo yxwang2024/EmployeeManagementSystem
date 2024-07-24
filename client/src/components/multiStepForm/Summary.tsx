@@ -170,11 +170,11 @@ const Summary: React.FC = () => {
       await dispatch(updateOAEmployment(oaEmployment));
       await dispatch(updateOAReference(oaReference));
       await dispatch(updateOAEmergencyContact(oaInfo.emergencyContacts));
-      // await dispatch(updateOAStatus('Pending'));
-      // user.instance.onboardingApplication.status = 'Pending';
-      // localStorage.setItem('user', JSON.stringify(user));
-      // localStorage.removeItem(`oaInfo-${userId}`);
-      // localStorage.removeItem('currentStep');
+      await dispatch(updateOAStatus('Pending'));
+      user.instance.onboardingApplication.status = 'Pending';
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.removeItem(`oaInfo-${userId}`);
+      localStorage.removeItem('currentStep');
       navigate('/');
     } catch (error) {
       console.error('Submission failed:', error);
