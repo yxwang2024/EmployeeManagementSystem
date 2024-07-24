@@ -203,6 +203,31 @@ const profileResolvers = {
       ).populate('documents');
       return updatedProfile;
     },
+    updateProfilePic: async (parent, { input }, context, info) => {
+      try {
+          console.log(input);
+          const { id, profilePicture } = input;
+  
+          //auth: employee self
+          const decodedUser = await checkAuth(context);
+
+          const employee = await Employee.findOne({ profile: id });
+          const user = await User.findOne({ instance: employee._id });
+          const userId = user._id.toString();
+          if (!checkUser(decodedUser, userId)) {
+            throw new Error("Query id and auth user do not match.");
+          }
+
+          const updatedProfile = await Profile.findByIdAndUpdate(
+            id,
+            { profilePicture: profilePicture },
+            { new: true }
+          ).populate('documents');
+          return updatedProfile;
+      } catch (error) {
+          console.error(error);
+      }
+  },
     updateProfileCurrentAddress: async (parent, { input }, context, info) => {
       console.log(input);
       const { id, street, building, city, state, zip } = input;
