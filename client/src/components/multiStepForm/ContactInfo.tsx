@@ -22,10 +22,7 @@ const ContactInfoSchema = Yup.object().shape({
       }
     ),
   workPhone: Yup.string()
-    .matches(/^[1-9][0-9]*$/, "Must be only digits and first digit cannot be 0")
-    .min(10, 'Less than 10, must be exactly 10 digits')
-    .max(10, 'More than 10, must be exactly 10 digits')
-    .optional()
+    .matches(/^(|[1-9][0-9]{9})$/, "Must be only 10 digits and the first digit cannot be 0.")
     .test(
       'workPhone-not-equal-cellPhone',
       'Work phone cannot be the same as cell phone',
@@ -39,12 +36,15 @@ const ContactInfoSchema = Yup.object().shape({
 const ContactInfo: React.FC = () => {
   const dispatch = useDispatch();
   const contactInfo = useSelector((state: RootState) => state.oaInfo.contactInfo);
+  const userId = useSelector((state: RootState) => state.oaInfo.userId);
 
-  const handleValidationAndUpdate = (values: any) => {
-    const isValid = ContactInfoSchema.isValidSync(values);
-    if (isValid) {
+  const handleValidationAndUpdate = async (values: any) => {
+    try {
+      await ContactInfoSchema.validate(values, { abortEarly: false });
       dispatch(updateContactInfo(values));
-      localStorage.setItem('oaInfo', JSON.stringify({ ...contactInfo, ...values }));
+      localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...contactInfo, ...values }));
+    } catch (error) {
+      console.error('Validation errors:', error.inner);
     }
   };
 
@@ -61,7 +61,7 @@ const ContactInfo: React.FC = () => {
       {({ handleSubmit }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Contact Information</h2>
-          <CustomTextField name="cellPhone" label="Primary Contact Cell Pshone" label2="(US phone number only)" />
+          <CustomTextField name="cellPhone" label="Primary Contact Cell Phone" label2="(US phone number only)" />
           <CustomTextField name="workPhone" label="Work Phone Number" label2="(US phone number only)" />
           <StepController 
             currentStep={3} 

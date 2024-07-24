@@ -381,3 +381,41 @@ export interface ProfileListItemType {
   phone:string;
   email:string;
 }
+
+export interface ProfileConnectionType {
+  totalCount: number;
+  edges: [ProfileEdge];
+  pageInfo: PageInfo;
+}
+
+export interface ProfileEdge {
+  cursor: string;
+  node: ProfileShortResponse;
+}
+
+export interface ProfileShortResponse {
+  id: string;
+  email: string;
+  name: Name;
+  identity:{
+    ssn:string;
+  };
+  contactInfo:{
+    cellPhone:string;
+  };
+  employment: {
+    visaTitle:string;
+  }
+}
+
+export interface ProfileConnectionResponseType {
+  data: {
+    getProfileConnection: ProfileConnectionType;
+  };
+}
+
+export interface SingleProfileResponseType {
+  data: {
+    getProfile: Profile;
+  };
+}

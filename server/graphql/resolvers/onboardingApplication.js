@@ -83,6 +83,9 @@ const onboardingApplicationResolvers = {
                     ],
                   }
                 : {};
+
+                // Exclude profiles with firstName as an empty string
+                searchQuery["name.firstName"] = { $ne: "" };
       
               let paginationQuery = {};
               let sort = { _id: last ? -1 : 1 };

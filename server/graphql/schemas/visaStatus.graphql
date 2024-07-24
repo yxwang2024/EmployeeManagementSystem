@@ -57,6 +57,10 @@ type VisaStatusConnection {
   edges: [VisaStatusEdge]
   pageInfo: PageInfo
 }
+input NotificationInput{
+  email:String
+  nextStep:String
+}
 
 extend type Query {
   getVisaStatuses: [VisaStatusResponse]
@@ -82,4 +86,5 @@ extend type Mutation {
   addDocument(id: ID!, documentId: ID!): VisaStatus
   reUploadDocument(id: ID!, documentId: ID!): VisaStatus
   deleteVisaStatus(id: ID!): String
+  sendNotification(notificationInput:NotificationInput):String
 }

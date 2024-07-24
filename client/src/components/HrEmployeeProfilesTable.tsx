@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { useTheme } from "@mui/material/styles";
 import Collapse from "@mui/material/Collapse";
@@ -18,121 +18,129 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Link } from "@mui/material";
+import { Link, Typography } from "@mui/material";
 
-import { ProfileListItemType } from "../utils/type";
-import { formatSSN, formatPhoneNumber } from "../services/dateServices";
+import {
+  ProfileListItemType,
+  ProfileConnectionResponseType,
+  ProfileConnectionType,
+} from "../utils/type";
+import {
+  formatSSN,
+  formatPhoneNumber,
+  getLegalName,
+} from "../services/dateServices";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { useGlobal } from "../store/hooks";
 import { delayFunctionCall } from "../utils/utilities";
 import { useNavigate } from "react-router-dom";
-import { GET_VISA_STATUS_CONNECTION } from "../services/queries";
+import { GET_PROFILE_CONNECTION } from "../services/queries";
 import { request } from "../utils/fetch";
 
 interface TablePaginationActionsProps {
-    count: number;
-    page: number;
-    rowsPerPage: number;
-    onPageChange: (
-      event: React.MouseEvent<HTMLButtonElement>,
-      newPage: number
-    ) => void;
-  }
-  
-  function TablePaginationActions(props: TablePaginationActionsProps) {
-    const theme = useTheme();
-    const { count, page, rowsPerPage, onPageChange } = props;
-  
-    const handleFirstPageButtonClick = (
-      event: React.MouseEvent<HTMLButtonElement>
-    ) => {
-      onPageChange(event, 0);
-    };
-  
-    const handleBackButtonClick = (
-      event: React.MouseEvent<HTMLButtonElement>
-    ) => {
-      onPageChange(event, page - 1);
-    };
-  
-    const handleNextButtonClick = (
-      event: React.MouseEvent<HTMLButtonElement>
-    ) => {
-      onPageChange(event, page + 1);
-    };
-  
-    const handleLastPageButtonClick = (
-      event: React.MouseEvent<HTMLButtonElement>
-    ) => {
-      onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
-      console.log("Not implemented.");
-    };
-  
-    return (
-      <Box sx={{ flexShrink: 0, ml: 2.5 }}>
-        <IconButton
-          onClick={handleFirstPageButtonClick}
-          disabled={page === 0}
-          aria-label="first page"
-        >
-          {theme.direction === "rtl" ? <LastPageIcon /> : <FirstPageIcon />}
-        </IconButton>
-        <IconButton
-          onClick={handleBackButtonClick}
-          disabled={page === 0}
-          aria-label="previous page"
-        >
-          {theme.direction === "rtl" ? (
-            <KeyboardArrowRight />
-          ) : (
-            <KeyboardArrowLeft />
-          )}
-        </IconButton>
-        <IconButton
-          onClick={handleNextButtonClick}
-          disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-          aria-label="next page"
-        >
-          {theme.direction === "rtl" ? (
-            <KeyboardArrowLeft />
-          ) : (
-            <KeyboardArrowRight />
-          )}
-        </IconButton>
-        <IconButton
-          onClick={handleLastPageButtonClick}
-          disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-          aria-label="last page"
-        >
-          {theme.direction === "rtl" ? <FirstPageIcon /> : <LastPageIcon />}
-        </IconButton>
-      </Box>
-    );
-  }
+  count: number;
+  page: number;
+  rowsPerPage: number;
+  onPageChange: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    newPage: number
+  ) => void;
+}
+
+function TablePaginationActions(props: TablePaginationActionsProps) {
+  const theme = useTheme();
+  const { count, page, rowsPerPage, onPageChange } = props;
+
+  const handleFirstPageButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    onPageChange(event, 0);
+  };
+
+  const handleBackButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    onPageChange(event, page - 1);
+  };
+
+  const handleNextButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    onPageChange(event, page + 1);
+  };
+
+  const handleLastPageButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+    console.log("Not implemented.");
+  };
+
+  return (
+    <Box sx={{ flexShrink: 0, ml: 2.5 }}>
+      <IconButton
+        onClick={handleFirstPageButtonClick}
+        disabled={page === 0}
+        aria-label="first page"
+      >
+        {theme.direction === "rtl" ? <LastPageIcon /> : <FirstPageIcon />}
+      </IconButton>
+      <IconButton
+        onClick={handleBackButtonClick}
+        disabled={page === 0}
+        aria-label="previous page"
+      >
+        {theme.direction === "rtl" ? (
+          <KeyboardArrowRight />
+        ) : (
+          <KeyboardArrowLeft />
+        )}
+      </IconButton>
+      <IconButton
+        onClick={handleNextButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="next page"
+      >
+        {theme.direction === "rtl" ? (
+          <KeyboardArrowLeft />
+        ) : (
+          <KeyboardArrowRight />
+        )}
+      </IconButton>
+      <IconButton
+        onClick={handleLastPageButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="last page"
+      >
+        {theme.direction === "rtl" ? <FirstPageIcon /> : <LastPageIcon />}
+      </IconButton>
+    </Box>
+  );
+}
 
 interface Column {
-    id:
-      | "name"
-      |  "SSN"
-      | "title"
-      | "phone"
-      | "email";
-    label: string;
-    minWidth?: number;
-    align?: "center" | "right";
-    format?: (value: number) => string;
-  }
+  id: "name" | "SSN" | "title" | "phone" | "email";
+  label: string;
+  minWidth?: number;
+  align?: "center" | "right";
+  format?: (value: number) => string;
+}
 
-  const columns: Column[] = [
-    { id: "name", label: "Name", minWidth: 150, align: "center" },
-    { id: "SSN", label: "SSN", minWidth: 120, align: "center" },
-    { id: "title", label: "Work\u00a0Authorization\u00a0Title", minWidth: 100, align: "center" },
-    { id: "phone", label: "Phone", minWidth: 120, align: "center" },
-    { id: "email", label: "Email", minWidth: 120, align: "center" },
-  ];
+const columns: Column[] = [
+  { id: "name", label: "Name", minWidth: 150, align: "center" },
+  { id: "SSN", label: "SSN", minWidth: 200, align: "center" },
+  {
+    id: "title",
+    label: "Work\u00a0Authorization\u00a0Title",
+    minWidth: 100,
+    align: "center",
+  },
+  { id: "phone", label: "Phone", minWidth: 200, align: "center" },
+  { id: "email", label: "Email", minWidth: 120, align: "center" },
+];
 
 const HrEmployeeProfilesTable: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
 
   const user = useAppSelector((state) => state.auth.user);
@@ -140,98 +148,124 @@ const HrEmployeeProfilesTable: React.FC = () => {
   const searchTriggered = useAppSelector((state) => state.search.trigger);
 
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(2);
 
-  const profileList: ProfileListItemType[] = [
-    {
-        _id:"111",
-        legalName: "A A",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"a@a.com"
-    },
-    {
-        _id:"222",
-        legalName: "B B",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"b@b.com"
-    },
-    {
-        _id:"111",
-        legalName: "A A",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"a@a.com"
-    },
-    {
-        _id:"222",
-        legalName: "B B",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"b@b.com"
-    },
-    {
-        _id:"111",
-        legalName: "A A",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"a@a.com"
-    },
-    {
-        _id:"222",
-        legalName: "B B",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"b@b.com"
-    },
-    {
-        _id:"111",
-        legalName: "A A",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"a@a.com"
-    },
-    {
-        _id:"222",
-        legalName: "B B",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"b@b.com"
-    },
-    {
-        _id:"111",
-        legalName: "A A",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"a@a.com"
-    },
-    {
-        _id:"222",
-        legalName: "B B",
-        SSN:"123456789",
-        title: "F1(CPT/OPT)",
-        phone:"1234567890",
-        email:"b@b.com"
-    },
-  ];
+  const [first, setFirst] = React.useState(2);
+  const [last, setLast] = React.useState(0);
+  const [before, setBefore] = React.useState("");
+  const [after, setAfter] = React.useState("");
+  const [totalCount, setTotalCount] = React.useState(0);
+  const [startCursor, setStartCursor] = React.useState("");
+  const [endCursor, setEndCursor] = React.useState("");
+  const [hasNextPage, setHasNextPage] = React.useState(false);
+  const [hasPreviousPage, setHasPreviousPage] = React.useState(false);
+
+  const [profiles, setProfiles] = useState<ProfileListItemType[]>([]);
+
+  const getProfileConnection = useCallback(async () => {
+    try {
+      const response: ProfileConnectionResponseType = await request(
+        GET_PROFILE_CONNECTION,
+        {
+          first: first,
+          after: after,
+          last: last,
+          before: before,
+          query: search,
+        }
+      );
+      const profileConnection: ProfileConnectionType =
+        response.data.getProfileConnection;
+      console.log("!!!!!!!!!profileConnection:", profileConnection);
+      const edges = profileConnection.edges;
+      setTotalCount(profileConnection.totalCount);
+      setHasNextPage(profileConnection.pageInfo.hasNextPage);
+      setHasPreviousPage(profileConnection.pageInfo.hasPreviousPage);
+      setStartCursor(profileConnection.pageInfo.startCursor);
+      setEndCursor(profileConnection.pageInfo.endCursor);
+      const profileList: ProfileListItemType[] = [];
+
+      edges.map((edge) => {
+        console.log("!!!!!!!edge:", edge);
+        const name: string = getLegalName(
+          edge.node.name.firstName,
+          edge.node.name.middleName,
+          edge.node.name.lastName
+        );
+        profileList.push({
+          _id: edge.node.id,
+          legalName: name,
+          title: edge.node.employment.visaTitle,
+          SSN: edge.node.identity.ssn,
+          phone: edge.node.contactInfo.cellPhone,
+          email: edge.node.email,
+        });
+      });
+
+      setProfiles(profileList);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  }, [user, before, after, last, first, searchTriggered, rowsPerPage]);
+  
+  React.useEffect(() => {
+    console.log("Search value in HrVisaStatusTable:", search); 
+  }, [search]);
+
+  useEffect(() => {
+    setPage(0);
+    setAfter("");
+    setBefore("");
+    setFirst(rowsPerPage);
+    setLast(0);
+  }, [searchTriggered]);
+
+  useEffect(() => {
+    showLoading(true);
+    getProfileConnection()
+      .then(() => {
+        delayFunctionCall(showLoading, 300, false);
+      })
+      .catch((error) => {
+        console.error(error);
+        showMessage(`failed to fetch profiles`, "failed", 2000);
+        showLoading(false);
+        navigate("/login");
+      });
+  }, [getProfileConnection]);
 
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - profileList.length) : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - totalCount) : 0;
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => {
+    if (newPage === 0) {
+      setPage(0);
+      setAfter("");
+      setBefore("");
+      setFirst(rowsPerPage);
+      setLast(0);
+    } else if (newPage === page + 1) {
+      setAfter(endCursor);
+      setBefore("");
+      setFirst(rowsPerPage);
+      setLast(0);
+    } else if (newPage === page - 1) {
+      setAfter("");
+      setBefore(startCursor);
+      setFirst(rowsPerPage);
+      setLast(0);
+    } else if (
+      newPage === Math.max(0, Math.ceil(totalCount / rowsPerPage) - 1)
+    ) {
+      setLast(rowsPerPage);
+      setAfter("");
+      setBefore("");
+      setFirst(0);
+    }
     setPage(newPage);
   };
 
@@ -239,10 +273,20 @@ const HrEmployeeProfilesTable: React.FC = () => {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setFirst(parseInt(event.target.value, 10));
+    setLast(0);
+    setPage(0);
+    setAfter("");
+    setBefore("");
   };
 
-    return(
-        <Paper>
+  return (
+    <Paper>
+      {totalCount == 0 && (
+        <Typography variant="body1" color={"error.light"}>
+          No search results.
+        </Typography>
+      )}
       <TableContainer component={Paper}>
         <Table
           stickyHeader
@@ -263,22 +307,31 @@ const HrEmployeeProfilesTable: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {profileList.map((profile) => (
+            {profiles.map((profile) => (
               <React.Fragment>
                 <TableRow hover key={profile.legalName}>
-                  <TableCell style={{ width: 150 }} align="center"component="th" scope="row">
-                    
-                    <Link component="button" onClick={() => {navigate(`/employee-profiles/detailed/${profile._id}`);}}>
-                        {profile.legalName}
+                  <TableCell
+                    style={{ width: 150 }}
+                    align="center"
+                    component="th"
+                    scope="row"
+                  >
+                    <Link
+                      component="button"
+                      onClick={() => {
+                        navigate(`/employee-profiles/detailed/${profile._id}`);
+                      }}
+                    >
+                      {profile.legalName}
                     </Link>
                   </TableCell>
-                  <TableCell style={{ width: 170 }} align="center">
+                  <TableCell style={{ width: 200 }} align="center">
                     {formatSSN(profile.SSN)}
                   </TableCell>
                   <TableCell style={{ width: 170 }} align="center">
                     {profile.title}
                   </TableCell>
-                  <TableCell style={{ width: 170 }} align="center">
+                  <TableCell style={{ width: 200 }} align="center">
                     {formatPhoneNumber(profile.phone)}
                   </TableCell>
                   <TableCell style={{ width: 120 }} align="center">
@@ -298,7 +351,7 @@ const HrEmployeeProfilesTable: React.FC = () => {
         <TablePagination
           rowsPerPageOptions={[1, 2, 5, 10, 25, { label: "All", value: -1 }]}
           colSpan={3}
-          count={profileList.length}
+          count={totalCount}
           rowsPerPage={rowsPerPage}
           page={page}
           slotProps={{
@@ -315,7 +368,7 @@ const HrEmployeeProfilesTable: React.FC = () => {
         />
       </TableContainer>
     </Paper>
-    );
-}
+  );
+};
 
 export default HrEmployeeProfilesTable;

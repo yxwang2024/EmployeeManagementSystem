@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useLocation } from 'react-router-dom';
 import { Box, Paper, Button, Stack } from "@mui/material";
 
 import HrEmployeeProfilesTable from "../components/HrEmployeeProfilesTable";
@@ -9,11 +10,12 @@ import { useAppDispatch, useAppSelector } from "../store/hooks.ts";
 
 const HrEmployeeProfiles: React.FC = () => {
   const dispatch = useAppDispatch();
+  const location = useLocation();
 
   useEffect(() => {
     dispatch(updateSearchValue(""));
     dispatch(triggerSearch());
-  }, []);
+  }, [location]);
 
   return (
     <div className="employee-profiles md:pt-24">

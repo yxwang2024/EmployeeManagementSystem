@@ -36,6 +36,7 @@ const ReferenceSchema = Yup.lazy(values => {
 
 const Reference: React.FC = () => {
   const dispatch = useDispatch();
+  const userId = useSelector((state: RootState) => state.oaInfo.userId);
   const reference = useSelector((state: RootState) => state.oaInfo.reference);
 
   return (
@@ -48,7 +49,7 @@ const Reference: React.FC = () => {
           dispatch(updateReference(null));
         } else {
           dispatch(updateReference(values));
-          localStorage.setItem('oaInfo', JSON.stringify({ reference: values }));
+          localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ reference: values }));
         }
         dispatch(setCurrentStep(6));
       }}

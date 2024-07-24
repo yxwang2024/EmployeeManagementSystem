@@ -87,8 +87,12 @@ const profileResolvers = {
             }
           : {};
 
+           // Exclude profiles with firstName as an empty string
+          searchQuery["name.firstName"] = { $ne: "" };
+
         let paginationQuery = {};
-        let sort = { _id: last ? -1 : 1 };
+        //let sort = { _id: last ? -1 : 1 };
+        let sort = { "name.lastName": 1 }; 
         let limit = first || last || 10;
 
         if (after) {
