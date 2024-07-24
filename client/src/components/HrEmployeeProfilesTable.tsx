@@ -308,7 +308,7 @@ const HrEmployeeProfilesTable: React.FC = () => {
           </TableHead>
           <TableBody>
             {profiles.map((profile) => (
-              <React.Fragment>
+              <React.Fragment key={profile._id + "fragment"}>
                 <TableRow hover key={profile.legalName}>
                   <TableCell
                     style={{ width: 150 }}

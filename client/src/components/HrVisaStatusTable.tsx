@@ -385,7 +385,7 @@ const HrVisaStatusTable: React.FC = () => {
           </TableHead>
           <TableBody>
             {visaStatuses.map((statusListItem) => (
-              <React.Fragment>
+              <React.Fragment key={statusListItem._id + 'fragment'}>
                 <TableRow hover key={statusListItem.legalName}>
                   <TableCell
                     style={{ width: 200 }}
