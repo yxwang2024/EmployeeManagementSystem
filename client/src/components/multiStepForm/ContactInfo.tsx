@@ -7,11 +7,12 @@ import { updateContactInfo, setCurrentStep } from '../../store/oaInfo';
 import CustomTextField from '../../components/CustomTextField';
 import StepController from './StepController';
 import { useLocation } from 'react-router-dom';
-import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { GET_PROFILE_BY_ID, UPDATE_PROFILE_CONTACT_INFO } from "../../services/queries";
 import { request } from "../../utils/fetch";
 import { useGlobal } from "../../store/hooks";
 import { delayFunctionCall } from "../../utils/utilities";
 import { Typography } from "@mui/material";
+import type { ContactInfo } from '../../utils/type';
 
 const ContactInfoSchema = Yup.object().shape({
   cellPhone: Yup.string()
@@ -44,6 +45,7 @@ const ContactInfo: React.FC = () => {
   const location = useLocation();
   const isOnboarding = location.pathname === "/onboardingapplication";
   const user = useSelector((state: RootState) => state.auth.user);
+  const [profileId,setProfileId] = useState("");
   const contactInfo = useSelector((state: RootState) => state.oaInfo.contactInfo);
   const [isEditing, setIsEditing] = useState(false);
   const [initialValues, setInitialValues] = useState(
@@ -59,6 +61,7 @@ const ContactInfo: React.FC = () => {
     const userId = user.id;
     const response: any = await request(GET_PROFILE_BY_ID, { userId });
     const profile = response.data.getProfileByUserId;
+    setProfileId(profile.id);
     setInitialValues({
       cellPhone: profile.contactInfo.cellPhone,
       workPhone: profile.contactInfo.workPhone,
@@ -80,10 +83,37 @@ const ContactInfo: React.FC = () => {
     }
   }, []);
 
+  const updateNewContactInfo = async (profileId:string,contactInfo:ContactInfo) => {
+    try {
+      const response = await request(UPDATE_PROFILE_CONTACT_INFO, {
+        input: { id: profileId, cellPhone:contactInfo.cellPhone,workPhone:contactInfo.workPhone},
+      });
+      console.log("Update Profile Contact Info Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
+
   const handleValidationAndUpdate = (values: any) => {
     const isValid = ContactInfoSchema.isValidSync(values);
     if (isValid) {
-      dispatch(updateContactInfo(values));
+      if (isOnboarding) {
+        dispatch(updateContactInfo(values));
+      } else {
+        console.log("Updating Contact Info");
+        // update address
+        if(!profileId){
+          throw new Error("Did not get profileId");
+        }
+
+        const newContactInfo = {
+          cellPhone:values.cellPhone,
+          workPhone:values.workPhone||""
+        }
+        updateNewContactInfo(profileId,newContactInfo);
+      }
+      
       // localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...contactInfo, ...values }));
     }
   };

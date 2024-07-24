@@ -14,7 +14,7 @@ import { request } from "../../utils/fetch";
 import { useGlobal } from "../../store/hooks";
 import { delayFunctionCall } from "../../utils/utilities";
 import { Typography } from "@mui/material";
-import { Address, Identity, Name } from "../../utils/type";
+import type { Identity, Name } from "../../utils/type";
 
 const PersonalInfoSchema = Yup.object().shape({
   firstName: Yup.string().required("First name is required"),

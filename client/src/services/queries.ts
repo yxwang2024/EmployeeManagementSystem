@@ -445,12 +445,90 @@ export const UPDATE_PROFILE_IDENTITY= `
   }
 `;
 
+export const UPDATE_PROFILE_ADDRESS= `
+  mutation UpdateProfileCurrentAddress($input: AddressInput) {
+    updateProfileCurrentAddress(input: $input) {
+      id
+      email
+      currentAddress {
+        street
+        building
+        city
+        state
+        zip
+      }
+    }
+  }
+`;
+
 export const UPDATE_PROFILE_PIC= `
   mutation UpdateProfilePic($input: ProfilePictureInput) {
     updateProfilePic(input: $input) {
       id
       email
       profilePicture
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_CONTACT_INFO= `
+  mutation UpdateProfileContactInfo($input: ContactInfoInput) {
+    updateProfileContactInfo(input: $input) {
+      id
+      email
+      contactInfo {
+        cellPhone
+        workPhone
+      }
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_EMPLOYMENT= `
+  mutation UpdateProfileEmployment($input: EmploymentInput) {
+    updateProfileEmployment(input: $input) {
+      id
+      email
+      employment {
+        visaTitle
+        startDate
+        endDate
+      }
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_REFERENCE= `
+  mutation UpdateProfileReference($input: ReferenceInput) {
+    updateProfileReference(input: $input) {
+      id
+      email
+      reference {
+        firstName
+        lastName
+        middleName
+        phone
+        email
+        relationship
+      }
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_EMERGENCY_CONTACTS= `
+  mutation UpdateProfileEmergencyContact($input: EmergencyContactUpdateInput) {
+    updateProfileEmergencyContact(input: $input) {
+      id
+      email
+      emergencyContacts {
+        id
+        firstName
+        lastName
+        middleName
+        phone
+        email
+        relationship
+      }
     }
   }
 `;
