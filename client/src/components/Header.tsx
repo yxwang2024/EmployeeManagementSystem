@@ -101,7 +101,8 @@ function Header() {
             Workday Chuwa
           </Typography>
 
-          {token && user && user.role==="Employee" && (user.instance as EmployeeInstanceType).onboardingApplication.status === 'Approved' && (
+          {token && user &&  (
+            // user.role==="Employee" && (user.instance as EmployeeInstanceType).onboardingApplication.status === 'Approved' &&
             <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
               <IconButton
                 size="large"
@@ -133,9 +134,17 @@ function Header() {
               >
                 {isHR !== null && (isHR ? HRpages : UserPages).map((page) => (
                   // <MenuItem key={page} onClick={handleCloseNavMenu}>
+                  isHR ? (
                   <MenuItem key={page} onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }}>
                     <Typography textAlign="center">{page}</Typography>
                   </MenuItem>
+                  ) : (
+                    <MenuItem key={page} onClick={() => { navigate(page.toLowerCase().replace(' ', '-')) }} sx={{ display:
+                      `${user&&(user?.instance as EmployeeInstanceType).onboardingApplication.status === 'Approved' ? 'block' : 'none'}` 
+                    }}>
+                      <Typography textAlign="center">{page}</Typography>
+                    </MenuItem>
+                  )
                 ))}
               </Menu>
             </Box>
