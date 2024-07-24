@@ -22,6 +22,7 @@ import {
   GET_VISA_STATUS,
   APPROVE_VISA_STATUS,
   REJECT_VISA_STATUS,
+  SEND_NOTIFICATION
 } from "../services/queries";
 import { request } from "../utils/fetch";
 import {
@@ -33,6 +34,7 @@ import { nextStep } from "../services/records";
 
 const VisaStatusDetailedView: React.FC = () => {
   const user = useAppSelector((state) => state.auth.user);
+  const option = useAppSelector((state) => state.option.value);
   const id = useParams().id || "";
   const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
@@ -60,6 +62,22 @@ const VisaStatusDetailedView: React.FC = () => {
     [user]
   );
 
+  const sendEmail = async (email:string, nextStep:string) => {
+    try {
+      const response = await request(SEND_NOTIFICATION, {
+        notificationInput: {
+          email: email,
+          nextStep: nextStep,
+        },
+      });
+      console.log("Send Notification Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
+
+
   const approveVisaStatus = async () => {
     try {
       const response = await request(APPROVE_VISA_STATUS, {
@@ -84,6 +102,13 @@ const VisaStatusDetailedView: React.FC = () => {
       showMessage(String(e));
     }
   };
+
+  const sendNotification = (email: string, step: string, status: string) => {
+    console.log(`SEND EMAIL TO ${email} WHILE ${step} ${status}`);
+    const next = nextStep[step][status];
+    sendEmail(email,next);
+  };
+
 
   useEffect(() => {
     showLoading(true);
@@ -119,9 +144,16 @@ const VisaStatusDetailedView: React.FC = () => {
       {visaStatus?.workAuthorization.title === "F1(CPT/OPT)" ? (
         <>
           <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg">
-            <h1 className="text-left text-3xl font-bold mb-10 text-gray-700">
-              Review Visa Status
-            </h1>
+            {option == "InProgress" ? (
+              <h1 className="text-left text-3xl font-bold mb-10 text-gray-700">
+                Review Visa Status In Progress
+              </h1>
+            ) : (
+              <h1 className="text-left text-3xl font-bold mb-10 text-gray-700">
+                Review Visa Status Documents
+              </h1>
+            )}
+
             <div className="flex justify-between items-center w-full md:w-1/2 mb-4">
               <Typography variant="body1">
                 <b>Name:</b>
@@ -193,43 +225,142 @@ const VisaStatusDetailedView: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
-            <h1 className="text-left text-3xl mb-2 font-bold text-gray-700 border-b-2 pb-4">
-              Documents
-            </h1>
-            <div className="flex space-x-4 justify-start">
-              <div className="flex flex-col items-center space-y-4 w-full">
-                {visaStatus?.documents.map((doc, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center flex-row justify-between space-x-2 w-full border-b-2 pb-2"
-                  >
-                    <div className="md:min-w-36 md:max-w-56">{doc.title}</div>
+          {visaStatus.status == "Pending" && option == "InProgress" && (
+            <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
+              <h1 className="text-left text-3xl mb-2 font-bold text-gray-700 border-b-2 pb-4">
+                Documents Waiting For Review
+              </h1>
+              {visaStatus.documents.at(-1) && (
+                <div className="flex flex-col items-center space-y-4 w-full">
+                  <div className="flex items-center flex-row justify-between space-x-2 w-full border-b-2 pb-2">
+                    <div className="md:min-w-36 md:max-w-56">
+                      {visaStatus.documents.at(-1)?.title}
+                    </div>
                     <div>
                       <Typography
                         variant="subtitle1"
                         className="hidden md:block"
                       >
-                        {doc.filename}
+                        {visaStatus.documents.at(-1)?.filename}
                       </Typography>
                     </div>
                     <DocViewerComponent
-                      key={index}
-                      title={doc.title}
-                      url={doc.url}
-                      type={doc.filename.split(".").pop() || ""}
+                      title={visaStatus.documents.at(-1)?.title || ""}
+                      url={visaStatus.documents.at(-1)?.url || ""}
+                      type={
+                        visaStatus.documents
+                          .at(-1)
+                          ?.filename.split(".")
+                          .pop() || ""
+                      }
                     />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          {visaStatus?.status === "pending" && visaStatus?.hrFeedback && (
-            <div className="flex items-center space-x-2">
-              <p>HR Feedback: {visaStatus?.hrFeedback}</p>
+                </div>
+              )}
             </div>
           )}
-          {visaStatus?.status === "Reviewing" && (
+          {visaStatus.status == "Approved" && option == "InProgress" && (
+            <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
+              <Typography variant="body1">
+                All submitted documents have been approved.
+              </Typography>
+            </div>
+          )}
+          {visaStatus.status == "Rejected" && option == "InProgress" && (
+            <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
+              <Typography variant="body1">
+                There are rejected documents. Notice employee to reupload the
+                document.
+              </Typography>
+              {visaStatus.hrFeedback && (
+                <Typography variant="body1">
+                  HR Feedback: {visaStatus.hrFeedback}
+                </Typography>
+              )}
+            </div>
+          )}
+          {visaStatus.status == "Approved" && option == "All" && (
+            <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
+              <h1 className="text-left text-3xl mb-2 font-bold text-gray-700 border-b-2 pb-4">
+                Approved Documents
+              </h1>
+              <div className="flex space-x-4 justify-start">
+                <div className="flex flex-col items-center space-y-4 w-full">
+                  {visaStatus?.documents.map((doc, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center flex-row justify-between space-x-2 w-full border-b-2 pb-2"
+                    >
+                      <div className="md:min-w-36 md:max-w-56">{doc.title}</div>
+                      <div>
+                        <Typography
+                          variant="subtitle1"
+                          className="hidden md:block"
+                        >
+                          {doc.filename}
+                        </Typography>
+                      </div>
+                      <DocViewerComponent
+                        key={index}
+                        title={doc.title}
+                        url={doc.url}
+                        type={doc.filename.split(".").pop() || ""}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          {(visaStatus.status == "Pending" ||
+            visaStatus.status == "Rejected") &&
+            option == "All" && (
+              <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
+                {visaStatus?.documents.length <= 1 ? (
+                  <Typography variant="body1">
+                    There is no approved documents.
+                  </Typography>
+                ) : (
+                  <>
+                    <h1 className="text-left text-3xl mb-2 font-bold text-gray-700 border-b-2 pb-4">
+                      Approved Documents
+                    </h1>
+                    <div className="flex space-x-4 justify-start">
+                      <div className="flex flex-col items-center space-y-4 w-full">
+                        {visaStatus?.documents
+                          .slice(0, -1)
+                          .map((doc, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center flex-row justify-between space-x-2 w-full border-b-2 pb-2"
+                            >
+                              <div className="md:min-w-36 md:max-w-56">
+                                {doc.title}
+                              </div>
+                              <div>
+                                <Typography
+                                  variant="subtitle1"
+                                  className="hidden md:block"
+                                >
+                                  {doc.filename}
+                                </Typography>
+                              </div>
+                              <DocViewerComponent
+                                key={index}
+                                title={doc.title}
+                                url={doc.url}
+                                type={doc.filename.split(".").pop() || ""}
+                              />
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+          {visaStatus.status == "Pending" && option == "InProgress" && (
             <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
               {!expandFeedback && (
                 <Box
@@ -287,6 +418,54 @@ const VisaStatusDetailedView: React.FC = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+          {visaStatus.status == "Approved" && option == "InProgress" && (
+            <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
+              <Box
+                display="flex"
+                flexDirection="row"
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Button
+                  size="large"
+                  variant="contained"
+                  onClick={() => {
+                    sendNotification(
+                      visaStatus.employee.email,
+                      visaStatus.step,
+                      visaStatus.status
+                    );
+                  }}
+                >
+                  Send Email
+                </Button>
+              </Box>
+            </div>
+          )}
+          {visaStatus.status == "Rejected" && option == "InProgress" && (
+            <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
+              <Box
+                display="flex"
+                flexDirection="row"
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Button
+                  size="large"
+                  variant="contained"
+                  onClick={() => {
+                    sendNotification(
+                      visaStatus.employee.email,
+                      visaStatus.step,
+                      visaStatus.status
+                    );
+                  }}
+                >
+                  Send Email
+                </Button>
+              </Box>
             </div>
           )}
         </>
