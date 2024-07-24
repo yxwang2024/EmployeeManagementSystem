@@ -152,9 +152,9 @@ const userResolvers = {
                 });
                 await newUser.save();
 
-                // await MailHistory.findByIdAndUpdate(mailHistory._id, { status: "completed" }, {
-                //     new: true,
-                // });
+                await MailHistory.findByIdAndUpdate(mailHistory._id, { status: "completed" }, {
+                    new: true,
+                });
 
                 const token = await jwt.sign(
                     {
