@@ -371,6 +371,7 @@ export interface SingleOnboardingResponseType {
   data: {
     getOnboardingApplication: OnboardingApplication;
   };
+}
 
 export interface ProfileListItemType {
   _id:string;

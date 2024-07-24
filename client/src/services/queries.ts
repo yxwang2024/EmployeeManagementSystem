@@ -148,6 +148,39 @@ export const GET_ALL_PROFILE_LIST = `
   }
 `;
 
+export const APPROVE_ONBOARDING = `
+  mutation UpdateOAStatus($input: OAStatusInput) {
+    updateOAStatus(input: $input) {
+      id
+      email
+      status
+      hrFeedback
+    }
+  }
+`;
+
+export const REJECT_ONBOARDING = `
+  mutation UpdateOAStatus($input: OAStatusInput) {
+    updateOAStatus(input: $input) {
+      id
+      email
+      status
+      hrFeedback
+    }
+  }
+`;
+
+export const UPDATE_ONBOARDING_HR_FEEDBACK = `
+  mutation UpdateOAHrFeedback($input: OAHrFeedbackInput) {
+    updateOAHrFeedback(input: $input) {
+      id
+      email
+      hrFeedback
+      status
+    }
+  }
+`;
+
 export const GET_ONBOARDING_CONNECTION = `
   query GetOnboardingApplicationConnection($first: Int, $after: String, $last: Int, $before: String, $query: String, $status: String) {
     getOnboardingApplicationConnection(first: $first, after: $after, last: $last, before: $before, query: $query, status: $status) {
