@@ -9,9 +9,10 @@ import HrVisaStatusManagement from "../pages/HrVisaStatusManagement";
 import HiringManagement from "../pages/HiringManagement";
 import ErrorPage from "../pages/Error";
 import { ProtectedRoute, ProtectedRouteEmployee, ProtectedRouteHR } from "../routes/ProtectedRoute";
-import HrVisaStatusTable from "../components/HrVisaStatusTable";
 import VisaStatusDetailedView from "../pages/VisaStatusDetailedView";
 import OnboardingDetailedView from "../pages/OnboardingDetailedView";
+import HrEmployeeProfiles from "../pages/HrEmployeeProfiles";
+import ProfileDetailedView from "../pages/ProfileDetailedView";
 
 const router = createBrowserRouter([
   {
@@ -53,7 +54,17 @@ const router = createBrowserRouter([
       },
       {
         path: '/visa-status-management/detailed/:id',
-        element: <ProtectedRoute><VisaStatusDetailedView /></ProtectedRoute>,
+        element: <ProtectedRouteHR><VisaStatusDetailedView /></ProtectedRouteHR>,
+        errorElement: <ErrorPage />
+      },
+      {
+        path: '/employee-profiles',
+        element: <ProtectedRouteHR><HrEmployeeProfiles /></ProtectedRouteHR>,
+        errorElement: <ErrorPage />
+      },
+      {
+        path: '/employee-profiles/detailed/:id',
+        element: <ProtectedRouteHR><ProfileDetailedView /></ProtectedRouteHR>,
         errorElement: <ErrorPage />
       },
       { 

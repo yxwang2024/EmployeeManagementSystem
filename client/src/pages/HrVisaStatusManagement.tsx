@@ -18,7 +18,6 @@ const HrVisaStatusManagement: React.FC = () => {
 
   return (
     <div className="visa-status-management md:pt-24">
-      
       <Paper>
         <Stack direction="row" spacing={3}>
           <Button size="medium" variant={option === "InProgress" ? "outlined" : "contained"} onClick={() => setOption("InProgress")}>
@@ -27,7 +26,9 @@ const HrVisaStatusManagement: React.FC = () => {
           <Button size="medium" variant={option === "All" ? "outlined" : "contained"} onClick={() => setOption("All")}>
             All
           </Button>
+          {option == "All" && (
           <SearchBar option={option}></SearchBar>
+          )}
         </Stack>
         <Box sx={{ my: 3 }}>
           <HrVisaStatusTable option={option}></HrVisaStatusTable>
