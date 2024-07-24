@@ -60,7 +60,6 @@ query GetVisaStatusConnection($first: Int, $after: String, $last: Int, $before: 
 }
 `;
 
-
 export const GET_VISA_STATUS = `
   query GetVisaStatus($getVisaStatusId: ID!) {
   getVisaStatus(id: $getVisaStatusId) {
@@ -118,6 +117,94 @@ export const REJECT_VISA_STATUS = `
   }
 `;
 
+export const GET_ONBOARDING_CONNECTION = `
+  query GetOnboardingApplicationConnection($first: Int, $after: String, $last: Int, $before: String, $query: String, $status: String) {
+    getOnboardingApplicationConnection(first: $first, after: $after, last: $last, before: $before, query: $query, status: $status) {
+      totalCount
+      edges {
+        cursor
+        node {
+          id
+          email
+          name {
+            firstName
+            middleName
+            lastName
+            preferredName
+          }
+          status
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
 
-
-
+export const GET_ONBOARDING = `
+  query GetOnboardingApplication($oaId: ID!) {
+    getOnboardingApplication(oaId: $oaId) {
+      id
+      email
+      name {
+        firstName
+        middleName
+        lastName
+        preferredName
+      }
+      profilePicture
+      identity {
+        ssn
+        dob
+        gender
+      }
+      currentAddress {
+        street
+        building
+        city
+        state
+        zip
+      }
+      contactInfo {
+        cellPhone
+        workPhone
+      }
+      employment {
+        visaTitle
+        startDate
+        endDate
+      }
+      reference {
+        firstName
+        lastName
+        middleName
+        phone
+        email
+        relationship
+      }
+      emergencyContacts {
+        id
+        firstName
+        lastName
+        middleName
+        phone
+        email
+        relationship
+      }
+      documents {
+        _id
+        title
+        timestamp
+        filename
+        url
+        key
+      }
+      status
+      hrFeedback
+    }
+  }
+`;

@@ -49,7 +49,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 
 
-export default function SearchBar({option}) {
+export default function SearchBar( {option}: {option: string}) {
   const search = useAppSelector((state) => state.search.value);
   const dispatch = useAppDispatch();
 
@@ -61,7 +61,7 @@ export default function SearchBar({option}) {
   return (
     <Box sx={{ flexGrow: 1 }}>
       {option == "All" && (
-        <Search sx={{ border: '1px solid grey' }}>
+        <Search sx={{ border: '1px solid grey', maxWidth:500, marginTop:2 }}>
           <SearchIconWrapper>
             <SearchIcon />
           </SearchIconWrapper>

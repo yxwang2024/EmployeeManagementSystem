@@ -328,11 +328,47 @@ export interface VisaStatusConnectionResponseType {
   data: {
     getVisaStatusConnection: VisaStatusConnectionType;
   };
-
 }
 
 export interface SingleVisaStatusesResponseType {
   data: {
     getVisaStatus: VisaStatusPopulatedType;
+  };
+}
+
+export interface OnboardingListItemType {
+  id: string;
+  email: string;
+  legalName: string;
+  status: string;
+}
+
+export interface OnboardingConnectionType {
+  totalCount: number;
+  edges: [OnboardingEdge];
+  pageInfo: PageInfo;
+}
+
+export interface OnboardingEdge {
+  cursor: string;
+  node: OnboardingShortResponse;
+}
+
+export interface OnboardingShortResponse {
+  id: string;
+  email: string;
+  name: OaNameType;
+  status: string;
+}
+
+export interface OnboardingConnectionResponseType {
+  data: {
+    getOnboardingApplicationConnection: OnboardingConnectionType;
+  };
+}
+
+export interface SingleOnboardingResponseType {
+  data: {
+    getOnboardingApplication: OnboardingApplication;
   };
 }

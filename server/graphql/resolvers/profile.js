@@ -3,6 +3,7 @@ import Profile from "../../models/Profile.js";
 import User from "../../models/User.js";
 
 import { checkAuth, isHR, checkUser, isEmployee } from "../../services/auth.js";
+import { ObjectId } from "mongodb";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -99,7 +100,7 @@ const profileResolvers = {
           sort = { _id: -1 };
         }
 
-        const profiles = await Profile.find(searchQuery)
+        const profiles = await Profile.find({ ...searchQuery, ...paginationQuery })
           .sort(sort)
           .limit(limit);
 

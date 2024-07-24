@@ -11,6 +11,7 @@ import ErrorPage from "../pages/Error";
 import { ProtectedRoute, ProtectedRouteEmployee, ProtectedRouteHR } from "../routes/ProtectedRoute";
 import HrVisaStatusTable from "../components/HrVisaStatusTable";
 import VisaStatusDetailedView from "../pages/VisaStatusDetailedView";
+import OnboardingDetailedView from "../pages/OnboardingDetailedView";
 
 const router = createBrowserRouter([
   {
@@ -58,6 +59,11 @@ const router = createBrowserRouter([
       { 
         path: `/hiring-management`,
         element: <ProtectedRouteHR><HiringManagement /></ProtectedRouteHR>,
+        errorElement: <ErrorPage />
+      },
+      {
+        path: '/hiring-management/detailed/:id',
+        element: <ProtectedRoute><OnboardingDetailedView /></ProtectedRoute>,
         errorElement: <ErrorPage />
       },
       {
