@@ -24,6 +24,7 @@ type ProfileEdge {
 
 extend type Mutation {
   updateProfileName(input: NameInput): Profile
+  updateProfilePic(input: ProfilePictureInput): Profile
   updateProfileIdentity(input: IdentityInput): Profile
   updateProfileCurrentAddress(input: AddressInput): Profile
   updateProfileContactInfo(input: ContactInfoInput): Profile

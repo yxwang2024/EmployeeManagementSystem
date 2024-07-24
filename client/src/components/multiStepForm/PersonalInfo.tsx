@@ -9,15 +9,19 @@ import CustomSelectField from "../../components/CustomSelectField";
 import CustomFile from "../../components/CustomFile";
 import StepController from "./StepController";
 import { useLocation } from "react-router-dom";
-import { GET_PROFILE_BY_ID } from "../../services/queries";
+import { GET_PROFILE_BY_ID, UPDATE_PROFILE_ADDRESS, UPDATE_PROFILE_IDENTITY, UPDATE_PROFILE_NAME, UPDATE_PROFILE_PIC } from "../../services/queries";
 import { request } from "../../utils/fetch";
 import { useGlobal } from "../../store/hooks";
 import { delayFunctionCall } from "../../utils/utilities";
 import { Typography } from "@mui/material";
+import { Address, Identity, Name } from "../../utils/type";
 
 const PersonalInfoSchema = Yup.object().shape({
   firstName: Yup.string().required("First name is required"),
   lastName: Yup.string().required("Last name is required"),
+  middleName: Yup.string(),
+  preferredName: Yup.string(),
+  profilePicture: Yup.string(),
   email: Yup.string().email("Invalid email").required("Email is required"),
   ssn: Yup.string()
     .matches(/^[0-9]+$/, "Must be only digits")
@@ -95,6 +99,7 @@ const PersonalInfo: React.FC = () => {
           profilePicture: "",
         }
   );
+  const [profileId,setProfileId] = useState("");
   const user = useSelector((state: RootState) => state.auth.user);
   const { showLoading, showMessage } = useGlobal();
 
@@ -104,6 +109,7 @@ const PersonalInfo: React.FC = () => {
     console.log("userId", userId);
     const response: any = await request(GET_PROFILE_BY_ID, { userId });
     const profile = response.data.getProfileByUserId;
+    setProfileId(profile.id);
     console.log("profile", profile);
     setInitialValues({
       firstName: profile.name.firstName,
@@ -139,6 +145,42 @@ const PersonalInfo: React.FC = () => {
     { value: "noAnswer", label: "I do not wish to answer" },
   ];
 
+  const updateProfileName= async (profileId:string,name:Name) => {
+    try {
+      const response = await request(UPDATE_PROFILE_NAME, {
+        input: { id: profileId, firstName:name.firstName, middleName:name.middleName,lastName:name.lastName,preferredName:name.preferredName},
+      });
+      console.log("Update name Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
+
+  const updateProfileIdentity= async (profileId:string,identity:Identity) => {
+    try {
+      const response = await request(UPDATE_PROFILE_IDENTITY, {
+        input: { id: profileId, ssn:identity.ssn,dob:identity.dob,gender:identity.gender},
+      });
+      console.log("Update identity Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
+
+  const updateProfilePic = async (profileId:string,profilePicture:string) => {
+    try {
+      const response = await request(UPDATE_PROFILE_PIC, {
+        input: { id: profileId, profilePicture},
+      });
+      console.log("Update ProfilePic Response:", response);
+    } catch (e) {
+      console.log(e);
+      showMessage(String(e));
+    }
+  };
+
   const handleValidationAndUpdate = (values: any) => {
     const isValid = PersonalInfoSchema.isValidSync(values);
     if (isValid) {
@@ -147,9 +189,29 @@ const PersonalInfo: React.FC = () => {
       } else {
         console.log("update profile");
         console.log("values", values);
+
+        if(!profileId){
+          throw new Error("Did not get profileId");
+        }
+
         // update name
         // update identity
         // update profile picture
+        const newName:Name = {
+          firstName:values.firstName,
+          lastName:values.lastName,
+          middleName:values.middleName||"",
+          preferredName:values.preferredName||"",
+        }
+        updateProfileName(profileId,newName);
+
+        const newIdentity:Identity = {
+          ssn:values.ssn,
+          dob:values.dob.toString(),
+          gender:values.gender
+        }
+        updateProfileIdentity(profileId,newIdentity);
+        updateProfilePic(profileId,values.profilePicture||"");
       }
     }
   };
