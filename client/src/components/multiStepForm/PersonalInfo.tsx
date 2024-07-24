@@ -111,6 +111,10 @@ const PersonalInfo: React.FC = () => {
     const profile = response.data.getProfileByUserId;
     setProfileId(profile.id);
     console.log("profile", profile);
+    const dob = new Date(Number(profile.identity.dob));
+    const formattedDob = `${dob.getFullYear()}-${
+      dob.getMonth() + 1
+    }-${dob.getDate()}`;
     setInitialValues({
       firstName: profile.name.firstName,
       lastName: profile.name.lastName,
@@ -118,7 +122,7 @@ const PersonalInfo: React.FC = () => {
       preferredName: profile.name.preferredName,
       email: profile.email,
       ssn: profile.identity.ssn,
-      dob: profile.identity.dob,
+      dob: formattedDob,
       gender: profile.identity.gender,
       profilePicture: profile.profilePicture,
     });
