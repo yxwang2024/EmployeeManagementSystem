@@ -122,6 +122,7 @@ const PersonalInfo: React.FC = () => {
     showLoading(true);
     if (isOnboarding) {
       setInitialValues(personalInfo);
+      delayFunctionCall(showLoading, 300, false);
     } else {
       getProfile()
         .then(() => delayFunctionCall(showLoading, 300, false))
@@ -141,7 +142,11 @@ const PersonalInfo: React.FC = () => {
   const handleValidationAndUpdate = (values: any) => {
     const isValid = PersonalInfoSchema.isValidSync(values);
     if (isValid) {
-      dispatch(updatePersonalInfo(values));
+      if (isOnboarding) {
+        dispatch(updatePersonalInfo(values));
+      } else {
+        console.log("update profile");
+      }
     }
   };
 
