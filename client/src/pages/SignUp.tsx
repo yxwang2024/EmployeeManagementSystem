@@ -9,8 +9,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { EmployeeInstanceType } from '../utils/type';
 
 const validationSchema = Yup.object({
-  firstName: Yup.string().required('First Name is required'),
-  lastName: Yup.string().required('Last Name is required'),
+  userName: Yup.string().required('User Name is required'),
   email: Yup.string().email('Invalid email address').required('Email is required'),
   password: Yup.string().required('Password is required'),
 });
@@ -49,7 +48,7 @@ const SignUp: React.FC = () => {
     return new URLSearchParams(location.search).get(param);
   };
 
-  const handleSignUp = async (values: { firstName: string; lastName: string; email: string; password: string }) => {
+  const handleSignUp = async (values: { userName: string; email: string; password: string }) => {
     try {
       const registrationToken = getQueryParam('registrationToken'); 
 
@@ -63,7 +62,7 @@ const SignUp: React.FC = () => {
           query: SIGNUP_MUTATION,
           variables: {
             input: {
-              username: `${values.firstName} ${values.lastName}`,
+              username: values.userName,
               email: values.email,
               password: values.password,
               registrationToken,
@@ -94,9 +93,7 @@ const SignUp: React.FC = () => {
     } catch (error) {
       const errorMessage = (error as Error).message;
       console.error('Registration failed:', errorMessage);
-      if (errorMessage.includes('E11000 duplicate key error collection')) {
-        alert('Registration failed: Email already in use');
-      } else {
+      if (errorMessage) {
         alert('Registration failed: ' + errorMessage);
       }
     }
@@ -104,19 +101,16 @@ const SignUp: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center h-screen ">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md lg:w-[500px]">
         <h2 className="text-center text-4xl font-bold mb-4 text-gray-800">Sign up</h2>
         <Formik
-          initialValues={{ firstName: '', lastName: '', email: '', password: '' }}
+          initialValues={{ userName: '', email: '', password: '' }}
           validationSchema={validationSchema}
           onSubmit={handleSignUp}
         >
           {({ handleSubmit }) => (
             <Form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-x-4'>
-                <CustomTextField name="firstName" label="First Name" />
-                <CustomTextField name="lastName" label="Last Name" />
-              </div>
+                <CustomTextField name="userName" label="User Name" />
               <CustomTextField name="email" label="Email Address" type="email" />
               <CustomTextField name="password" label="Password" type="password" />
               <div className="flex items-center justify-between pt-2">

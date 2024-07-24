@@ -19,9 +19,9 @@ const Home: React.FC = () => {
               </Link>
             </div>
           }
-        <div className="flex mx-auto">
+        <div className="flex justify-center">
           {(user && (user?.instance as EmployeeInstanceType)?.onboardingApplication?.status !== 'Approved') &&   
-            <Link to="/onboardingapplication" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <Link to="/onboardingapplication" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-fit">
               Start your application
             </Link>
           }

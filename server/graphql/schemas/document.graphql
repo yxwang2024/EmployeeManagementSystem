@@ -1,10 +1,10 @@
   type Document {
     _id: ID!
-    title: String!
-    timestamp: String!
-    filename: String!
-    url: String!
-    key: String!
+    title: String
+    timestamp: String
+    filename: String
+    url: String
+    key: String
   }
 
   scalar Upload

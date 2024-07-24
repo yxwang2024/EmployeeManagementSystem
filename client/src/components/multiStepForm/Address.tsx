@@ -17,13 +17,14 @@ const AddressSchema = Yup.object().shape({
 
 const Address: React.FC = () => {
   const dispatch = useDispatch();
+  const userId = useSelector((state: RootState) => state.oaInfo.userId);
   const address = useSelector((state: RootState) => state.oaInfo.address);
 
   const handleValidationAndUpdate = (values: any) => {
     const isValid = AddressSchema.isValidSync(values);
     if (isValid) {
       dispatch(updateAddress(values));
-      localStorage.setItem('oaInfo', JSON.stringify({ ...address, ...values }));
+      localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...address, ...values }));
     }
   };
 

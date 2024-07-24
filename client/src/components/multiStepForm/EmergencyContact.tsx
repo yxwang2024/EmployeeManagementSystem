@@ -27,6 +27,7 @@ const EmergencyContactSchema = Yup.object().shape({
 const EmergencyContact: React.FC = () => {
   const dispatch = useDispatch();
   const emergencyContacts = useSelector((state: RootState) => state.oaInfo.emergencyContacts);
+  const userId = useSelector((state: RootState) => state.oaInfo.userId);
 
   const handleNextStep = async (values: any, setFieldError: Function, validateForm: Function) => {
     const errors = await validateForm();
@@ -51,8 +52,8 @@ const EmergencyContact: React.FC = () => {
 
     if (Object.keys(errors).length === 0 && duplicates.length === 0) {
       dispatch(updateEmergencyContact(values.emergencyContacts));
-      const savedData = JSON.parse(localStorage.getItem('oaInfo') || '{}');
-      localStorage.setItem('oaInfo', JSON.stringify({ ...savedData, emergencyContacts: values.emergencyContacts }));
+      const savedData = JSON.parse(localStorage.getItem(`oaInfo-${userId}`) || '{}');
+      localStorage.setItem(`oaInfo-${userId}`, JSON.stringify({ ...savedData, emergencyContacts: values.emergencyContacts }));
       dispatch(setCurrentStep(7));
     }
   };

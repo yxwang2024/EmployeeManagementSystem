@@ -67,7 +67,7 @@ const profileSchema = new Schema({
         },
         dob: {
             type: Date,
-            default:'1990-01-01',
+            default:'2024-07-24',
         },
         gender: {
             type: String,
