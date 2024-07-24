@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Formik, Form } from 'formik';
+import React, { useEffect, useState } from 'react';
+import { Formik, Form, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
@@ -8,6 +8,7 @@ import CustomTextField from '../../components/CustomTextField';
 import CustomSelectField from '../../components/CustomSelectField';
 import CustomFile from '../../components/CustomFile';
 import StepController from './StepController';
+import { useLocation } from 'react-router-dom';
 
 const PersonalInfoSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
@@ -15,51 +16,51 @@ const PersonalInfoSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
   ssn: Yup.string().matches(/^[0-9]+$/, "Must be only digits").min(9, 'Less than 9, must be exactly 9 digits').max(9, 'More than 9, must be exactly 9 digits').required('SSN is required'),
   dob: Yup.date()
-  .required('Date of birth is required')
-  .test('future-date', 'Please enter a valid date of birth', function (value) {
-    if (!value) return true;
-    const today = new Date();
-    const birthDate = new Date(value);
-    return birthDate <= today;
-  })
-  .test('age-test', 'You have to be over 18 to submit the application', function (value) {
-    if (!value) return true;
-    const today = new Date();
-    const birthDate = new Date(value);
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDifference = today.getMonth() - birthDate.getMonth();
-    const dayDifference = today.getDate() - birthDate.getDate();
-    if (age > 18) {
-      return true;
-    } else if (age === 18) {
-      if (monthDifference > 0) {
+    .required('Date of birth is required')
+    .test('future-date', 'Please enter a valid date of birth', function (value) {
+      if (!value) return true;
+      const today = new Date();
+      const birthDate = new Date(value);
+      return birthDate <= today;
+    })
+    .test('age-test', 'You have to be over 18 to submit the application', function (value) {
+      if (!value) return true;
+      const today = new Date();
+      const birthDate = new Date(value);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDifference = today.getMonth() - birthDate.getMonth();
+      const dayDifference = today.getDate() - birthDate.getDate();
+      if (age > 18) {
         return true;
-      } else if (monthDifference === 0 && dayDifference >= 0) {
-        return true;
+      } else if (age === 18) {
+        if (monthDifference > 0) {
+          return true;
+        } else if (monthDifference === 0 && dayDifference >= 0) {
+          return true;
+        }
       }
-    }
-    return false;
-  })
-  .test('within-100-years', 'Please select a date that is at least 100 years before now', function (value) {
-    if (!value) return true;
-    const today = new Date();
-    const birthDate = new Date(value);
-    const age = today.getFullYear() - birthDate.getFullYear();
-    return age <= 100;
-  }),
+      return false;
+    })
+    .test('within-100-years', 'Please select a date that is at least 100 years before now', function (value) {
+      if (!value) return true;
+      const today = new Date();
+      const birthDate = new Date(value);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      return age <= 100;
+    }),
   gender: Yup.string().required('Gender is required'),
 });
 
 const PersonalInfo: React.FC = () => {
   const dispatch = useDispatch();
-  // const userId = useSelector((state: RootState) => state.oaInfo.userId);
-  // const user = useSelector((state: RootState) => state.auth.user);
+  const location = useLocation();
   const personalInfo = useSelector((state: RootState) => state.oaInfo.personalInfo);
-  // useEffect(() => {
-  //   if (user?.email && !personalInfo.email) {
-  //     dispatch(updatePersonalInfo({ email: user.email }));
-  //   }
-  // }, [dispatch, user?.email, personalInfo.email]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [initialValues, setInitialValues] = useState(personalInfo);
+
+  useEffect(() => {
+    setInitialValues(personalInfo);
+  }, [personalInfo]);
 
   const genderOptions = [
     { value: 'male', label: 'Male' },
@@ -74,29 +75,52 @@ const PersonalInfo: React.FC = () => {
     }
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = (resetForm: (nextState?: Partial<typeof initialValues>) => void) => {
+    const confirmCancel = window.confirm('Do you want to discard all changes?');
+    if (confirmCancel) {
+      resetForm();
+      setIsEditing(false);
+    }
+  };
+
+  const handleSave = (values: any, actions: FormikHelpers<typeof initialValues>) => {
+    handleValidationAndUpdate(values);
+    setIsEditing(false);
+    actions.setSubmitting(false);
+  };
+
+  const isOnboarding = location.pathname === '/onboardingapplication';
+
   return (
     <Formik
       enableReinitialize
-      initialValues={personalInfo}
+      initialValues={initialValues}
       validationSchema={PersonalInfoSchema}
-      onSubmit={(values) => {
-        handleValidationAndUpdate(values);
-        dispatch(setCurrentStep(2));
+      onSubmit={(values, actions) => {
+        handleSave(values, actions);
+        if (isOnboarding) {
+          dispatch(setCurrentStep(2));
+        }
       }}
     >
-      {({ handleSubmit, setFieldValue, values }) => (
+      {({ handleSubmit, setFieldValue, values, resetForm }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Personal Information</h2>
           <div className='grid grid-col1 sm:grid-cols-2 sm:gap-x-8'>
-            <CustomTextField name="firstName" label="First Name" />
-            <CustomTextField name="lastName" label="Last Name" />
-            <CustomTextField name="middleName" label="Middle Name" />
-            <CustomTextField name="preferredName" label="Preferred Name" />
+            <CustomTextField name="firstName" label="First Name" disabled={!isOnboarding && !isEditing} />
+            <CustomTextField name="lastName" label="Last Name" disabled={!isOnboarding && !isEditing} />
+            <CustomTextField name="middleName" label="Middle Name" disabled={!isOnboarding && !isEditing} />
+            <CustomTextField name="preferredName" label="Preferred Name" disabled={!isOnboarding && !isEditing} />
             <div className='col-span-1 sm:col-span-2'>
               <CustomFile 
                 name="profilePicture" 
                 label="Profile Picture" 
                 type="file" 
+                disabled={!isOnboarding && !isEditing}
                 onChange={(event) => {
                   if (event.currentTarget.files) {
                     const file = event.currentTarget.files[0];
@@ -122,22 +146,36 @@ const PersonalInfo: React.FC = () => {
               />
             </div>
             <CustomTextField name="email" label="Email" type="email" disabled />
-            <CustomTextField name="ssn" label="SSN" />
+            <CustomTextField name="ssn" label="SSN" disabled={!isOnboarding && !isEditing} />
             <CustomTextField 
               name="dob" 
               label="Date of Birth" 
               type="date" 
+              disabled={!isOnboarding && !isEditing} 
               onKeyDown={(e) => e.preventDefault()} 
               onPaste={(e) => e.preventDefault()}  
             />
-            <CustomSelectField name="gender" label="Gender" options={genderOptions} />
+            <CustomSelectField name="gender" label="Gender" options={genderOptions} disabled={!isOnboarding && !isEditing} />
           </div>
-          <StepController 
-            currentStep={1} 
-            totalSteps={7} 
-            onNext={() => handleValidationAndUpdate(values)}
-            onSubmit={handleSubmit} 
-          />
+          {isOnboarding ? (
+            <StepController 
+              currentStep={1} 
+              totalSteps={7} 
+              onNext={() => handleValidationAndUpdate(values)}
+              onSubmit={handleSubmit} 
+            />
+          ) : (
+            <div className='mt-8'>
+              {isEditing ? (
+                <div className='flex'>
+                  <button type="button" className='px-4 py-2 bg-blue-600 text-white font-semibold rounded mr-4 flex me-auto' onClick={() => handleCancel(resetForm)}>Cancel</button>
+                  <button type="submit" className='px-4 py-2 bg-blue-600 text-white font-semibold rounded flex ms-auto'>Save</button>
+                </div>
+              ) : (
+                <button type="button" className='px-4 py-2 bg-blue-600 text-white font-semibold rounded' onClick={handleEdit}>Edit</button>
+              )}
+            </div>
+          )}
         </Form>
       )}
     </Formik>

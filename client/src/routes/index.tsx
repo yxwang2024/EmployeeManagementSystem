@@ -11,6 +11,7 @@ import ErrorPage from "../pages/Error";
 import { ProtectedRoute, ProtectedRouteEmployee, ProtectedRouteHR } from "../routes/ProtectedRoute";
 import VisaStatusDetailedView from "../pages/VisaStatusDetailedView";
 import OnboardingDetailedView from "../pages/OnboardingDetailedView";
+import Profile from "../pages/Profile";
 import HrEmployeeProfiles from "../pages/HrEmployeeProfiles";
 import ProfileDetailedView from "../pages/ProfileDetailedView";
 
@@ -44,6 +45,13 @@ const router = createBrowserRouter([
         path: '/onboardingapplication',
 
         element: <ProtectedRouteEmployee><OnboardingApplication /></ProtectedRouteEmployee>,
+
+        errorElement: <ErrorPage />
+      },
+      {
+        path: '/profile',
+
+        element: <ProtectedRouteEmployee><Profile /></ProtectedRouteEmployee>,
 
         errorElement: <ErrorPage />
       },

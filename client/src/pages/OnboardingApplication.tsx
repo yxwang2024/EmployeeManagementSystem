@@ -22,23 +22,6 @@ const OnboardingApplication: React.FC = () => {
   const navigate = useNavigate(); 
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   if (token){
-  //     dispatch(initializeFromLocalStorage()).then(() => {
-  //       const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id;
-  //       if (status === 'Rejected') {
-  //         dispatch(fetchOnboardingData(userId)).then((response: any) => {
-  //           console.log("oa: ", response)
-  //           if (response.payload && response.payload.hrFeedback) {
-  //             setFeedback(response.payload.hrFeedback);
-  //           }
-  //         });
-  //       }
-  //     });
-  //   }
-  // }, [dispatch, status]);
-
   useEffect(() => {
     if (status === 'Approved') {
       navigate('/');
