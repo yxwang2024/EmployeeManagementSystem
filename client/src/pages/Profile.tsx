@@ -7,6 +7,7 @@ import EmergencyContactStep from '../components/multiStepForm/EmergencyContact';
 import { RootState } from '../store/store';
 import { useAppSelector, useGlobal } from '../store/hooks';
 import { useNavigate } from 'react-router-dom';
+import Documents from '../components/multiStepForm/Documents';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate(); 
@@ -34,7 +35,7 @@ const Profile: React.FC = () => {
       case 'emergency':
         return <EmergencyContactStep />;
       case 'documents':
-        return <div>Documents section (to be implemented)</div>;
+        return <Documents />;
       default:
         return <PersonalInfoStep />;
     }
@@ -82,7 +83,7 @@ const Profile: React.FC = () => {
           </li>
         </ul>
       </div>
-      <div className="ml-1/4 w-1/2 p-4">
+      <div className="ml-1/4 w-3/4 p-4">
         {renderSection()}
       </div>
     </div>
