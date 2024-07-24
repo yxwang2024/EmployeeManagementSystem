@@ -1,25 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useLocation } from 'react-router-dom';
-
-import {
-  calculateRemainingDays,
-  getDateString,
-  getLegalName,
-} from "../services/dateServices";
-import { nextStep } from "../services/records";
-import {
-  VisaStatusListItemType,
-  VisaStatusPopulatedType,
-  AllVisaStatusesResponseType,
-  VisaStatusConnectionResponseType,
-  VisaStatusConnectionType,
-} from "../utils/type";
-import { useAppSelector, useAppDispatch } from "../store/hooks";
-import { useGlobal } from "../store/hooks";
-import { delayFunctionCall } from "../utils/utilities";
-import { useNavigate } from "react-router-dom";
-import { GET_VISA_STATUS_CONNECTION } from "../services/queries";
-import { request } from "../utils/fetch";
 
 import { useTheme } from "@mui/material/styles";
 import Collapse from "@mui/material/Collapse";
@@ -33,13 +12,30 @@ import TableContainer from "@mui/material/TableContainer";
 import TableFooter from "@mui/material/TableFooter";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
-import { Typography } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
+import { Link, Typography } from "@mui/material";
+
+import {
+  ProfileListItemType,
+  ProfileConnectionResponseType,
+  ProfileConnectionType,
+} from "../utils/type";
+import {
+  formatSSN,
+  formatPhoneNumber,
+  getLegalName,
+} from "../services/dateServices";
+import { useAppSelector, useAppDispatch } from "../store/hooks";
+import { useGlobal } from "../store/hooks";
+import { delayFunctionCall } from "../utils/utilities";
+import { useNavigate } from "react-router-dom";
+import { GET_PROFILE_CONNECTION } from "../services/queries";
+import { request } from "../utils/fetch";
 
 interface TablePaginationActionsProps {
   count: number;
@@ -123,14 +119,7 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 }
 
 interface Column {
-  id:
-    | "name"
-    | "title"
-    | "startDate"
-    | "endDate"
-    | "remainingDays"
-    | "nextStep"
-    | "button";
+  id: "name" | "SSN" | "title" | "phone" | "email";
   label: string;
   minWidth?: number;
   align?: "center" | "right";
@@ -138,48 +127,25 @@ interface Column {
 }
 
 const columns: Column[] = [
-  { id: "name", label: "Name", minWidth: 200, align: "center" },
-  { id: "title", label: "Title", minWidth: 100, align: "center" },
+  { id: "name", label: "Name", minWidth: 150, align: "center" },
+  { id: "SSN", label: "SSN", minWidth: 200, align: "center" },
   {
-    id: "startDate",
-    label: "Start\u00a0Date",
-    minWidth: 120,
+    id: "title",
+    label: "Work\u00a0Authorization\u00a0Title",
+    minWidth: 100,
     align: "center",
   },
-  {
-    id: "endDate",
-    label: "End\u00a0Date",
-    minWidth: 120,
-    align: "center",
-  },
-  {
-    id: "remainingDays",
-    label: "Remaining\u00a0Days",
-    minWidth: 150,
-    align: "center",
-  },
-  {
-    id: "nextStep",
-    label: "Next\u00a0Step",
-    minWidth: 300,
-    align: "center",
-  },
-  {
-    id: "button",
-    label: "",
-    minWidth: 170,
-    align: "right",
-  },
+  { id: "phone", label: "Phone", minWidth: 200, align: "center" },
+  { id: "email", label: "Email", minWidth: 120, align: "center" },
 ];
 
-const HrVisaStatusTable: React.FC = () => {
+const HrEmployeeProfilesTable: React.FC = () => {
   const navigate = useNavigate();
   const { showLoading, showMessage } = useGlobal();
 
   const user = useAppSelector((state) => state.auth.user);
   const search = useAppSelector((state) => state.search.value);
   const searchTriggered = useAppSelector((state) => state.search.trigger);
-  const option = useAppSelector((state) => state.option.value);
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(2);
@@ -194,76 +160,58 @@ const HrVisaStatusTable: React.FC = () => {
   const [hasNextPage, setHasNextPage] = React.useState(false);
   const [hasPreviousPage, setHasPreviousPage] = React.useState(false);
 
-  const [visaStatuses, setVisaStatuses] = useState<VisaStatusListItemType[]>(
-    []
-  );
+  const [profiles, setProfiles] = useState<ProfileListItemType[]>([]);
 
-  const getVisaStatusConnection = useCallback(async () => {
+  const getProfileConnection = useCallback(async () => {
     try {
-      const response: VisaStatusConnectionResponseType = await request(
-        GET_VISA_STATUS_CONNECTION,
+      const response: ProfileConnectionResponseType = await request(
+        GET_PROFILE_CONNECTION,
         {
           first: first,
           after: after,
           last: last,
           before: before,
           query: search,
-          status: option === "InProgress" ? "In Progress" : "",
         }
       );
-      const visaStatusConnection: VisaStatusConnectionType =
-        response.data.getVisaStatusConnection;
-      const edges = visaStatusConnection.edges;
-      setTotalCount(visaStatusConnection.totalCount);
-      setHasNextPage(visaStatusConnection.pageInfo.hasNextPage);
-      setHasPreviousPage(visaStatusConnection.pageInfo.hasPreviousPage);
-      setStartCursor(visaStatusConnection.pageInfo.startCursor);
-      setEndCursor(visaStatusConnection.pageInfo.endCursor);
-      const statusList: VisaStatusListItemType[] = [];
-      if (option == "InProgress") {
-        edges.map((edge) => {
-          if (edge.node.step != "I20" || edge.node.status != "Approved") {
-            const name: string = getLegalName(
-              edge.node.employee.profile.name.firstName,
-              edge.node.employee.profile.name.middleName,
-              edge.node.employee.profile.name.lastName
-            );
-            statusList.push({
-              _id: edge.node._id,
-              legalName: name,
-              title: edge.node.workAuthorization.title,
-              startDate: edge.node.workAuthorization.startDate,
-              endDate: edge.node.workAuthorization.endDate,
-              status: edge.node.status,
-              step: edge.node.step,
-            });
-          }
+      const profileConnection: ProfileConnectionType =
+        response.data.getProfileConnection;
+      console.log("!!!!!!!!!profileConnection:", profileConnection);
+      const edges = profileConnection.edges;
+      setTotalCount(profileConnection.totalCount);
+      setHasNextPage(profileConnection.pageInfo.hasNextPage);
+      setHasPreviousPage(profileConnection.pageInfo.hasPreviousPage);
+      setStartCursor(profileConnection.pageInfo.startCursor);
+      setEndCursor(profileConnection.pageInfo.endCursor);
+      const profileList: ProfileListItemType[] = [];
+
+      edges.map((edge) => {
+        console.log("!!!!!!!edge:", edge);
+        const name: string = getLegalName(
+          edge.node.name.firstName,
+          edge.node.name.middleName,
+          edge.node.name.lastName
+        );
+        profileList.push({
+          _id: edge.node.id,
+          legalName: name,
+          title: edge.node.employment.visaTitle,
+          SSN: edge.node.identity.ssn,
+          phone: edge.node.contactInfo.cellPhone,
+          email: edge.node.email,
         });
-      } else if (option == "All") {
-        edges.map((edge) => {
-          const name: string = getLegalName(
-            edge.node.employee.profile.name.firstName,
-            edge.node.employee.profile.name.middleName,
-            edge.node.employee.profile.name.lastName
-          );
-          statusList.push({
-            _id: edge.node._id,
-            legalName: name,
-            title: edge.node.workAuthorization.title,
-            startDate: edge.node.workAuthorization.startDate,
-            endDate: edge.node.workAuthorization.endDate,
-            status: edge.node.status,
-            step: edge.node.step,
-          });
-        });
-      }
-      setVisaStatuses(statusList);
+      });
+
+      setProfiles(profileList);
     } catch (e) {
       console.log(e);
       showMessage(String(e));
     }
-  }, [option, user, before, after, last, first, searchTriggered, rowsPerPage]);
-
+  }, [user, before, after, last, first, searchTriggered, rowsPerPage]);
+  
+  React.useEffect(() => {
+    console.log("Search value in HrVisaStatusTable:", search); 
+  }, [search]);
 
   useEffect(() => {
     setPage(0);
@@ -271,37 +219,22 @@ const HrVisaStatusTable: React.FC = () => {
     setBefore("");
     setFirst(rowsPerPage);
     setLast(0);
-  }, [searchTriggered, option]);
+  }, [searchTriggered]);
 
   useEffect(() => {
     showLoading(true);
-    getVisaStatusConnection()
+    getProfileConnection()
       .then(() => {
         delayFunctionCall(showLoading, 300, false);
       })
       .catch((error) => {
         console.error(error);
-        showMessage(`failed to fetch visa status`, "failed", 2000);
+        showMessage(`failed to fetch profiles`, "failed", 2000);
         showLoading(false);
-        // navigate('/login');
+        navigate("/login");
       });
-  }, [getVisaStatusConnection]);
+  }, [getProfileConnection]);
 
-  // useEffect(() => {
-  //   showLoading(true);
-  //   getVisaStatuses()
-  //     .then(() => {
-  //       delayFunctionCall(showLoading, 300, false);
-  //     })
-  //     .catch((error) => {
-  //       console.error(error);
-  //       showMessage(`failed to fetch visa status`, "failed", 2000);
-  //       showLoading(false);
-  //       // navigate('/login');
-  //     });
-  // }, [getVisaStatuses]);
-
-  // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - totalCount) : 0;
 
@@ -333,7 +266,6 @@ const HrVisaStatusTable: React.FC = () => {
       setBefore("");
       setFirst(0);
     }
-
     setPage(newPage);
   };
 
@@ -347,14 +279,6 @@ const HrVisaStatusTable: React.FC = () => {
     setAfter("");
     setBefore("");
   };
-
-  const toDetailedView = (id: string) => {
-    if (id) {
-      navigate(`/visa-status-management/detailed/${id}`);
-    }
-  };
-
-
 
   return (
     <Paper>
@@ -383,52 +307,35 @@ const HrVisaStatusTable: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visaStatuses.map((statusListItem) => (
+            {profiles.map((profile) => (
               <React.Fragment>
-                <TableRow hover key={statusListItem.legalName}>
+                <TableRow hover key={profile.legalName}>
                   <TableCell
-                    style={{ width: 200 }}
+                    style={{ width: 150 }}
+                    align="center"
                     component="th"
                     scope="row"
-                    align="center"
                   >
-                    {statusListItem.legalName}
+                    <Link
+                      component="button"
+                      onClick={() => {
+                        navigate(`/employee-profiles/detailed/${profile._id}`);
+                      }}
+                    >
+                      {profile.legalName}
+                    </Link>
                   </TableCell>
-                  <TableCell style={{ width: 100 }} align="center">
-                    {statusListItem.title}
+                  <TableCell style={{ width: 200 }} align="center">
+                    {formatSSN(profile.SSN)}
+                  </TableCell>
+                  <TableCell style={{ width: 170 }} align="center">
+                    {profile.title}
+                  </TableCell>
+                  <TableCell style={{ width: 200 }} align="center">
+                    {formatPhoneNumber(profile.phone)}
                   </TableCell>
                   <TableCell style={{ width: 120 }} align="center">
-                    {getDateString(statusListItem.startDate)}
-                  </TableCell>
-                  <TableCell style={{ width: 120 }} align="center">
-                    {getDateString(statusListItem.endDate)}
-                  </TableCell>
-                  <TableCell style={{ width: 120 }} align="center">
-                    {calculateRemainingDays(statusListItem.endDate) + " days"}
-                  </TableCell>
-                  <TableCell style={{ width: 300 }} align="center">
-                    {nextStep[statusListItem?.step][statusListItem?.status]}
-                  </TableCell>
-                  <TableCell align="right">
-                    {option == "InProgress" ? (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        style={{ width: "150px" }}
-                        onClick={() => toDetailedView(statusListItem._id)}
-                      >
-                        Action
-                      </Button>
-                    ) : (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        style={{ width: "150px" }}
-                        onClick={() => toDetailedView(statusListItem._id)}
-                      >
-                        Review
-                      </Button>
-                    )}
+                    {profile.email}
                   </TableCell>
                 </TableRow>
               </React.Fragment>
@@ -464,4 +371,4 @@ const HrVisaStatusTable: React.FC = () => {
   );
 };
 
-export default HrVisaStatusTable;
+export default HrEmployeeProfilesTable;

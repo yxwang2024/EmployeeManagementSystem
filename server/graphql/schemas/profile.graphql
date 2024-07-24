@@ -29,6 +29,7 @@ extend type Mutation {
   updateProfileEmployment(input: EmploymentInput): Profile
   updateProfileReference(input: ReferenceInput): Profile
   updateProfileEmergencyContact(input: EmergencyContactUpdateInput): Profile
+  updateProfileDocuments(input: DocumentsUpdateInput): Profile
 }
 
 type Name {
@@ -160,6 +161,20 @@ input EmergencyContactInput {
 input EmergencyContactUpdateInput {
   id: ID!
   emergencyContacts: [EmergencyContactInput]!
+}
+
+input DocumentUpdateInput{
+    _id: ID!
+    title: String!
+    timestamp: String!
+    filename: String!
+    url: String!
+    key: String!
+}
+
+input DocumentsUpdateInput {
+  id: ID!
+  documents: [DocumentUpdateInput]!
 }
 
 

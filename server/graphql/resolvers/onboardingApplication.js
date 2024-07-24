@@ -3,7 +3,7 @@ import Employee from '../../models/Employee.js';
 import Document from '../../models/Document.js';
 import User from '../../models/User.js';
 import { checkAuth, isHR, checkUser, isEmployee } from '../../services/auth.js';
-import mongoose from 'mongoose';
+import { ObjectId } from "mongodb";
 
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -22,8 +22,7 @@ const onboardingApplicationResolvers = {
                     throw new Error('Query id and auth user do not match.');
                 }
         
-                const onboardingApplication = await OnboardingApplication.findById(oaId);
-                // console.log('Fetched Onboarding Application:', onboardingApplication);
+                const onboardingApplication = await OnboardingApplication.findById(oaId).populate('documents');
                 return onboardingApplication;
             } catch (err) {
                 console.error(err);
@@ -46,7 +45,7 @@ const onboardingApplicationResolvers = {
             }
         },
 
-        getOnboardingApplicationConnection: async (_, { query, first, after, last, before }) => {
+        getOnboardingApplicationConnection: async (_, { query, first, after, last, before, status }) => {
             try {
               if ((first && last) || (after && before)) {
                 throw new Error(
@@ -84,6 +83,9 @@ const onboardingApplicationResolvers = {
                     ],
                   }
                 : {};
+
+                // Exclude profiles with firstName as an empty string
+                searchQuery["name.firstName"] = { $ne: "" };
       
               let paginationQuery = {};
               let sort = { _id: last ? -1 : 1 };
@@ -97,8 +99,29 @@ const onboardingApplicationResolvers = {
                 paginationQuery._id = { $lt: ObjectId.createFromHexString(before) };
                 sort = { _id: -1 };
               }
-      
-              const OnboardingApps = await OnboardingApplication.find(searchQuery)
+
+              let statusFilter = {};
+              if (status) {
+                switch (status) {
+                  case "Pending":
+                    statusFilter = { status: "Pending" };
+                    break;
+                  case "Approved":
+                    statusFilter = { status: "Approved" };
+                    break;
+                  case "Rejected":
+                    statusFilter = { status: "Rejected" };
+                    break;
+                  default:
+                    break;
+                }
+              }
+                    
+              const OnboardingApps = await OnboardingApplication.find({
+                ...searchQuery,
+                ...paginationQuery,
+                ...statusFilter,
+              })
                 .sort(sort)
                 .limit(limit);
       
@@ -111,7 +134,7 @@ const onboardingApplicationResolvers = {
                 node: Oapp,
               }));
       
-              const totalCount = await OnboardingApplication.countDocuments(searchQuery);
+              const totalCount = await OnboardingApplication.countDocuments({ ...searchQuery, ...statusFilter });
       
               const pageInfo = {
                 hasNextPage: OnboardingApps.length === limit && !before,

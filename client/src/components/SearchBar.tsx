@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { styled, alpha } from "@mui/material/styles";
-import { Button,Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import Box from "@mui/material/Box";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
-import {useAppDispatch, useAppSelector} from "../store/hooks.ts";
-import {updateSearchValue, triggerSearch} from "../store/slices/search.ts";
+import { useAppDispatch, useAppSelector } from "../store/hooks.ts";
+import { updateSearchValue, triggerSearch } from "../store/slices/search.ts";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -47,33 +47,35 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-
-
-export default function SearchBar({option}) {
+export default function SearchBar() {
   const search = useAppSelector((state) => state.search.value);
   const dispatch = useAppDispatch();
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if (e.key === 'Enter') {
-    dispatch(triggerSearch())
-  }
-}
+    if (e.key === "Enter") {
+      dispatch(triggerSearch());
+    }
+  };
+
+  React.useEffect(() => {
+    console.log("Search value in SearchBar:", search); 
+  }, [search]);
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {option == "All" && (
-        <Search sx={{ border: '1px solid grey' }}>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder="Search…"
-            inputProps={{ "aria-label": "search" }}
-            value={search}
-            onChange={(e) => {dispatch(updateSearchValue(e.target.value))}}
-            onKeyDown={handleKeyDown}
-          />
-        </Search>
-      )}
+      <Search sx={{ border: "1px solid grey" }}>
+        <SearchIconWrapper>
+          <SearchIcon />
+        </SearchIconWrapper>
+        <StyledInputBase
+          placeholder="Search…"
+          inputProps={{ "aria-label": "search" }}
+          value={search}
+          onChange={(e) => {
+            dispatch(updateSearchValue(e.target.value));
+          }}
+          onKeyDown={handleKeyDown}
+        />
+      </Search>
     </Box>
   );
 }

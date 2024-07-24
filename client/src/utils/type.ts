@@ -328,11 +328,94 @@ export interface VisaStatusConnectionResponseType {
   data: {
     getVisaStatusConnection: VisaStatusConnectionType;
   };
-
 }
 
 export interface SingleVisaStatusesResponseType {
   data: {
     getVisaStatus: VisaStatusPopulatedType;
+  };
+}
+
+export interface OnboardingListItemType {
+  id: string;
+  email: string;
+  legalName: string;
+  status: string;
+}
+
+export interface OnboardingConnectionType {
+  totalCount: number;
+  edges: [OnboardingEdge];
+  pageInfo: PageInfo;
+}
+
+export interface OnboardingEdge {
+  cursor: string;
+  node: OnboardingShortResponse;
+}
+
+export interface OnboardingShortResponse {
+  id: string;
+  email: string;
+  name: OaNameType;
+  status: string;
+}
+
+export interface OnboardingConnectionResponseType {
+  data: {
+    getOnboardingApplicationConnection: OnboardingConnectionType;
+  };
+}
+
+export interface SingleOnboardingResponseType {
+  data: {
+    getOnboardingApplication: OnboardingApplication;
+  };
+}
+
+export interface ProfileListItemType {
+  _id:string;
+  legalName: string;
+  SSN:string;
+  title: string;
+  phone:string;
+  email:string;
+}
+
+export interface ProfileConnectionType {
+  totalCount: number;
+  edges: [ProfileEdge];
+  pageInfo: PageInfo;
+}
+
+export interface ProfileEdge {
+  cursor: string;
+  node: ProfileShortResponse;
+}
+
+export interface ProfileShortResponse {
+  id: string;
+  email: string;
+  name: Name;
+  identity:{
+    ssn:string;
+  };
+  contactInfo:{
+    cellPhone:string;
+  };
+  employment: {
+    visaTitle:string;
+  }
+}
+
+export interface ProfileConnectionResponseType {
+  data: {
+    getProfileConnection: ProfileConnectionType;
+  };
+}
+
+export interface SingleProfileResponseType {
+  data: {
+    getProfile: Profile;
   };
 }
