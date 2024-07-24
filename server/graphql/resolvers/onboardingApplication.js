@@ -529,7 +529,6 @@ const onboardingApplicationResolvers = {
                  if( !checkUser(decodedUser,userId)){
                      throw new Error('Query id and auth user do not match.');
                  }
-
                 const document = await Document.findById(documentId);
                 if (!document) {
                     throw new Error("Document not found");
@@ -541,10 +540,14 @@ const onboardingApplicationResolvers = {
                 }
 
                 //remove from oa document list
+                // const updatedOA = await OnboardingApplication.findByIdAndUpdate(id, {
+                //     $pop: { "documents": documentId },
+                // }, { new: true }).populate("documents");
                 const updatedOA = await OnboardingApplication.findByIdAndUpdate(id, {
-                    $pop: { "documents": documentId },
-                }, { new: true }).populate("documents");
-
+                    $pull: { documents: documentId },
+                  }, { new: true }).populate("documents");
+                  
+                console.log("!!!!!", updatedOA)
                 //delete from document db
                 await Document.findByIdAndDelete(documentId);
 

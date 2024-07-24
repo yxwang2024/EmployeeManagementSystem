@@ -263,12 +263,17 @@ export const fetchOnboardingData = createAsyncThunk(
       // return response.data.getOnboardingApplication;
       const onboardingData = response.data.data.getOnboardingApplication;
       onboardingData.userId = userId;
-      console.log("Onboarding data:", onboardingData);
+      // console.log("Onboarding data:", onboardingData);
       // return onboardingData;
       const emergencyContacts = (onboardingData.emergencyContacts || []).map((contact: any) => {
         const { id, ...rest } = contact;
         return rest;
       });
+      const optReceiptDocument = onboardingData.documents.find(doc => doc.filename === 'optReceipt');
+      const driverLicenseDocument = onboardingData.documents.find(doc => doc.fileBame === 'driverLicense');
+      // console.log("!!!", onboardingData.documents);
+      // console.log("optReceiptDocument URL: ", optReceiptDocument ? optReceiptDocument : 'not found');
+      // console.log("driverLicenseDocument URL: ", driverLicenseDocument ? driverLicenseDocument : 'not found');
 
       const formattedData = {
         userId: userId,
@@ -299,9 +304,9 @@ export const fetchOnboardingData = createAsyncThunk(
           visaTitle: ['H1-B', 'L2', 'F1(CPT/OPT)', 'H4', ''].includes(onboardingData.employment.visaTitle) ? onboardingData.employment.visaTitle : 'Other',
           startDate: formatDate(onboardingData.employment.startDate) || '',
           endDate: formatDate(onboardingData.employment.endDate) || '',
-          optReceipt: onboardingData.employment.optReceipt || '',
+          optReceipt: optReceiptDocument ? optReceiptDocument.url : '',
           otherVisa: ['H1-B', 'L2', 'F1(CPT/OPT)', 'H4'].includes(onboardingData.employment.visaTitle) ? '' : onboardingData.employment.visaTitle,
-          driverLicense: onboardingData.employment.driverLicense || ''
+          driverLicense: driverLicenseDocument ? driverLicenseDocument.url : '',
         },
         reference: onboardingData.reference || null,
         emergencyContacts: emergencyContacts || [],
@@ -402,6 +407,7 @@ export const updateOAProfilePic: any = createAsyncThunk(
       if (!document) {
         throw new Error("Failed to upload the profile picture");
       }
+      // console.log("onInfo: ", document)
       const documentId = document._id;
       const profilePictureUrl = document.url;
 
@@ -478,6 +484,7 @@ export const getUrl = (title: string, file: File) =>
       title,
       file
     );
+    // console.log("oaInfo: ", response.data.createDocument)
     return response.data.createDocument;
   } catch (error) {
     console.error(error);
@@ -690,6 +697,37 @@ export const updateOAStatus: any = createAsyncThunk(
   }
 );
 
+//删除oa Document
+export const deleteOADocument: any = createAsyncThunk(
+  'oaInfo/deleteOADocument',
+  async ({ id, documentId }: { id: string, documentId: string }, { rejectWithValue }) => {
+    const query = `
+      mutation DeleteOADocument($input: uploadDocumentInput!) {
+        deleteOADocument(input: $input) {
+          id
+          documents {
+            url
+            title
+            timestamp
+            key
+            filename
+          }
+        }
+      }
+    `;
+    try {
+      const response = await axiosInstance.post('', {
+        query,
+        variables: { input: { id, documentId } },
+      });
+      return response.data.data.deleteOADocument;
+    } catch (error) {
+      console.error('Delete OA Document failed:', error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const formatDate = (timestamp: string | number | undefined): string => {
   if (!timestamp) return '';
   const date = new Date(parseInt(timestamp.toString(), 10));
@@ -837,6 +875,10 @@ const oaInfoSlice = createSlice({
       })
       .addCase(fetchOnboardingData.rejected, (state, action) => {
         console.error('fetchOnboardingData rejected:', action.payload);
+      })
+      .addCase(deleteOADocument.fulfilled, (state, action) => {
+        state.documents = state.documents.filter(doc => doc._id !== action.meta.arg.documentId);
+        localStorage.setItem(`oaInfo-${state.userId}`, JSON.stringify(state));
       });
   },
 });
