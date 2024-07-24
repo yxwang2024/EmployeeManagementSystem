@@ -102,7 +102,7 @@ const PendingInfo: React.FC = () => {
             <tr>
               <td className="text-black border border-gray-200 px-4 py-2 font-semibold">Documents</td>
               <td className="border border-gray-200 px-4 py-2">
-                {/* {applicationInfo.documents.map((doc, index) => (
+                {applicationInfo.documents.map((doc, index) => (
                   <div key={index} className="flex items-center flex-row justify-between space-x-2 w-full border-b-2 pb-2">
                     <div className="md:min-w-36 md:max-w-56">
                       {doc.title}
@@ -114,7 +114,7 @@ const PendingInfo: React.FC = () => {
                     </div>
                     <DocViewerComponent key={index} title={doc.title} url={doc.url} type={doc.filename.split('.').pop() || ''} />
                   </div>
-                ))} */}
+                ))}
               </td>
             </tr>
           </tbody>

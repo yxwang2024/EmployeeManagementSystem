@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Formik, Form, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -62,6 +62,12 @@ const DocumentSchema = Yup.object().shape({
 const Document: React.FC = () => {
   const dispatch = useDispatch();
   const document = useSelector((state: RootState) => state.oaInfo.document);
+  const [isEditing, setIsEditing] = useState(false);
+  const [initialValues, setInitialValues] = useState(document);
+
+  useEffect(() => {
+    setInitialValues(document);
+  }, [document]);
 
   const visaOptions = [
     { value: 'H1-B', label: 'H1-B' },
@@ -71,65 +77,46 @@ const Document: React.FC = () => {
     { value: 'Other', label: 'Other' },
   ];
 
-  const initialValues = {
-    isCitizen: document.isCitizen || false,
-    visaTitle: document.visaTitle || '',
-    startDate: document.startDate || '',
-    endDate: document.endDate || '',
-    otherVisa: document.otherVisa || '',
-    optReceipt: document.optReceipt || '',
-    driverLicense: document.driverLicense || '',
-  };
-
-  const handleValidationAndUpdate = (values: any, actions: FormikHelpers<typeof initialValues>) => {
-    if (values.isCitizen) {
-      const documentData = {
-        isCitizen: values.isCitizen,
-        visaTitle: '',
-        startDate: '',
-        endDate: '',
-        otherVisa: '',
-        optReceipt: '',
-        driverLicense: values.driverLicense,
-      };
-      dispatch(updateDocument(documentData));
-      dispatch(setCurrentStep(5));
-      actions.setSubmitting(false);
-    } else {
-      DocumentSchema.validate(values, { abortEarly: false })
-        .then(() => {
-          const documentData = {
-            isCitizen: values.isCitizen,
-            visaTitle: values.visaTitle,
-            startDate: values.startDate,
-            endDate: values.endDate,
-            otherVisa: values.otherVisa,
-            optReceipt: values.optReceipt,
-            driverLicense: values.driverLicense,
-          };
-          dispatch(updateDocument(documentData));
-          dispatch(setCurrentStep(5));
-          actions.setSubmitting(false);
-        })
-        .catch((errors) => {
-          actions.setErrors(errors.inner.reduce((acc: any, error: any) => {
-            acc[error.path] = error.message;
-            return acc;
-          }, {}));
-          actions.setSubmitting(false);
-        });
+  const handleValidationAndUpdate = (values: any) => {
+    const isValid = DocumentSchema.isValidSync(values);
+    if (isValid) {
+      dispatch(updateDocument(values));
     }
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = (resetForm: (nextState?: Partial<typeof initialValues>) => void) => {
+    const confirmCancel = window.confirm('Do you want to discard all changes?');
+    if (confirmCancel) {
+      resetForm();
+      setIsEditing(false);
+    }
+  };
+
+  const handleSave = (values: any, actions: FormikHelpers<typeof initialValues>) => {
+    handleValidationAndUpdate(values);
+    setIsEditing(false);
+    actions.setSubmitting(false);
+  };
+
+  const isOnboarding = window.location.pathname === '/onboardingapplication';
+
   return (
     <Formik
+      enableReinitialize
       initialValues={initialValues}
       validationSchema={DocumentSchema}
-      validateOnBlur
-      validateOnChange
-      onSubmit={handleValidationAndUpdate}
+      onSubmit={(values, actions) => {
+        handleSave(values, actions);
+        if (isOnboarding) {
+          dispatch(setCurrentStep(5));
+        }
+      }}
     >
-      {({ handleSubmit, values, setFieldValue }) => (
+      {({ handleSubmit, values, setFieldValue, resetForm }) => (
         <Form onSubmit={handleSubmit}>
           <h2 className='text-center font-semibold text-gray-700 text-2xl md:text-3xl mb-10'>Documents</h2>
           <div className='grid grid-col1 sm:grid-cols-2 sm:gap-x-8'>
@@ -148,6 +135,7 @@ const Document: React.FC = () => {
                     setFieldValue('optReceipt', '');
                   }
                 }}
+                disabled={!isOnboarding && !isEditing}
               />
             </div>
             {!values.isCitizen && (
@@ -156,12 +144,14 @@ const Document: React.FC = () => {
                   name="visaTitle"
                   label="Work Authorization"
                   options={visaOptions}
+                  disabled={!isOnboarding && !isEditing}
                 />
                 {values.visaTitle === 'F1(CPT/OPT)' && 
                   <CustomFile 
                     name="optReceipt" 
                     label="OPT Receipt" 
                     type="file" 
+                    disabled={!isOnboarding && !isEditing}
                     onChange={(event) => {
                       if (event.currentTarget.files) {
                         const file = event.currentTarget.files[0];
@@ -183,16 +173,17 @@ const Document: React.FC = () => {
                           reader.onerror = (error) => console.error('Error reading file:', error);
                         }
                       }
-                  }} 
-                />
+                    }} 
+                  />
                 }
-                {values.visaTitle === 'Other' && <CustomTextField name="otherVisa" label="Specify Visa Title" />}
+                {values.visaTitle === 'Other' && <CustomTextField name="otherVisa" label="Specify Visa Title" disabled={!isOnboarding && !isEditing} />}
                 <CustomTextField 
                   name="startDate" 
                   label="Start Date" 
                   type="date" 
                   onKeyDown={(e) => e.preventDefault()} 
                   onPaste={(e) => e.preventDefault()}  
+                  disabled={!isOnboarding && !isEditing}
                 />
                 <CustomTextField 
                   name="endDate" 
@@ -200,6 +191,7 @@ const Document: React.FC = () => {
                   type="date" 
                   onKeyDown={(e) => e.preventDefault()} 
                   onPaste={(e) => e.preventDefault()}  
+                  disabled={!isOnboarding && !isEditing}
                 />
               </>
             )}
@@ -208,6 +200,7 @@ const Document: React.FC = () => {
                 name="driverLicense" 
                 label="Driver License" 
                 type="file" 
+                disabled={!isOnboarding && !isEditing}
                 onChange={(event) => {
                   if (event.currentTarget.files) {
                     const file = event.currentTarget.files[0];
@@ -233,12 +226,25 @@ const Document: React.FC = () => {
               />
             </div>
           </div>
-          <StepController 
-            currentStep={4} 
-            totalSteps={7} 
-            onNext={handleSubmit} 
-            onSubmit={handleSubmit} 
-          />
+          {isOnboarding ? (
+            <StepController 
+              currentStep={4} 
+              totalSteps={7} 
+              onNext={() => handleValidationAndUpdate(values)}
+              onSubmit={handleSubmit} 
+            />
+          ) : (
+            <div className='mt-8'>
+              {isEditing ? (
+                <div className='flex'>
+                  <button type="button" className='px-4 py-2 bg-blue-600 text-white font-semibold rounded mr-4 flex me-auto' onClick={() => handleCancel(resetForm)}>Cancel</button>
+                  <button type="submit" className='px-4 py-2 bg-blue-600 text-white font-semibold rounded flex ms-auto'>Save</button>
+                </div>
+              ) : (
+                <button type="button" className='px-4 py-2 bg-blue-600 text-white font-semibold rounded' onClick={handleEdit}>Edit</button>
+              )}
+            </div>
+          )}
         </Form>
       )}
     </Formik>
