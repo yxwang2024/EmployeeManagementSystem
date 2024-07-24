@@ -10,6 +10,7 @@ import HiringManagement from "../pages/HiringManagement";
 import ErrorPage from "../pages/Error";
 import { ProtectedRoute, ProtectedRouteEmployee, ProtectedRouteHR } from "../routes/ProtectedRoute";
 import VisaStatusDetailedView from "../pages/VisaStatusDetailedView";
+import OnboardingDetailedView from "../pages/OnboardingDetailedView";
 import HrEmployeeProfiles from "../pages/HrEmployeeProfiles";
 import ProfileDetailedView from "../pages/ProfileDetailedView";
 
@@ -69,6 +70,11 @@ const router = createBrowserRouter([
       { 
         path: `/hiring-management`,
         element: <ProtectedRouteHR><HiringManagement /></ProtectedRouteHR>,
+        errorElement: <ErrorPage />
+      },
+      {
+        path: '/hiring-management/detailed/:id',
+        element: <ProtectedRoute><OnboardingDetailedView /></ProtectedRoute>,
         errorElement: <ErrorPage />
       },
       {

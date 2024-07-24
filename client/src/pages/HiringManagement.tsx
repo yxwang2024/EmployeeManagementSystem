@@ -12,10 +12,14 @@ import {
   Typography,
   Input,
   Button,
+  Stack,
 } from '@mui/material';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import { useSearchParams } from "react-router-dom";
+import SearchBar from '../components/SearchBar';
+import { updateSearchValue, triggerSearch } from '../store/slices/search';
+import OnboardingReviewTable from '../components/OnboardingReviewTable';
 
 const BASE_URL = "http://localhost:5173/signup?registrationToken=";
 
@@ -31,6 +35,15 @@ const AntTabs = styled(Tabs)({
   },
 });
 
+// interface StyledTabsProps {
+//   children?: React.ReactNode;
+//   value: number;
+//   onChange: (event: React.SyntheticEvent, newValue: number) => void;
+// }
+
+interface StyledTabProps {
+  label: string;
+}
 
 const AntTab = styled((props: StyledTabProps) => <Tab disableRipple {...props} />)(
   ({ theme }) => ({
@@ -68,49 +81,39 @@ const AntTab = styled((props: StyledTabProps) => <Tab disableRipple {...props} /
   }),
 );
 
-interface StyledTabsProps {
-  children?: React.ReactNode;
-  value: number;
-  onChange: (event: React.SyntheticEvent, newValue: number) => void;
-}
+// const StyledTabs = styled((props: StyledTabsProps) => (
+//   <Tabs
+//     {...props}
+//     TabIndicatorProps={{ children: <span className="MuiTabs-indicatorSpan" /> }}
+//   />
+// ))({
+//   '& .MuiTabs-indicator': {
+//     display: 'flex',
+//     justifyContent: 'center',
+//     backgroundColor: 'transparent',
+//   },
+//   '& .MuiTabs-indicatorSpan': {
+//     maxWidth: 40,
+//     width: '100%',
+//     backgroundColor: '#635ee7',
+//   },
+// });
 
-const StyledTabs = styled((props: StyledTabsProps) => (
-  <Tabs
-    {...props}
-    TabIndicatorProps={{ children: <span className="MuiTabs-indicatorSpan" /> }}
-  />
-))({
-  '& .MuiTabs-indicator': {
-    display: 'flex',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-  },
-  '& .MuiTabs-indicatorSpan': {
-    maxWidth: 40,
-    width: '100%',
-    backgroundColor: '#635ee7',
-  },
-});
-
-interface StyledTabProps {
-  label: string;
-}
-
-const StyledTab = styled((props: StyledTabProps) => (
-  <Tab disableRipple {...props} />
-))(({ theme }) => ({
-  textTransform: 'none',
-  fontWeight: theme.typography.fontWeightRegular,
-  fontSize: theme.typography.pxToRem(15),
-  marginRight: theme.spacing(1),
-  color: 'rgba(255, 255, 255, 0.7)',
-  '&.Mui-selected': {
-    color: '#fff',
-  },
-  '&.Mui-focusVisible': {
-    backgroundColor: 'rgba(100, 95, 228, 0.32)',
-  },
-}));
+// const StyledTab = styled((props: StyledTabProps) => (
+//   <Tab disableRipple {...props} />
+// ))(({ theme }) => ({
+//   textTransform: 'none',
+//   fontWeight: theme.typography.fontWeightRegular,
+//   fontSize: theme.typography.pxToRem(15),
+//   marginRight: theme.spacing(1),
+//   color: 'rgba(255, 255, 255, 0.7)',
+//   '&.Mui-selected': {
+//     color: '#fff',
+//   },
+//   '&.Mui-focusVisible': {
+//     backgroundColor: 'rgba(100, 95, 228, 0.32)',
+//   },
+// }));
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -134,8 +137,6 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
-
-
 const HiringManagement: React.FC = () => {
   const dispatch = useAppDispatch();
   const hr = useAppSelector((state) => state.hr.hr);
@@ -144,6 +145,7 @@ const HiringManagement: React.FC = () => {
   const { showLoading, showMessage } = useGlobal();
 
   const [value, setValue] = React.useState(0);
+  const [option, setOption] = useState("All");
 
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -152,6 +154,11 @@ const HiringManagement: React.FC = () => {
       setValue(parseInt(searchParams.get('tab') || '0'));
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    dispatch(updateSearchValue(""));
+    dispatch(triggerSearch());
+  }, [option]);
 
 
   useEffect(() => {
@@ -172,7 +179,7 @@ const HiringManagement: React.FC = () => {
     }
   }, [user]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
     // ?tab=0 or ?tab=1&page=1 or ?tab=2&page=1
     if (newValue === 0) {
@@ -291,7 +298,21 @@ const HiringManagement: React.FC = () => {
         </div>
       </CustomTabPanel>
       <CustomTabPanel value={value} index={2}>
-        Onboarding Review
+        <Stack direction="row" spacing={3}>
+          <Button size="medium" variant={option === "Pending" ? "outlined" : "contained"} onClick={() => setOption("Pending")}>
+            Pending
+          </Button>
+          <Button size="medium" variant={option === "All" ? "outlined" : "contained"} onClick={() => setOption("All")}>
+            All
+          </Button>
+          <Button size="medium" variant={option === "Rejected" ? "outlined" : "contained"} onClick={() => setOption("Rejected")}>
+            Rejected
+          </Button>
+        </Stack>
+        <SearchBar option={option}></SearchBar>
+        <Box sx={{ my: 3 }}>
+          <OnboardingReviewTable option={option}></OnboardingReviewTable>
+        </Box>
       </CustomTabPanel>
     </Box>
     </div>
