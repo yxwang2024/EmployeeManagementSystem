@@ -12,8 +12,9 @@ import {
 } from "../utils/type";
 import {
   GET_ONBOARDING,
-  APPROVE_VISA_STATUS,
-  REJECT_VISA_STATUS,
+  APPROVE_ONBOARDING,
+  REJECT_ONBOARDING,
+  UPDATE_ONBOARDING_HR_FEEDBACK,
 } from "../services/queries";
 import { request } from "../utils/fetch";
 import {
@@ -57,8 +58,8 @@ const OnboardingDetailedView = () => {
 
   const approveOnboarding = async () => {
     try {
-      const response = await request(APPROVE_VISA_STATUS, {
-        approveVisaStatusId: id,
+      const response = await request(APPROVE_ONBOARDING, {
+        input: { id: id, status: "Approved" },
       });
       console.log("Approve Response:", response);
     } catch (e) {
@@ -69,11 +70,14 @@ const OnboardingDetailedView = () => {
 
   const rejectOnboarding = async () => {
     try {
-      const response = await request(REJECT_VISA_STATUS, {
-        rejectVisaStatusId: id,
-        hrFeedback: feedback,
+      const response = await request(REJECT_ONBOARDING, {
+        input: { id: id, status: "Rejected"},
       });
       console.log("Reject Response:", response);
+      const feedbackResponse = await request(UPDATE_ONBOARDING_HR_FEEDBACK, {
+        input: { id: id, hrFeedback: feedback },
+      });
+      console.log("Feedback Response:", feedbackResponse);
     } catch (e) {
       console.log(e);
       showMessage(String(e));
@@ -406,28 +410,28 @@ const OnboardingDetailedView = () => {
       )}
       <div className="w-11/12 border p-8 rounded-lg bg-white shadow-lg  mb-12">
         {
-          onboarding?.status === "Not Submitted" && (
+          onboarding?.status === "NotSubmitted" && (
             <div className="flex items-center space-x-2 w-full justify-center">
-              <Typography variant="body1">Onboarding Application Not Submitted, waiting for submission</Typography>
+              <Typography variant="body1">Not Submitted, waiting for submission</Typography>
             </div>
           )
         }
         {
           onboarding?.status === "Approved" && (
             <div className="flex items-center space-x-2 w-full justify-center">
-              <Typography variant="body1">Visa Status Approved, No further action needed</Typography>
+              <Typography variant="body1">Approved, No further action needed</Typography>
             </div>
           )
         }
         {
           onboarding?.status === "Rejected" && (
-            <div className="flex items-center space-x-2 w-full justify-center">
-              <Typography variant="body1">Onboarding Application Rejected, waiting for resubmission</Typography>
+            <div className="flex flex-col items-center space-y-2 w-full justify-center">
+              <Typography variant="body1">Rejected, waiting for resubmission</Typography>
               <Typography variant="body1">HR Feedback: {onboarding?.hrFeedback}</Typography>
             </div>
           )
         }
-        {onboarding?.status === "Reviewing" && !expandFeedback && (
+        {onboarding?.status === "Pending" && !expandFeedback && (
           <Box
             display="flex"
             flexDirection="row"
@@ -447,7 +451,7 @@ const OnboardingDetailedView = () => {
             </Button>
           </Box>
         )}
-        {onboarding?.status === "Reviewing" && expandFeedback && (
+        {onboarding?.status === "Pending" && expandFeedback && (
           <div className="flex items-center w-full ">
             <TextField
               fullWidth

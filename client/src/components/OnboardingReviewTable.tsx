@@ -173,7 +173,7 @@ const OnboardingReviewTable: React.FC<{ option: string }> = ({ option }) => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [query, setQuery] = useState({
-    first: 1,
+    first: rowsPerPage? rowsPerPage: 5,
     last: 0,
     before: "",
     after: "",
@@ -226,6 +226,8 @@ const OnboardingReviewTable: React.FC<{ option: string }> = ({ option }) => {
           email: edge.node.email,
         });
       });
+      console.log("edges", edges);
+      console.log("statusList", statusList);
       setOnboardings(statusList);
     } catch (e) {
       console.log(e);
